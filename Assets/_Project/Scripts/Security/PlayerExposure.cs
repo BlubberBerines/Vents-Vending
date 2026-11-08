@@ -22,10 +22,44 @@ namespace VentsAndVending.Security
         public int ContrabandUnits => _inventory != null ? SecurityRules.CountContraband(_inventory.Model) : 0;
         public InventoryComponent Inventory => _inventory;
 
-        public float Visibility => SecurityRules.Visibility(_state != null ? _state.Posture : PlayerMovementState.Normal, InVent);
+        /// <summary>The restricted zone the player is standing in, if any.</summary>
+        public SecurityZone RestrictedZone { get; private set; }
+
+        /// <summary>Inside a hiding spot: invisible to security.</summary>
+        public bool IsHidden { get; private set; }
+
+        public float Visibility => SecurityRules.Visibility(_state != null ? _state.Posture : PlayerMovementState.Normal, InVent, IsHidden);
 
         public float Suspiciousness => SecurityRules.Suspiciousness(ContrabandUnits, IsDealing,
-            _state != null && _state.Current == PlayerMovementState.Sprinting);
+            _state != null && _state.Current == PlayerMovementState.Sprinting, RestrictedZone != null);
+
+        private readonly Collider[] _zoneHits = new Collider[8];
+
+        private void Update()
+        {
+            // Probe at the torso, the same way VentCrawler finds vent zones (triggers + CharacterController are unreliable).
+            int count = Physics.OverlapSphereNonAlloc(TorsoPoint, 0.25f, _zoneHits, ~0, QueryTriggerInteraction.Collide);
+            SecurityZone restricted = null;
+            bool hidden = false;
+            for (int i = 0; i < count; i++)
+            {
+                SecurityZone zone = _zoneHits[i].GetComponent<SecurityZone>();
+                if (zone == null)
+                {
+                    continue;
+                }
+                if (zone.Kind == SecurityZoneKind.Hideout)
+                {
+                    hidden = true;
+                }
+                else if (restricted == null)
+                {
+                    restricted = zone;
+                }
+            }
+            RestrictedZone = restricted;
+            IsHidden = hidden;
+        }
 
         private void Awake()
         {

@@ -53,6 +53,9 @@ namespace VentsAndVending.Security
             return s;
         }
 
+        /// <summary>A catch in a restricted zone with an exit walks the player out (a one-way area must never trap them).</summary>
+        public static bool ShouldEscort(bool inRestrictedZone, bool hasExit) => inRestrictedZone && hasExit;
+
         /// <summary>Security gets stricter after repeated incidents (GDD §11.5 "increased security presence").</summary>
         public static float Vigilance(int incidents) => 1f + 0.15f * Math.Min(Math.Max(0, incidents), 6);
 

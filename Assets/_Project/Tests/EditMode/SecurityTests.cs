@@ -188,6 +188,14 @@ namespace VentsAndVending.Tests
             Assert.AreEqual(0.5f + 0.08f + 0.6f, SecurityRules.Suspiciousness(1, false, false, trespassing: true), 1e-4f);
 
         [Test]
+        public void Escort_OnlyWhenRestrictedAndHasExit()
+        {
+            Assert.IsTrue(SecurityRules.ShouldEscort(true, true));
+            Assert.IsFalse(SecurityRules.ShouldEscort(true, false));
+            Assert.IsFalse(SecurityRules.ShouldEscort(false, true));
+        }
+
+        [Test]
         public void DefaultArgs_MatchOldBehaviour() =>
             Assert.AreEqual(0f, SecurityRules.Suspiciousness(0, false, false));
     }

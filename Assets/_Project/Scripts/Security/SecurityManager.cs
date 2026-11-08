@@ -5,6 +5,7 @@ using UnityEngine;
 using VentsAndVending.Economy;
 using VentsAndVending.Interaction;
 using VentsAndVending.Inventory;
+using VentsAndVending.Player;
 
 namespace VentsAndVending.Security
 {
@@ -112,6 +113,27 @@ namespace VentsAndVending.Security
             {
                 string goods = confiscated > 0 ? $"{confiscated} illegal item(s) confiscated. " : string.Empty;
                 interactor.Notify($"<color=#FF5050>DETAINED!</color> {goods}Fined {fine} CC. \"Unlicensed molecular condensation is a serious administrative inconvenience.\"");
+            }
+
+            SecurityZone zone = player.RestrictedZone;
+            if (SecurityRules.ShouldEscort(zone != null, zone != null && zone.EscortExit != null))
+            {
+                var movement = player.GetComponent<PlayerMovement>();
+                if (movement != null)
+                {
+                    movement.Teleport(zone.EscortExit.position, zone.EscortExit.rotation);
+                }
+                if (interactor != null)
+                {
+                    interactor.Notify(zone.EscortMessage);
+                }
+                foreach (SecurityDrone unit in _units)
+                {
+                    if (unit != null)
+                    {
+                        unit.ResetToPatrol();
+                    }
+                }
             }
         }
     }

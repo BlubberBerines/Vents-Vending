@@ -520,6 +520,19 @@ namespace VentsAndVending.Security
             }
         }
 
+        /// <summary>Forget the player and go back to the patrol (after an escort-out). The catch cooldown keeps running.</summary>
+        public void ResetToPatrol()
+        {
+            _searchPoints.Clear();
+            bool wasAware = _alert.State != AlertState.Unaware;
+            _alert.Reset();
+            if (!wasAware && _patrolPoints != null && _patrolPoints.Length > 0)
+            {
+                ResumeNearest();
+            }
+            _pathTarget = new Vector3(float.MaxValue, 0f, 0f);
+        }
+
         internal void SetPatrol(Transform[] points, DetourRoute[] detours = null, Bounds zone = default)
         {
             _patrolPoints = points;
