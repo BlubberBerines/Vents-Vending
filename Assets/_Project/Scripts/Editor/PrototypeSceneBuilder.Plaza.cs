@@ -148,8 +148,7 @@ namespace VentsAndVending.Editor
             CreateHatch("Plaza Grate", g, new Vector3(x, h, z1 + 0.04f), new Vector3(-100f, 0f, 0f), vent, accent);
             NoCollider(Block("Hatch_Frame_Hideout", g, new Vector3(x, h + t + 0.05f, z0 + 0.05f), new Vector3(w + t * 2f + 0.2f, 0.1f, 0.1f), accent));
             NoCollider(Block("Hatch_Frame_Plaza", g, new Vector3(x, h + t + 0.05f, z1 - 0.05f), new Vector3(w + t * 2f + 0.2f, 0.1f, 0.1f), accent));
-
-            CreateSign("Vent_Sign_Hideout", "TO PLAZA →", new Vector3(x, 1.25f, z0 - 0.06f), 0f, 0.7f, new Color(1f, 0.85f, 0.4f), 1.6f, -3f);
+            SignPlate("Vent_Sign_Hideout", "05 · PLAZA ACCESS", "↓ CRAWL TO THE PLAZA", new Vector3(x, 1.55f, z0), 0f, SignStyle.Maintenance, 1.25f, 0.42f, -3f);
         }
 
         private static GameObject CreateHatch(string name, Transform parent, Vector3 hingePosition, Vector3 openRotation, Material panelMat, Material grilleMat)
@@ -253,6 +252,10 @@ namespace VentsAndVending.Editor
             var go = new GameObject(name);
             go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, roll));
             var tmp = go.AddComponent<TextMeshPro>();
+            if (VentsAndVending.UI.UiTheme.Current != null && VentsAndVending.UI.UiTheme.Current.Bold != null)
+            {
+                tmp.font = VentsAndVending.UI.UiTheme.Current.Bold;
+            }
             tmp.text = text;
             tmp.fontSize = fontSize;
             tmp.alignment = TextAlignmentOptions.Center;

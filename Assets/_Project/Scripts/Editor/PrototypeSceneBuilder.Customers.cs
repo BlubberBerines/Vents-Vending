@@ -37,7 +37,7 @@ namespace VentsAndVending.Editor
             var strip = Block("Door_Neon", g, new Vector3(0f, 3.02f, z - 0.32f), new Vector3(2.3f, 0.05f, 0.05f), doorGlow);
             Object.DestroyImmediate(strip.GetComponent<Collider>());
             CreatePointLight("Door Glow", new Vector3(0f, 2.6f, z - 1.2f), new Color(1f, 0.2f, 0.85f), 6f, 2f, g);
-            CreateSign("Door_Sign", "CITADEL-9 TRANSIT CONCOURSE", new Vector3(0f, 3.5f, z - 0.32f), 0f, 1.6f, new Color(1f, 0.6f, 0.95f), 6f);
+            SignPlate("Door_Sign", "CITADEL-9 TRANSIT CONCOURSE", "PLATFORMS 1–40 · CUSTOMS · LOST LIMBS", new Vector3(0f, 3.7f, z), 0f, SignStyle.Plaza, 5.2f, 0.8f);
 
             // Spawn/exit and three trade spots marked on the floor
             var spawn = new GameObject("Customer Spawn").transform;

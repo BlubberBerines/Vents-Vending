@@ -63,11 +63,9 @@ namespace VentsAndVending.Editor
         private static void BuildJunctionSigns()
         {
             // On the gallery's west wall, facing a player who has just crawled out of the nook
-            var plate = GetOrCreateMaterial("Sign_Plate", new Color(0.12f, 0.13f, 0.12f), 0.3f);
-            var g = new GameObject("JunctionSign").transform;
-            NoCollider(Box("Plate", g, new Vector3(-0.6f, 1.25f, -9.75f), new Vector3(-0.57f, 2.05f, -8.15f), plate));
-            CreateSign("Junction_Sign", "<color=#FFD24D>SECTOR 3 · SERVICE JUNCTION</color>\n<size=80%>↑  05 PLAZA ACCESS\n→  04 FAN JUNCTION · 16 POWER</size>",
-                new Vector3(-0.565f, 1.65f, -8.95f), -90f, 0.85f, new Color(0.95f, 0.92f, 0.8f), 1.5f, 1.5f);
+            SignPlate("Junction_Sign", "SECTOR 3 · SERVICE JUNCTION", "↑ 05 PLAZA ACCESS\n→ 04 FAN JUNCTION · 16 POWER", new Vector3(-0.6f, 1.65f, -8.95f), -90f, SignStyle.Maintenance, 1.55f, 0.8f, 1.5f);
+            // Over the hatch home
+            SignPlate("Nook_Sign", "01 · THE NOOK", "HOME · KNOCK FIRST", new Vector3(ExitDuctX, 1.4f, -14.5f), 0f, SignStyle.Maintenance, 0.95f, 0.4f, -2.5f);
         }
 
         // ------------------------------------------------------------------ E1: 02 → 04
@@ -82,7 +80,7 @@ namespace VentsAndVending.Editor
             PipeX(g, 1.4f, 8.5f, 0.3f, -8.33f, 0.09f, vent, dark);
             SagCable(g, new Vector3(8.5f, 2.18f, -8.35f), new Vector3(1.4f, 2.18f, -8.35f), 0.03f, power);
             HangingBulb(g, new Vector3(5f, 2.3f, -9f), 0.25f, new Color(1f, 0.72f, 0.4f), 4.5f, 1.3f, false);
-            CreateSign("E1_Arrow", "→ 04 FAN JUNCTION", new Vector3(2.2f, 1.9f, -9.79f), 180f, 0.6f, new Color(1f, 0.85f, 0.4f), 1.6f, 2f);
+            SignPlate("E1_Arrow", "→ 04 FAN JUNCTION", null, new Vector3(2.4f, 1.85f, -9.8f), 180f, SignStyle.Maintenance, 1.3f, 0.32f, 2f);
         }
 
         // ------------------------------------------------------------------ 04 Fan Junction
@@ -118,10 +116,9 @@ namespace VentsAndVending.Editor
             warning.range = 5f;
             warning.intensity = 2.2f;
             warning.color = new Color(1f, 0.12f, 0.08f);
-            CreateSign("Fan_Label", "<color=#FF6040>FAN 17 · INDUSTRIAL EXTRACTION</color>\n<size=75%>KEEP CLEAR WHILE RUNNING\nISOLATE AT BRK_FAN_04 (16 · POWER) →</size>",
-                new Vector3(11f, 2.45f, -6.02f), 0f, 1.05f, new Color(1f, 0.9f, 0.75f), 3.6f);
-            CreateSign("R04_Sign", "04 · FAN JUNCTION", new Vector3(10.2f, 2.5f, -11.48f), 180f, 0.8f, new Color(1f, 0.85f, 0.4f), 2.4f, -2f);
-            CreateSign("R16_Arrow", "16 · POWER →", new Vector3(13.48f, 2.45f, -9f), 90f, 0.65f, new Color(1f, 0.85f, 0.4f), 1.4f);
+            SignPlate("Fan_Label", "FAN 17 · INDUSTRIAL EXTRACTION", "KEEP CLEAR WHILE RUNNING\nISOLATE AT BRK_FAN_04 (16 · POWER) →", new Vector3(11f, 2.5f, -6f), 0f, SignStyle.Warning, 2.7f, 0.66f);
+            SignPlate("R04_Sign", "04 · FAN JUNCTION", null, new Vector3(10.2f, 2.45f, -11.5f), 180f, SignStyle.Maintenance, 1.9f, 0.36f, -2f);
+            SignPlate("R16_Arrow", "16 · POWER →", null, new Vector3(13.5f, 2.45f, -9f), 90f, SignStyle.Industrial, 1.2f, 0.32f);
 
             // Clutter: an orange cable drum and a crate, pipes overhead
             Part("CableDrum", g, new Vector3(9.2f, 0.35f, -10.8f), new Vector3(0.7f, 0.3f, 0.7f), orange, PrimitiveType.Cylinder).transform.rotation = Quaternion.Euler(0f, 0f, 90f);
@@ -175,7 +172,7 @@ namespace VentsAndVending.Editor
             CylinderBetween("PowerTail", g, new Vector3(16.85f, 1.3f, -9.75f), new Vector3(16.85f, 1.3f, -10.12f), 0.035f, power);
             CylinderBetween("PowerRiser", g, new Vector3(16.85f, 1.3f, -10.12f), new Vector3(16.85f, 2.5f, -10.12f), 0.035f, power);
             SagCable(g, new Vector3(16.85f, 2.5f, -10.12f), new Vector3(13.7f, 2.5f, -9.2f), 0.035f, power, 1.1f, 0.07f);
-            CreateSign("R16_Sign", "16 · POWER DISTRIBUTION", new Vector3(15.3f, 2.3f, -10.98f), 180f, 0.7f, new Color(1f, 0.85f, 0.4f), 2.4f);
+            SignPlate("R16_Sign", "16 · POWER DISTRIBUTION", null, new Vector3(15.3f, 2.25f, -11f), 180f, SignStyle.Industrial, 2.2f, 0.36f);
             HangingBulb(g, new Vector3(15.2f, 2.6f, -8.6f), 0.3f, new Color(1f, 0.85f, 0.65f), 4.5f, 1.6f, true);
         }
 
@@ -314,7 +311,7 @@ namespace VentsAndVending.Editor
             // Room dressing: maintenance lever (for later), sign, light
             Part("LeverBox", g, new Vector3(8.6f, 1.2f, 5.5f), new Vector3(0.14f, 0.4f, 0.3f), dark);
             Part("LeverHandle", g, new Vector3(8.72f, 1.32f, 5.5f), new Vector3(0.04f, 0.3f, 0.04f), orange, PrimitiveType.Cylinder).transform.rotation = Quaternion.Euler(0f, 0f, -30f);
-            CreateSign("R17_Sign", "17 · INDUSTRIAL FAN ROOM", new Vector3(11f, 3.35f, 6.98f), 0f, 0.8f, new Color(1f, 0.85f, 0.4f), 3f);
+            SignPlate("R17_Sign", "17 · INDUSTRIAL FAN ROOM", null, new Vector3(11f, 3.3f, 7f), 0f, SignStyle.Industrial, 2.6f, 0.4f, 1f);
             CreateSign("R17_Lever_Label", "MAINT. OVERRIDE\n<size=70%>(PARTS MISSING)</size>", new Vector3(8.52f, 1.75f, 5.5f), -90f, 0.3f, Color.white, 0.8f, -3f);
             PipeX(g, 8.5f, 13.5f, 3.3f, 6.75f, 0.14f, vent, dark);
             var amber = new GameObject("Fan Room Light").AddComponent<Light>();
@@ -430,8 +427,7 @@ namespace VentsAndVending.Editor
             so.FindProperty("_pivot").objectReferenceValue = pivot;
             so.FindProperty("_openRotation").vector3Value = new Vector3(95f, 0f, 0f);
             so.ApplyModifiedPropertiesWithoutUndo();
-
-            CreateSign("R06_Sign", "<color=#FFD24D>06 · DROP HATCH</color>\n<size=70%>↓ PLAZA SERVICE · ONE WAY</size>", new Vector3(18.5f, 3.9f, 24.58f), 0f, 0.95f, new Color(0.95f, 0.92f, 0.8f), 1.6f);
+            SignPlate("R06_Sign", "06 · DROP HATCH", "↓ PLAZA SERVICE · ONE WAY", new Vector3(18.5f, 3.85f, 24.6f), 0f, SignStyle.Warning, 1.45f, 0.5f);
             HangingBulb(g, new Vector3(18.5f, 4.8f, 9f), 0.6f, new Color(1f, 0.72f, 0.4f), 6f, 1.6f, false);
             HangingBulb(g, new Vector3(18.5f, 4.8f, 21.5f), 0.5f, new Color(1f, 0.72f, 0.4f), 5f, 1.5f, false);
             PipeZ(g, 3.8f, 24.6f, 4.45f, 19.12f, 0.09f, vent, dark);
@@ -467,8 +463,8 @@ namespace VentsAndVending.Editor
             var lso = new SerializedObject(latch);
             lso.FindProperty("_pivot").objectReferenceValue = hinge;
             lso.ApplyModifiedPropertiesWithoutUndo();
-            CreateSign("StaffDoor_Plaza", "<color=#FF6060>STAFF ONLY</color>", new Vector3(PlazaHalfWidth - 0.03f, 2.55f, 26f), 90f, 0.8f, Color.white, 1.4f);
-            CreateSign("StaffDoor_Hub", "PLAZA →\n<size=65%>(latch your side)</size>", new Vector3(16.53f, 2.05f, 27.2f), -90f, 0.65f, new Color(1f, 0.85f, 0.4f), 1f);
+            SignPlate("StaffDoor_Plaza", "STAFF ONLY", null, new Vector3(PlazaHalfWidth, 2.62f, 26f), 90f, SignStyle.Warning, 1.1f, 0.32f);
+            SignPlate("StaffDoor_Hub", "PLAZA →", "LATCH YOUR SIDE", new Vector3(16.5f, 2.0f, 27.4f), -90f, SignStyle.Plaza, 0.8f, 0.36f);
 
             // Contents: shelving, stock boxes, a cart. The landing under the hole stays clear.
             for (int s = 0; s < 3; s++)
@@ -489,8 +485,8 @@ namespace VentsAndVending.Editor
             }
             Block("Crate_Hub", g, new Vector3(21.9f, 0.35f, 29.6f), new Vector3(0.7f, 0.7f, 0.7f), ArtLibrary.Get("M_GreenPanel")).transform.rotation = Quaternion.Euler(0f, -9f, 0f);
             Block("Cart", g, new Vector3(17.4f, 0.45f, 29.8f), new Vector3(0.9f, 0.1f, 0.55f), silver);
-            CreateSign("R07_Sign", "<color=#9FE8FF>07 · PLAZA SERVICE HUB</color>\n<size=70%>STAFF ONLY · NO VENT PEOPLE</size>", new Vector3(20f, 1.9f, 21.03f), 180f, 0.95f, Color.white, 3.2f);
-            CreateSign("R08_Arrow", "08 · CUSTOMER VENT ↑", new Vector3(20f, 1.3f, 30.97f), 0f, 0.75f, new Color(1f, 0.85f, 0.4f), 1.6f, 2f);
+            SignPlate("R07_Sign", "07 · PLAZA SERVICE HUB", "STAFF ONLY · NO VENT PEOPLE", new Vector3(20f, 1.9f, 21f), 180f, SignStyle.Plaza, 2.2f, 0.5f);
+            SignPlate("R08_Arrow", "08 · CUSTOMER VENT ↑", null, new Vector3(20f, 1.3f, 31f), 0f, SignStyle.Plaza, 1.4f, 0.3f, 2f);
 
             var tube = new GameObject("Hub Light").AddComponent<Light>();
             tube.transform.SetParent(g, false);
@@ -531,7 +527,7 @@ namespace VentsAndVending.Editor
             NoCollider(Box("Trim_N", g, new Vector3(16.5f, 3.6f, 44.94f), new Vector3(27f, 3.68f, 45f), gold));
             NoCollider(Box("Trim_S", g, new Vector3(16.5f, 3.6f, 34.8f), new Vector3(27f, 3.68f, 34.86f), gold));
             NoCollider(Box("Trim_Door", g, new Vector3(26.94f, 3.02f, 38.8f), new Vector3(27f, 3.1f, 41.2f), gold));
-            CreateSign("Lounge_Sign", "<color=#FFD27A>CONCOURSE LOUNGE</color>\n<size=60%>PLATINUM RESIDENTS ONLY</size>", new Vector3(26.95f, 3.6f, 40f), 90f, 1.7f, Color.white, 5f);
+            SignPlate("Lounge_Sign", "CONCOURSE LOUNGE", "PLATINUM RESIDENTS ONLY", new Vector3(27f, 3.6f, 40f), 90f, SignStyle.Plaza, 3.4f, 0.75f);
 
             // Plush furniture
             Block("Bench_W", g, new Vector3(18.2f, 0.25f, 41f), new Vector3(0.7f, 0.5f, 2.4f), velvet);
