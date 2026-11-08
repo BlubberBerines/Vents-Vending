@@ -28,6 +28,7 @@ namespace VentsAndVending.Editor
         [MenuItem("Vents & Vending/Prototype/Build All Scenes")]
         public static void BuildAllScenes()
         {
+            UiThemeBuilder.Build();
             Build();
             BuildMainMenuScene();
             SetBuildScenes();

@@ -29,6 +29,8 @@ namespace VentsAndVending.UI
         private RectTransform _stockList;
         private TextMeshProUGUI _price;
         private TextMeshProUGUI _total;
+        private Image _riskFill;
+        private TextMeshProUGUI _riskLabel;
         private Button _offerButton;
         private TextMeshProUGUI _offerLabel;
         private TextMeshProUGUI _declineLabel;
@@ -174,6 +176,17 @@ namespace VentsAndVending.UI
                 enough = false;
             }
             _offerButton.interactable = enough && !_negotiation.IsClosed;
+
+            if (_order == null && _riskFill != null)
+            {
+                // How far over fair you are, against this customer's (hidden) tolerance: a readable hint, not the exact limit
+                int fairNow = _customer.FairUnitPrice(_selectedQuality ?? ItemQuality.Standard);
+                float over = fairNow > 0 ? (_unitPrice / (float)fairNow - 1f) : 0f;
+                float risk = Mathf.Clamp01(over / Mathf.Max(0.05f, _customer.PriceTolerance * 1.15f));
+                UiFactory.SetBar(_riskFill, Mathf.Max(0.04f, risk));
+                _riskFill.color = risk < 0.5f ? UiFactory.Go : risk < 0.85f ? UiFactory.Hazard : UiFactory.Alert;
+                _riskLabel.text = $"Walk-out risk  <b><color=#{ColorUtility.ToHtmlStringRGB(_riskFill.color)}>{(risk < 0.5f ? "safe" : risk < 0.85f ? "pushing it" : "greedy")}</color></b>";
+            }
         }
 
         private void Select(ItemQuality quality)
@@ -295,15 +308,12 @@ namespace VentsAndVending.UI
         {
             Canvas canvas = UiFactory.CreateCanvas(transform, "Sale Canvas", 12);
 
-            var dim = UiFactory.Image(canvas.transform, "Dim", new Color(0f, 0f, 0f, 0.35f));
-            UiFactory.Stretch(dim.rectTransform);
+            UiFactory.Dim(canvas.transform, 0.35f);
 
-            var panel = UiFactory.Image(canvas.transform, "Panel", UiFactory.PanelColor);
+            var panel = UiFactory.Panel(canvas.transform, "Panel");
             UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(1060f, 700f));
-            var accent = UiFactory.Image(panel.transform, "AccentBar", new Color(1f, 0.3f, 0.85f));
-            UiFactory.Place(accent.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1060f, 4f));
 
-            _title = UiFactory.Text(panel.transform, "Title", string.Empty, 34f);
+            _title = UiFactory.Heading(panel.transform, "Title", string.Empty, 34f);
             UiFactory.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -20f), new Vector2(1000f, 46f));
             _title.fontStyle = FontStyles.Bold;
 
@@ -319,7 +329,7 @@ namespace VentsAndVending.UI
             var priceLabel = UiFactory.Text(panel.transform, "PriceLabel", "Your price (each)", 22f, TextAlignmentOptions.Center, UiFactory.MutedText);
             UiFactory.Place(priceLabel.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -192f), new Vector2(420f, 32f));
 
-            _price = UiFactory.Text(panel.transform, "Price", string.Empty, 48f, TextAlignmentOptions.Center, UiFactory.Accent);
+            _price = UiFactory.Mono(panel.transform, "Price", string.Empty, 56f, TextAlignmentOptions.Center, UiFactory.Credit);
             UiFactory.Place(_price.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -230f), new Vector2(420f, 64f));
             _price.fontStyle = FontStyles.Bold;
 
@@ -336,11 +346,18 @@ namespace VentsAndVending.UI
             _priceControls.Add(UiFactory.Button(panel.transform, "Markup20", "+20%", () => SetMarkup(0.2f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 144f, -362f), new Vector2(132f, 40f)).gameObject);
             _priceControls.Add(UiFactory.Button(panel.transform, "Markup40", "+40%", () => SetMarkup(0.4f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx, -362f), new Vector2(132f, 40f)).gameObject);
 
+            _riskLabel = UiFactory.Text(panel.transform, "RiskLabel", string.Empty, 18f, TextAlignmentOptions.Left, new Color(0.79f, 0.82f, 0.85f));
+            UiFactory.Place(_riskLabel.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -462f), new Vector2(420f, 26f));
+            _riskFill = UiFactory.Bar(panel.transform, "Risk", 0f, UiFactory.Hazard);
+            UiFactory.Place((RectTransform)_riskFill.transform.parent, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -494f), new Vector2(420f, 14f));
+            _priceControls.Add(_riskLabel.gameObject);
+            _priceControls.Add(_riskFill.transform.parent.gameObject);
+
             _total = UiFactory.Text(panel.transform, "Total", string.Empty, 22f, TextAlignmentOptions.Center);
-            UiFactory.Place(_total.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -420f), new Vector2(420f, 34f));
+            UiFactory.Place(_total.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -410f), new Vector2(420f, 34f));
 
             _offerButton = UiFactory.Button(panel.transform, "OfferButton", "Make offer", MakeOffer,
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-30f, 70f), new Vector2(420f, 60f));
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-30f, 70f), new Vector2(420f, 60f), ButtonStyle.Primary);
             _offerLabel = _offerButton.GetComponentInChildren<TextMeshProUGUI>();
             _declineLabel = UiFactory.Button(panel.transform, "DeclineButton", "Walk away", Decline,
                 new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(30f, 70f), new Vector2(240f, 48f)).GetComponentInChildren<TextMeshProUGUI>();

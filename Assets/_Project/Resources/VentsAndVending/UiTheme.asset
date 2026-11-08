@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94cc33f870187124488134830f655246, type: 3}
+  m_Name: UiTheme
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.UI.UiTheme
+  Body: {fileID: 11400000, guid: 5ab2b6cfecb0fe545b7fe6d95160324d, type: 2}
+  Bold: {fileID: 11400000, guid: 00370dec7d0abac49a52981600a2ee6d, type: 2}
+  Display: {fileID: 11400000, guid: 3c7e443d8e0e1ad49b04627b1a740f09, type: 2}
+  Mono: {fileID: 11400000, guid: dfa656643c18130499fc7558204cf3a7, type: 2}
+  Panel: {fileID: 21300000, guid: 4635656d85bd5c54ba0c10f2200106af, type: 3}
+  PanelFill: {fileID: 21300000, guid: 268b3bcc5ffac694f9f7f44e513b69bb, type: 3}
+  Pill: {fileID: 21300000, guid: d8f754b0b8495fa45b85f06ddb8b5266, type: 3}
+  PillFill: {fileID: 21300000, guid: a9021351d59a3044680b0128c8e05e98, type: 3}
+  Circle: {fileID: 21300000, guid: 593775560cedd8a46a8d9fdccb558324, type: 3}

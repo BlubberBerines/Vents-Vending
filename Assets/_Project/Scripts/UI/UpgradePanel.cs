@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -8,13 +9,19 @@ using VentsAndVending.Progression;
 
 namespace VentsAndVending.UI
 {
-    /// <summary>Upgrade shop opened from an <see cref="UpgradeTerminal"/> (GDD §5.2, §12.3).</summary>
+    /// <summary>
+    /// Upgrade shop (GDD §5.2, §12.3) as a card grid: category tabs, one card per upgrade with its tier, what it does,
+    /// and a clear state — installed, locked behind a prerequisite, too expensive, or ready to buy.
+    /// </summary>
     public sealed class UpgradePanel : ModalScreen
     {
         private PlayerWallet _wallet;
         private TextMeshProUGUI _title;
         private TextMeshProUGUI _credits;
-        private RectTransform _list;
+        private TextMeshProUGUI _progress;
+        private RectTransform _grid;
+        private RectTransform _tabs;
+        private UpgradeCategory? _filter;
 
         private void OnEnable() => UpgradeTerminal.PanelRequested += OnPanelRequested;
 
@@ -28,7 +35,7 @@ namespace VentsAndVending.UI
             }
 
             _wallet = Interactor.GetComponent<PlayerWallet>();
-            _title.text = terminal.DisplayName;
+            _title.text = terminal.DisplayName.ToUpperInvariant();
             if (_wallet != null)
             {
                 _wallet.Wallet.Changed += OnCreditsChanged;
@@ -46,57 +53,119 @@ namespace VentsAndVending.UI
 
         private void OnCreditsChanged(int balance, int delta) => Refresh();
 
+        public static Color CategoryColour(UpgradeCategory c) => c switch
+        {
+            UpgradeCategory.Hideout => UiFactory.Hazard,
+            UpgradeCategory.Storage => UiFactory.Credit,
+            UpgradeCategory.Production => UiFactory.Go,
+            UpgradeCategory.Security => UiFactory.Alert,
+            _ => new Color(0.75f, 0.6f, 1f),
+        };
+
         private void Refresh()
         {
             ProgressionManager progression = ProgressionManager.Instance;
             Wallet wallet = _wallet != null ? _wallet.Wallet : null;
-            _credits.text = $"{wallet?.Balance ?? 0} <color=#19E5FF><size=70%>CC</size></color>";
+            _credits.text = $"{wallet?.Balance ?? 0} <size=60%><color=#3FE0FF>CC</color></size>";
 
-            ClearChildren(_list);
-            foreach (UpgradeDefinition upgrade in progression.Catalogue.Where(u => u != null).OrderBy(u => u.Tier).ThenBy(u => u.Cost))
+            List<UpgradeDefinition> all = progression.Catalogue.Where(u => u != null).OrderBy(u => u.Tier).ThenBy(u => u.Cost).ToList();
+            int owned = all.Count(u => progression.Check(u, wallet) == PurchaseCheck.AlreadyOwned);
+            _progress.text = $"{owned} / {all.Count} installed";
+
+            BuildTabs(all);
+            ClearChildren(_grid);
+            foreach (UpgradeDefinition upgrade in all)
             {
-                PurchaseCheck check = progression.Check(upgrade, wallet);
-                BuildRow(upgrade, check);
+                if (_filter.HasValue && upgrade.Category != _filter.Value)
+                {
+                    continue;
+                }
+                BuildCard(upgrade, progression.Check(upgrade, wallet));
             }
         }
 
-        private void BuildRow(UpgradeDefinition upgrade, PurchaseCheck check)
+        private void BuildTabs(List<UpgradeDefinition> all)
         {
-            Image row = UiFactory.Image(_list, upgrade.Id, check == PurchaseCheck.AlreadyOwned ? new Color(0.2f, 1f, 0.4f, 0.07f) : UiFactory.RowColor);
-            UiFactory.Layout(row.gameObject, preferredHeight: 86f);
-
-            TextMeshProUGUI name = UiFactory.Text(row.transform, "Name",
-                $"<b>{upgrade.DisplayName}</b>  <color=#9AA3AD><size=75%>{upgrade.Category} · Tier {upgrade.Tier}</size></color>", 24f);
-            UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -8f), new Vector2(760f, 32f));
-
-            string description = upgrade.Description;
-            if (check == PurchaseCheck.MissingPrerequisite)
+            ClearChildren(_tabs);
+            Tab("All", null);
+            foreach (UpgradeCategory c in all.Select(u => u.Category).Distinct().OrderBy(c => c))
             {
-                description = $"<color=#FFB040>Requires {upgrade.Prerequisite.DisplayName}.</color> {description}";
+                Tab(c.ToString(), c);
             }
-            TextMeshProUGUI desc = UiFactory.Text(row.transform, "Description", description, 18f, TextAlignmentOptions.TopLeft, UiFactory.MutedText);
-            UiFactory.Place(desc.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -40f), new Vector2(760f, 44f));
+        }
 
-            string costColor = check == PurchaseCheck.CannotAfford ? "#FF7060" : "#19E5FF";
-            TextMeshProUGUI cost = UiFactory.Text(row.transform, "Cost",
-                check == PurchaseCheck.AlreadyOwned ? "<color=#5CFF7A>OWNED</color>" : $"<color={costColor}>{upgrade.Cost} CC</color>",
-                24f, TextAlignmentOptions.Right);
-            UiFactory.Place(cost.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-196f, 0f), new Vector2(140f, 40f));
-            cost.fontStyle = FontStyles.Bold;
+        private void Tab(string label, UpgradeCategory? category)
+        {
+            bool on = _filter == category;
+            Button b = UiFactory.Button(_tabs, $"Tab {label}", label, () => { _filter = category; Refresh(); },
+                Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(150f, 44f), on ? ButtonStyle.Primary : ButtonStyle.Ghost);
+            UiFactory.Layout(b.gameObject, preferredHeight: 44f, preferredWidth: 150f);
+        }
 
-            if (check != PurchaseCheck.AlreadyOwned)
+        private void BuildCard(UpgradeDefinition upgrade, PurchaseCheck check)
+        {
+            bool installed = check == PurchaseCheck.AlreadyOwned;
+            Image card = UiFactory.Panel(_grid, upgrade.Id, installed ? new Color(0.06f, 0.11f, 0.08f, 1f) : UiFactory.Row, 5f, 16f);
+            Transform c = card.transform;
+            Color cat = CategoryColour(upgrade.Category);
+
+            // Category strip + tier pips
+            Image strip = UiFactory.Image(c, "Strip", cat, true);
+            UiFactory.Place(strip.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(6f, 26f));
+            TextMeshProUGUI category = UiFactory.Label(c, "Category", upgrade.Category.ToString(), cat);
+            UiFactory.Place(category.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(34f, -19f), new Vector2(240f, 24f));
+            RectTransform pips = UiFactory.Rect("Tier", c);
+            UiFactory.Place(pips, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-20f, -20f), new Vector2(120f, 18f));
+            UiFactory.HRow(pips, 5f, TextAnchor.MiddleRight);
+            for (int i = 0; i < 3; i++)
             {
-                Button buy = UiFactory.Button(row.transform, "BuyButton", "Buy", () => Buy(upgrade),
-                    new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-16f, 0f), new Vector2(160f, 50f));
-                buy.interactable = check == PurchaseCheck.Available;
+                Image pip = UiFactory.Panel(pips, "Pip", i < upgrade.Tier ? cat : UiFactory.Track, 0f, 4f);
+                UiFactory.Layout(pip.gameObject, preferredHeight: 14f, preferredWidth: 22f);
             }
+
+            TextMeshProUGUI name = UiFactory.Heading(c, "Name", upgrade.DisplayName, 26f);
+            UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -52f), new Vector2(440f, 34f));
+            name.textWrappingMode = TextWrappingModes.NoWrap;
+            name.overflowMode = TextOverflowModes.Ellipsis;
+
+            TextMeshProUGUI desc = UiFactory.Text(c, "Description", upgrade.Description, 17f, TextAlignmentOptions.TopLeft, new Color(0.79f, 0.82f, 0.85f));
+            UiFactory.Place(desc.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -92f), new Vector2(440f, 52f));
+            desc.overflowMode = TextOverflowModes.Ellipsis;
+
+            // Footer: state
+            switch (check)
+            {
+                case PurchaseCheck.AlreadyOwned:
+                    Image chip = UiFactory.Chip(c, "Installed", "INSTALLED", UiFactory.Go, new Color(0.03f, 0.075f, 0.047f), 15f);
+                    UiFactory.Place(chip.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(18f, 18f), new Vector2(120f, 32f));
+                    break;
+                case PurchaseCheck.MissingPrerequisite:
+                    TextMeshProUGUI needs = UiFactory.Text(c, "Needs", $"Needs <b>{upgrade.Prerequisite.DisplayName}</b> first", 17f, TextAlignmentOptions.Left, new Color(1f, 0.69f, 0.31f));
+                    UiFactory.Place(needs.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(18f, 22f), new Vector2(300f, 40f));
+                    TextMeshProUGUI locked = UiFactory.Mono(c, "Cost", $"{upgrade.Cost} <size=65%>CC</size>", 26f, TextAlignmentOptions.Right, UiFactory.MutedText);
+                    UiFactory.Place(locked.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 22f), new Vector2(160f, 40f));
+                    break;
+                default:
+                    Price(c, upgrade.Cost, check == PurchaseCheck.CannotAfford ? UiFactory.Alert : UiFactory.Credit);
+                    Button buy = UiFactory.Button(c, "Buy", check == PurchaseCheck.CannotAfford ? "Can't afford" : "Buy", () => Buy(upgrade),
+                        new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 18f), new Vector2(160f, 48f),
+                        check == PurchaseCheck.Available ? ButtonStyle.Primary : ButtonStyle.Ghost);
+                    buy.interactable = check == PurchaseCheck.Available;
+                    break;
+            }
+        }
+
+        private static void Price(Transform card, int cost, Color colour)
+        {
+            TextMeshProUGUI price = UiFactory.Mono(card, "Cost", $"{cost} <size=65%>CC</size>", 30f, TextAlignmentOptions.Left, colour);
+            UiFactory.Place(price.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(18f, 20f), new Vector2(200f, 48f));
         }
 
         private void Buy(UpgradeDefinition upgrade)
         {
             if (ProgressionManager.Instance.TryPurchase(upgrade, _wallet != null ? _wallet.Wallet : null))
             {
-                Interactor.Notify($"Upgrade installed: <color=#5CFF7A>{upgrade.DisplayName}</color>");
+                Interactor.Notify($"Upgrade installed: <color=#5CFF8A>{upgrade.DisplayName}</color>");
             }
             Refresh();
         }
@@ -104,31 +173,41 @@ namespace VentsAndVending.UI
         protected override GameObject BuildUi()
         {
             Canvas canvas = UiFactory.CreateCanvas(transform, "Upgrade Canvas", 13);
+            UiFactory.Dim(canvas.transform, 0.6f);
 
-            var dim = UiFactory.Image(canvas.transform, "Dim", new Color(0f, 0f, 0f, 0.45f));
-            UiFactory.Stretch(dim.rectTransform);
+            Image panel = UiFactory.Panel(canvas.transform, "Panel", null, 8f, 18f);
+            UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1560f, 880f));
+            Transform p = panel.transform;
 
-            var panel = UiFactory.Image(canvas.transform, "Panel", UiFactory.PanelColor);
-            UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 860f));
-            var accent = UiFactory.Image(panel.transform, "AccentBar", new Color(0.35f, 1f, 0.45f));
-            UiFactory.Place(accent.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1180f, 4f));
+            _title = UiFactory.Display(p, "Title", "UPGRADES", 44f);
+            UiFactory.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -26f), new Vector2(700f, 56f));
+            _progress = UiFactory.Label(p, "Progress", string.Empty);
+            UiFactory.Place(_progress.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -88f), new Vector2(400f, 24f));
 
-            _title = UiFactory.Text(panel.transform, "Title", string.Empty, 34f);
-            UiFactory.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -22f), new Vector2(700f, 46f));
-            _title.fontStyle = FontStyles.Bold;
+            Image creditsBox = UiFactory.Panel(p, "Credits", UiFactory.Row, 4f, 12f);
+            UiFactory.Place(creditsBox.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-36f, -30f), new Vector2(220f, 60f));
+            _credits = UiFactory.Mono(creditsBox.transform, "Amount", string.Empty, 32f, TextAlignmentOptions.Right);
+            UiFactory.Stretch(_credits.rectTransform, 10f);
+            _credits.rectTransform.offsetMax = new Vector2(-18f, -6f);
 
-            _credits = UiFactory.Text(panel.transform, "Credits", string.Empty, 32f, TextAlignmentOptions.Right);
-            UiFactory.Place(_credits.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -22f), new Vector2(300f, 46f));
-            _credits.fontStyle = FontStyles.Bold;
+            _tabs = UiFactory.Rect("Tabs", p);
+            UiFactory.Place(_tabs, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -126f), new Vector2(1000f, 48f));
+            UiFactory.HRow(_tabs, 10f);
 
-            _list = UiFactory.Rect("List", panel.transform);
-            UiFactory.Place(_list, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(1120f, 700f));
-            UiFactory.VerticalList(_list, 8f).childAlignment = TextAnchor.UpperCenter;
+            _grid = UiFactory.Rect("Grid", p);
+            UiFactory.Place(_grid, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -196f), new Vector2(1488f, 620f));
+            var grid = _grid.gameObject.AddComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(480f, 210f);
+            grid.spacing = new Vector2(24f, 22f);
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 3;
 
-            TextMeshProUGUI hint = UiFactory.Text(panel.transform, "Hint", "Earn Cosmic Credits by selling products   ·   [ E ] [ Esc ] Close",
-                18f, TextAlignmentOptions.Center, UiFactory.MutedText);
-            UiFactory.Place(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(1120f, 30f));
-
+            RectTransform hints = UiFactory.Rect("Hints", p);
+            UiFactory.Place(hints, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(800f, 34f));
+            UiFactory.HRow(hints, 28f, TextAnchor.MiddleCenter);
+            UiFactory.KeyHint(hints, "Esc", "Close");
+            TextMeshProUGUI earn = UiFactory.Text(hints, "Earn", "Earn Cosmic Credits from deals and sales", 18f, TextAlignmentOptions.Left, UiFactory.MutedText);
+            earn.textWrappingMode = TextWrappingModes.NoWrap;
             return canvas.gameObject;
         }
     }

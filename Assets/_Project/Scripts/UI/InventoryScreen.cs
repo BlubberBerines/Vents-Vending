@@ -185,14 +185,10 @@ namespace VentsAndVending.UI
         {
             Canvas canvas = UiFactory.CreateCanvas(transform, "Inventory Canvas", 10);
 
-            var dim = UiFactory.Image(canvas.transform, "Dim", new Color(0f, 0f, 0f, 0.45f));
-            UiFactory.Stretch(dim.rectTransform);
+            UiFactory.Dim(canvas.transform, 0.45f);
 
-            var panel = UiFactory.Image(canvas.transform, "Panel", UiFactory.PanelColor);
+            var panel = UiFactory.Panel(canvas.transform, "Panel");
             UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 820f));
-
-            var accent = UiFactory.Image(panel.transform, "AccentBar", UiFactory.Accent);
-            UiFactory.Place(accent.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1180f, 4f));
 
             BuildColumn(panel.transform, "PlayerColumn", new Vector2(30f, -30f), out _playerTitle, out _playerList);
             _otherColumn = BuildColumn(panel.transform, "OtherColumn", new Vector2(610f, -30f), out _otherTitle, out _otherList);
@@ -212,7 +208,7 @@ namespace VentsAndVending.UI
             RectTransform column = UiFactory.Rect(name, panel);
             UiFactory.Place(column, new Vector2(0f, 1f), new Vector2(0f, 1f), topLeft, new Vector2(540f, height));
 
-            title = UiFactory.Text(column, "Title", string.Empty, 28f);
+            title = UiFactory.Heading(column, "Title", string.Empty, 28f);
             UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), Vector2.zero, new Vector2(540f, 40f));
             title.fontStyle = FontStyles.Bold;
 

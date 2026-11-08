@@ -157,15 +157,12 @@ namespace VentsAndVending.UI
         {
             Canvas canvas = UiFactory.CreateCanvas(transform, "Mixing Canvas", 11);
 
-            var dim = UiFactory.Image(canvas.transform, "Dim", new Color(0f, 0f, 0f, 0.45f));
-            UiFactory.Stretch(dim.rectTransform);
+            UiFactory.Dim(canvas.transform, 0.45f);
 
-            var panel = UiFactory.Image(canvas.transform, "Panel", UiFactory.PanelColor);
+            var panel = UiFactory.Panel(canvas.transform, "Panel");
             UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 860f));
-            var accent = UiFactory.Image(panel.transform, "AccentBar", UiFactory.Accent);
-            UiFactory.Place(accent.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1180f, 4f));
 
-            _title = UiFactory.Text(panel.transform, "Title", string.Empty, 34f);
+            _title = UiFactory.Heading(panel.transform, "Title", string.Empty, 34f);
             UiFactory.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -22f), new Vector2(1100f, 46f));
             _title.fontStyle = FontStyles.Bold;
 
@@ -176,7 +173,7 @@ namespace VentsAndVending.UI
             UiFactory.Place(_status.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -520f), new Vector2(760f, 70f));
 
             _startButton = UiFactory.Button(panel.transform, "StartButton", "Start mixing", StartMixing,
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -520f), new Vector2(330f, 54f));
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -520f), new Vector2(330f, 54f), ButtonStyle.Primary);
             _emptyButton = UiFactory.Button(panel.transform, "EmptyButton", "Empty vessel", EmptyVessel,
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -584f), new Vector2(330f, 44f));
 

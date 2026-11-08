@@ -18,7 +18,7 @@ namespace VentsAndVending.UI
         public static InventorySlotView Create(Transform parent, ItemStack stack, Action onClick, Action<ItemStack> onHover)
         {
             Image bg = UiFactory.Image(parent, $"Slot {stack.Item.DisplayName}", UiFactory.RowColor);
-            UiFactory.Layout(bg.gameObject, preferredHeight: 44f);
+            UiFactory.Layout(bg.gameObject, preferredHeight: 48f);
 
             var row = bg.gameObject.AddComponent<HorizontalLayoutGroup>();
             row.padding = new RectOffset(10, 14, 6, 6);
@@ -29,21 +29,27 @@ namespace VentsAndVending.UI
             row.childForceExpandWidth = false;
             row.childForceExpandHeight = true;
 
-            Image swatch = UiFactory.Image(bg.transform, "Swatch", stack.Item.UiColor);
-            UiFactory.Layout(swatch.gameObject, preferredWidth: 28f);
+            Image swatch = UiFactory.Panel(bg.transform, "Swatch", stack.Item.UiColor, 0f, 8f);
+            UiFactory.Layout(swatch.gameObject, preferredWidth: 30f);
             swatch.raycastTarget = false;
             if (stack.Item.Icon != null)
             {
                 swatch.sprite = stack.Item.Icon;
+                swatch.type = Image.Type.Simple;
                 swatch.color = Color.white;
                 swatch.preserveAspect = true;
             }
 
-            TextMeshProUGUI name = UiFactory.Text(bg.transform, "Name", QualityStyle.Name(stack), 22f);
+            TextMeshProUGUI name = UiFactory.Heading(bg.transform, "Name", stack.Item.DisplayName, 21f);
             UiFactory.Layout(name.gameObject, flexibleWidth: 1f);
+            name.raycastTarget = false;
 
-            TextMeshProUGUI count = UiFactory.Text(bg.transform, "Count", $"x{stack.Count}", 22f, TextAlignmentOptions.Right, UiFactory.Accent);
-            UiFactory.Layout(count.gameObject, preferredWidth: 70f);
+            var (qbg, qfg) = UiFactory.QualityColours(stack.Quality);
+            Image chip = UiFactory.Chip(bg.transform, "Quality", stack.Quality.ToString(), qbg, qfg, 15f);
+            chip.raycastTarget = false;
+
+            TextMeshProUGUI count = UiFactory.Mono(bg.transform, "Count", $"×{stack.Count}", 20f, TextAlignmentOptions.Right, UiFactory.Paper);
+            UiFactory.Layout(count.gameObject, preferredWidth: 56f);
 
             var view = bg.gameObject.AddComponent<InventorySlotView>();
             view._background = bg;

@@ -15,15 +15,18 @@ namespace VentsAndVending.Editor
     /// </summary>
     public static partial class PrototypeSceneBuilder
     {
+        /// <summary>Mix level for the tunnel bed (room tone, duct air, fans). 0.75 = the requested −25%.</summary>
+        private const float TunnelAmbienceScale = 0.75f;
+
         private static void BuildAmbience(Transform level)
         {
             var g = Group("Ambience", level);
             WireInteractableSounds();
 
             // Room tone and moving air
-            Loop(g, "RoomTone_Chamber", new Vector3(0f, 1.6f, -17.2f), ProceduralAudio.RoomHum, 0.32f, 2f, 10f, 1f);
-            Loop(g, "RoomTone_East", new Vector3(11f, 1.6f, -9f), ProceduralAudio.RoomHum, 0.3f, 2f, 11f, 0.9f);
-            Loop(g, "RoomTone_Hub", new Vector3(20f, 1.4f, 26f), ProceduralAudio.RoomHum, 0.18f, 2f, 9f, 1.1f);
+            Loop(g, "RoomTone_Chamber", new Vector3(0f, 1.6f, -17.2f), ProceduralAudio.RoomHum, 0.32f * TunnelAmbienceScale, 2f, 10f, 1f);
+            Loop(g, "RoomTone_East", new Vector3(11f, 1.6f, -9f), ProceduralAudio.RoomHum, 0.3f * TunnelAmbienceScale, 2f, 11f, 0.9f);
+            Loop(g, "RoomTone_Hub", new Vector3(20f, 1.4f, 26f), ProceduralAudio.RoomHum, 0.18f * TunnelAmbienceScale, 2f, 9f, 1.1f);
             foreach (var (pos, vol) in new[]
             {
                 (new Vector3(0.2f, 0.5f, -12.4f), 0.25f), (new Vector3(0.3f, 1.6f, -4f), 0.3f), (new Vector3(-4f, 1.6f, 3.4f), 0.3f),
@@ -32,7 +35,7 @@ namespace VentsAndVending.Editor
                 (new Vector3(20f, 0.5f, 33f), 0.2f),
             })
             {
-                Loop(g, "DuctAir", pos, ProceduralAudio.DuctAir, vol, 1.5f, 7.5f, 0.92f + Mathf.Repeat(pos.x * 0.37f + pos.z * 0.11f, 0.16f));
+                Loop(g, "DuctAir", pos,  ProceduralAudio.DuctAir, vol * TunnelAmbienceScale, 1.5f, 7.5f, 0.92f + Mathf.Repeat(pos.x * 0.37f + pos.z * 0.11f, 0.16f));
             }
             Loop(g, "Buzz_Breakers", new Vector3(16.7f, 2f, -8.8f), ProceduralAudio.Buzz, 0.14f, 0.8f, 5f, 1f);
             Loop(g, "Buzz_HubTube", new Vector3(20.2f, 2.2f, 27f), ProceduralAudio.Buzz, 0.1f, 0.8f, 6f, 1.2f);
@@ -81,6 +84,7 @@ namespace VentsAndVending.Editor
                 src.playOnAwake = false;
                 var so = new SerializedObject(fan);
                 so.FindProperty("_hum").objectReferenceValue = src;
+                so.FindProperty("_humVolume").floatValue = 0.9f * TunnelAmbienceScale;
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }
@@ -212,7 +216,7 @@ namespace VentsAndVending.Editor
             Part("Hub", rotor, Vector3.zero, new Vector3(0.07f, 0.03f, 0.07f), dark, PrimitiveType.Cylinder).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             rotor.gameObject.AddComponent<Spinner>().Configure(new Vector3(0f, 0f, 540f), 0f, 1f);
 
-            Loop(g, "WallFan_Whir", new Vector3(x - 0.1f, y, z), ProceduralAudio.SmallFan, 0.4f, 0.8f, 7f, 1f);
+            Loop(g, "WallFan_Whir", new Vector3(x - 0.1f, y, z), ProceduralAudio.SmallFan, 0.4f * TunnelAmbienceScale, 0.8f, 7f, 1f);
         }
 
         private static void AddFlicker(Vector3 anchor)
