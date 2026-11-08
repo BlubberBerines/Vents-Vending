@@ -57,6 +57,16 @@ namespace VentsAndVending.Security
         public static float FlightHeight(bool pursuing, float floorY, float patrolAltitude, float pursuitAltitude, float waypointOffset) =>
             floorY + (pursuing ? pursuitAltitude : patrolAltitude + waypointOffset);
 
+        /// <summary>
+        /// Drones only sense players on their own level: a drone under the open Long Crawl grate must not spot (or detain)
+        /// someone standing in the gallery above. Feet from 1 m below to 2.5 m above the drone's floor count.
+        /// </summary>
+        public static bool OnSameLevel(float playerFeetY, float droneFloorY)
+        {
+            float dy = playerFeetY - droneFloorY;
+            return dy > -1f && dy < 2.5f;
+        }
+
         /// <summary>A catch in a restricted zone with an exit walks the player out (a one-way area must never trap them).</summary>
         public static bool ShouldEscort(bool inRestrictedZone, bool hasExit) => inRestrictedZone && hasExit;
 

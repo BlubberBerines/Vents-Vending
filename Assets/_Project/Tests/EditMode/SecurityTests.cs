@@ -204,6 +204,15 @@ namespace VentsAndVending.Tests
         }
 
         [Test]
+        public void OnSameLevel_IgnoresPlayersOnAnotherFloor()
+        {
+            Assert.IsTrue(SecurityRules.OnSameLevel(-3.56f, -3.6f), "player in the underpass");
+            Assert.IsFalse(SecurityRules.OnSameLevel(0.04f, -3.6f), "player in the gallery above the open grate");
+            Assert.IsTrue(SecurityRules.OnSameLevel(0.02f, 0f), "plaza drones and players share the floor");
+            Assert.IsTrue(SecurityRules.OnSameLevel(0.6f, 0f), "standing on a crate in the plaza still counts");
+        }
+
+        [Test]
         public void DefaultArgs_MatchOldBehaviour() =>
             Assert.AreEqual(0f, SecurityRules.Suspiciousness(0, false, false));
     }

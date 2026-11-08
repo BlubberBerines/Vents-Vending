@@ -162,6 +162,10 @@ namespace VentsAndVending.Security
             {
                 return;
             }
+            if (!SecurityRules.OnSameLevel(_player.transform.position.y, _floorY))
+            {
+                return;
+            }
 
             Vector3 eye = _eye != null ? _eye.position : transform.position;
             Vector3 toPlayer = _player.TorsoPoint - eye;
