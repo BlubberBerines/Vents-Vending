@@ -17,6 +17,9 @@ namespace VentsAndVending.UI
         private TextMeshProUGUI _credits;
         private TextMeshProUGUI _creditsDelta;
         private float _deltaTimer;
+        private GameObject _alertRoot;
+        private TextMeshProUGUI _alertText;
+        private Image _alertFill;
         private Image _crosshair;
         private TextMeshProUGUI _prompt;
         private TextMeshProUGUI _toast;
@@ -61,6 +64,68 @@ namespace VentsAndVending.UI
             {
                 _wallet = _interactor.GetComponent<Economy.PlayerWallet>();
             }
+
+            // Security alert indicator (GDD §17.2)
+            var alertBg = UiFactory.Image(root, "SecurityAlert", UiFactory.PanelColor);
+            UiFactory.Place(alertBg.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(520f, 64f));
+            alertBg.raycastTarget = false;
+            _alertRoot = alertBg.gameObject;
+            _alertText = UiFactory.Text(alertBg.transform, "Label", string.Empty, 24f, TextAlignmentOptions.Center);
+            UiFactory.Place(_alertText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(500f, 34f));
+            _alertText.fontStyle = FontStyles.Bold;
+            var track = UiFactory.Image(alertBg.transform, "Track", new Color(1f, 1f, 1f, 0.12f));
+            UiFactory.Place(track.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(480f, 8f));
+            _alertFill = UiFactory.Image(track.transform, "Fill", Color.yellow);
+            _alertFill.rectTransform.anchorMin = Vector2.zero;
+            _alertFill.rectTransform.anchorMax = new Vector2(0f, 1f);
+            _alertFill.rectTransform.pivot = new Vector2(0f, 0.5f);
+            _alertFill.rectTransform.offsetMin = Vector2.zero;
+            _alertFill.rectTransform.offsetMax = Vector2.zero;
+            _alertRoot.SetActive(false);
+        }
+
+        private void UpdateSecurityAlert()
+        {
+            var security = Security.SecurityManager.Instance;
+            if (security == null)
+            {
+                _alertRoot.SetActive(false);
+                return;
+            }
+
+            Security.AlertState state = security.HighestAlert;
+            float suspicion = security.HighestSuspicion;
+            bool show = state != Security.AlertState.Unaware || suspicion > 0.02f;
+            _alertRoot.SetActive(show);
+            if (!show)
+            {
+                return;
+            }
+
+            Color color;
+            switch (state)
+            {
+                case Security.AlertState.Pursuing:
+                    color = Mathf.Repeat(Time.unscaledTime * 4f, 1f) > 0.5f ? new Color(1f, 0.2f, 0.2f) : new Color(1f, 0.6f, 0.6f);
+                    _alertText.text = "PURSUIT!  <size=70%>Run, break line of sight, or get into a vent</size>";
+                    break;
+                case Security.AlertState.Searching:
+                    color = new Color(1f, 0.55f, 0.1f);
+                    _alertText.text = "SEARCHING…  <size=70%>Stay out of sight</size>";
+                    break;
+                case Security.AlertState.Suspicious:
+                    color = new Color(1f, 0.85f, 0.2f);
+                    _alertText.text = "SUSPICIOUS  <size=70%>A drone is watching you</size>";
+                    break;
+                default:
+                    color = new Color(0.8f, 0.8f, 0.4f);
+                    _alertText.text = "<size=80%>Drone attention fading…</size>";
+                    break;
+            }
+
+            _alertText.color = color;
+            _alertFill.color = color;
+            _alertFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(suspicion), 1f);
         }
 
         private void Start()
@@ -124,6 +189,8 @@ namespace VentsAndVending.UI
 
             string prompt = busy ? null : _interactor.CurrentPrompt;
             _prompt.text = string.IsNullOrEmpty(prompt) ? string.Empty : $"<color=#19E5FF>[ {_interactor.InteractKeyLabel} ]</color>  {prompt}";
+
+            UpdateSecurityAlert();
 
             if (_deltaTimer > 0f)
             {

@@ -95,8 +95,9 @@ namespace VentsAndVending.Editor
             BuildInteractables(level, propMat, accentMat, ventMat);
             BuildMixingStation(level, wallMat, accentMat);
             BuildProgression(level, wallMat, accentMat);
-            BuildPlazaDoorAndCustomers(level, wallMat, accentMat);
+            BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
             BakeNavMesh(level.gameObject);
+            BuildSecurity();
 
             var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
             CreateHud(player.GetComponent<InteractionController>());
@@ -136,7 +137,11 @@ namespace VentsAndVending.Editor
         {
             var room = Group("Room", parent);
             Block("Floor", room, new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f), floor);
-            Block("Wall_N", room, new Vector3(0f, 2f, 20.25f), new Vector3(41f, 4f, 0.5f), wall);
+            // North wall is shared with the plaza and has an opening for the plaza vent duct (x = PlazaVentX, 1.1 m wide).
+            float gapL = PlazaVentX - 0.55f, gapR = PlazaVentX + 0.55f;
+            Block("Wall_N_West", room, new Vector3((-20.5f + gapL) * 0.5f, 2f, 20.25f), new Vector3(gapL + 20.5f, 4f, 0.5f), wall);
+            Block("Wall_N_East", room, new Vector3((gapR + 20.5f) * 0.5f, 2f, 20.25f), new Vector3(20.5f - gapR, 4f, 0.5f), wall);
+            Block("Wall_N_Lintel", room, new Vector3(PlazaVentX, 2.475f, 20.25f), new Vector3(1.1f, 3.05f, 0.5f), wall);
             Block("Wall_S", room, new Vector3(0f, 2f, -20.25f), new Vector3(41f, 4f, 0.5f), wall);
             Block("Wall_E", room, new Vector3(20.25f, 2f, 0f), new Vector3(0.5f, 4f, 40f), wall);
             Block("Wall_W", room, new Vector3(-20.25f, 2f, 0f), new Vector3(0.5f, 4f, 40f), wall);
@@ -248,6 +253,7 @@ namespace VentsAndVending.Editor
             pockets.Configure("Pockets", 8, VentsAndVending.Progression.UpgradeKeys.PocketsCapacity);
             var interaction = player.AddComponent<InteractionController>();
             player.AddComponent<VentsAndVending.Economy.PlayerWallet>();
+            player.AddComponent<VentsAndVending.Security.PlayerExposure>();
 
             var cameraRoot = new GameObject("CameraRoot").transform;
             cameraRoot.SetParent(player.transform, false);
@@ -313,6 +319,7 @@ namespace VentsAndVending.Editor
                 "A suspiciously luminous green liquid extracted from a multi-eyed biological organism. Popular among interdimensional travellers who require an energy boost.",
                 ItemCategory.Product, 10, 12, juiceColor);
             _glarbJuice.ConfigureProduct("Energy stimulant", ProductDifficulty.Beginner, DemandLevel.High, 12, 24);
+            _glarbJuice.SetContraband(true);
             _glarbJuice.SetWorldPrefab(CreateItemPrefab(_glarbJuice, juiceColor, 1.35f));
             EditorUtility.SetDirty(_glarbJuice);
 

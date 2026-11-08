@@ -22,8 +22,11 @@ namespace VentsAndVending.Inventory
         [SerializeField, Min(0)] private int _baseValue;
         [Tooltip("Prefab spawned when the item is dropped into the world. Should carry a PickupItem.")]
         [SerializeField] private GameObject _worldPrefab;
+        [Tooltip("Illegal goods: raise security suspicion when carried and are confiscated if caught (GDD §11.2, §11.5).")]
+        [SerializeField] private bool _contraband;
 
         public string Id => _id;
+        public bool IsContraband => _contraband;
         public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
         public string Description => _description;
         public ItemCategory Category => _category;
@@ -46,6 +49,8 @@ namespace VentsAndVending.Inventory
         }
 
         internal void SetWorldPrefab(GameObject prefab) => _worldPrefab = prefab;
+
+        internal void SetContraband(bool contraband) => _contraband = contraband;
 
         private void OnValidate()
         {

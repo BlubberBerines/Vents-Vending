@@ -31,7 +31,7 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 10. [x] Inventory (`InventoryModel` + `InventoryComponent`, Tab screen, 12 EditMode tests)
 11. [x] Basic storage container (`StorageContainer`, two-column transfer view)
 12. [~] First ventilation section (greybox L-duct in `Greybox_Movement` — no modular prefabs yet)
-13. [~] Entering and exiting vents (`VentHatch` open/close; grate drop-down exits still to do)
+13. [x] Entering and exiting vents (`VentHatch` hatches/grates at both ends of the hideout↔plaza duct)
 14. [x] Basic mixing machine (`MixingStation` prefab: vessel, stirrer, gauge, status lamp, overheat smoke; `MixingPanel`)
 15. [x] First ingredient ScriptableObjects (Glarb Extract, Lumina Gel, Stabiliser Gel — generic `ItemDefinition` for now)
 16. [x] First RecipeDefinition (`Recipe_GlarbJuice`: Glarb Extract → Lumina Gel → Stabiliser Gel)
@@ -42,5 +42,5 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 21. [x] Cosmic Credits (`Wallet` + `PlayerWallet`, HUD counter; start 20 CC)
 22. [x] First upgrade (6 `UpgradeDefinition`s, `ProgressionManager` + `UpgradeLedger`, Upgrade Terminal + shop panel; effects: lighting, pockets, locker, mixer window, settle speed)
 23. [ ] Connect hideout to the alien plaza
-24. [ ] Simple security drone
+24. [x] Simple security drone (`SecurityDrone` patrol/suspicion/search/pursuit, `SecurityManager` confiscation + fines, HUD alert; 16 tests)
 25. [ ] First playable build

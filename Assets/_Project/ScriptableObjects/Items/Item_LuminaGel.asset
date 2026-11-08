@@ -22,3 +22,4 @@ MonoBehaviour:
   _maxStack: 10
   _baseValue: 4
   _worldPrefab: {fileID: 8628184570372284564, guid: 8b8b096f5c0b30e4faec3e8f16723559, type: 3}
+  _contraband: 0

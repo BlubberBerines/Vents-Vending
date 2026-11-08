@@ -46,6 +46,7 @@ namespace VentsAndVending.UI
             _customer = customer;
             _negotiation = customer.CreateNegotiation();
             _wallet = Interactor.GetComponent<PlayerWallet>();
+            SetDealing(true);
             _resolved = false;
             _selectedQuality = BestSellableQuality();
             _unitPrice = _selectedQuality.HasValue ? customer.FairUnitPrice(_selectedQuality.Value) : customer.FairUnitPrice(ItemQuality.Standard);
@@ -55,8 +56,19 @@ namespace VentsAndVending.UI
             Refresh();
         }
 
+        /// <summary>Dealing in view of security is the most suspicious thing you can do (GDD §11.2).</summary>
+        private void SetDealing(bool dealing)
+        {
+            var exposure = Interactor.GetComponent<Security.PlayerExposure>();
+            if (exposure != null)
+            {
+                exposure.IsDealing = dealing;
+            }
+        }
+
         protected override void OnClosing()
         {
+            SetDealing(false);
             if (!_resolved && _customer != null)
             {
                 _customer.EndTrade(TradeOutcome.Cancelled, null);

@@ -15,49 +15,42 @@ namespace VentsAndVending.Editor
         private const string CustomerDefinitionFolder = "Assets/_Project/ScriptableObjects/Characters";
         private const string NavMeshPath = "Assets/_Project/Scenes/Prototype/Greybox_Movement_NavMesh.asset";
 
-        private static void BuildPlazaDoorAndCustomers(Transform level, Material wall, Material accent)
+        /// <summary>Customer entrance at the far end of the plaza, trade spots and the spawner.</summary>
+        private static void BuildPlazaDoorAndCustomers(Transform plaza, Material wall, Material accent)
         {
             EnsureFolder(CharacterPrefabFolder);
             EnsureFolder(CustomerDefinitionFolder);
 
-            var g = Group("Plaza", level);
+            var g = Group("Customers", plaza);
             var doorGlow = GetOrCreateMaterial("Plaza_DoorGlow", new Color(0.2f, 0.02f, 0.18f), 0.6f, new Color(1.6f, 0.2f, 1.2f));
             var doorDark = GetOrCreateMaterial("Plaza_DoorDark", new Color(0.02f, 0.02f, 0.03f), 0.2f, new Color(0.08f, 0.02f, 0.1f));
 
-            // Door in the north wall (inner face at z = 20)
-            Block("Door_PillarL", g, new Vector3(-1.25f, 1.5f, 19.85f), new Vector3(0.3f, 3f, 0.3f), wall);
-            Block("Door_PillarR", g, new Vector3(1.25f, 1.5f, 19.85f), new Vector3(0.3f, 3f, 0.3f), wall);
-            Block("Door_Header", g, new Vector3(0f, 3.15f, 19.85f), new Vector3(2.8f, 0.3f, 0.3f), wall);
-            var doorway = Block("Doorway", g, new Vector3(0f, 1.5f, 19.97f), new Vector3(2.2f, 3f, 0.04f), doorDark);
+            // Door in the plaza's far wall (inner face at z = PlazaFarZ)
+            float z = PlazaFarZ;
+            Block("Door_PillarL", g, new Vector3(-1.25f, 1.5f, z - 0.15f), new Vector3(0.3f, 3f, 0.3f), wall);
+            Block("Door_PillarR", g, new Vector3(1.25f, 1.5f, z - 0.15f), new Vector3(0.3f, 3f, 0.3f), wall);
+            Block("Door_Header", g, new Vector3(0f, 3.15f, z - 0.15f), new Vector3(2.8f, 0.3f, 0.3f), wall);
+            var doorway = Block("Doorway", g, new Vector3(0f, 1.5f, z - 0.03f), new Vector3(2.2f, 3f, 0.04f), doorDark);
             Object.DestroyImmediate(doorway.GetComponent<Collider>());
-            var strip = Block("Door_Neon", g, new Vector3(0f, 3.02f, 19.68f), new Vector3(2.3f, 0.05f, 0.05f), doorGlow);
+            var strip = Block("Door_Neon", g, new Vector3(0f, 3.02f, z - 0.32f), new Vector3(2.3f, 0.05f, 0.05f), doorGlow);
             Object.DestroyImmediate(strip.GetComponent<Collider>());
-            CreatePointLight("Door Glow", new Vector3(0f, 2.6f, 18.8f), new Color(1f, 0.2f, 0.85f), 6f, 2f, g);
+            CreatePointLight("Door Glow", new Vector3(0f, 2.6f, z - 1.2f), new Color(1f, 0.2f, 0.85f), 6f, 2f, g);
+            CreateSign("Door_Sign", "CITADEL-9 TRANSIT CONCOURSE", new Vector3(0f, 3.5f, z - 0.32f), 0f, 1.6f, new Color(1f, 0.6f, 0.95f), 6f);
 
-            var sign = new GameObject("Door_Sign");
-            // Kept outside the Level hierarchy so the NavMesh bake never scans its text mesh.
-            sign.transform.position = new Vector3(0f, 3.15f, 19.68f);
-            sign.transform.rotation = Quaternion.identity; // TMP faces -Z: readable from inside the room
-            var signText = sign.AddComponent<TextMeshPro>();
-            signText.text = "CENTRAL PLAZA";
-            signText.fontSize = 2.2f;
-            signText.alignment = TextAlignmentOptions.Center;
-            signText.color = new Color(1f, 0.6f, 0.95f);
-            signText.rectTransform.sizeDelta = new Vector2(3f, 0.4f);
-
-            // Spawn/exit and two trade spots marked on the floor
+            // Spawn/exit and three trade spots marked on the floor
             var spawn = new GameObject("Customer Spawn").transform;
             spawn.SetParent(g, false);
-            spawn.position = new Vector3(0f, 0f, 18.6f);
+            spawn.position = new Vector3(0f, 0f, z - 1.4f);
             spawn.rotation = Quaternion.Euler(0f, 180f, 0f);
 
             var spotMat = GetOrCreateMaterial("Plaza_TradeSpot", new Color(0.05f, 0.25f, 0.3f), 0.3f, new Color(0.1f, 0.9f, 1f) * 0.6f);
-            var spots = new Transform[2];
+            var spotPositions = new[] { new Vector3(-6f, 0f, 38f), new Vector3(6.5f, 0f, 41f), new Vector3(-1f, 0f, 45.5f) };
+            var spots = new Transform[spotPositions.Length];
             for (int i = 0; i < spots.Length; i++)
             {
                 var spot = new GameObject($"Trade Spot {i + 1}").transform;
                 spot.SetParent(g, false);
-                spot.position = new Vector3(i == 0 ? -1.8f : 1.8f, 0f, 6f);
+                spot.position = spotPositions[i];
                 var decal = Block("Marker", spot, spot.position + new Vector3(0f, 0.005f, 0f), new Vector3(1.1f, 0.01f, 1.1f), spotMat);
                 Object.DestroyImmediate(decal.GetComponent<Collider>());
                 decal.isStatic = false;
@@ -74,7 +67,7 @@ namespace VentsAndVending.Editor
             SetList(so.FindProperty("_definitions"), blorb, gromflomite);
             so.FindProperty("_spawnPoint").objectReferenceValue = spawn;
             so.FindProperty("_exitPoint").objectReferenceValue = spawn;
-            SetList(so.FindProperty("_meetingPoints"), spots[0], spots[1]);
+            SetList(so.FindProperty("_meetingPoints"), spots);
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
