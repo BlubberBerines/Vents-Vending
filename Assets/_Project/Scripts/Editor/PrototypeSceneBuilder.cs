@@ -94,11 +94,13 @@ namespace VentsAndVending.Editor
             BuildProgression(level, wallMat, accentMat);
             BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
             BuildTunnelSlice(level, floorMat, wallMat, ventMat, accentMat, tunnelMat, glowMat);
+            BuildUnderpass(level, floorMat);
             BuildAmbience(level);
             SoftenProps();
             BakeNavMesh(level.gameObject);
             BuildTunnelSystem();
             BuildSecurity();
+            BuildUnderpassSecurity();
             CreateSaveSystem();
 
             var player = CreatePlayer(PlayerSpawn, Quaternion.Euler(0f, PlayerSpawnYaw, 0f));

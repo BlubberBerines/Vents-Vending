@@ -179,7 +179,12 @@ namespace VentsAndVending.Editor
             Material cable, Material cableRed)
         {
             // D1: north from the exit duct
-            Box("D1_Floor", g, new Vector3(-0.8f, -0.5f, -10.7f), new Vector3(1.4f, 0f, 2.5f), floor);
+            // (built around the crowbar grate hole that drops into the underpass)
+            Rect hole = GrateHole;
+            Box("D1_Floor", g, new Vector3(-0.8f, -0.5f, -10.7f), new Vector3(1.4f, 0f, hole.yMin), floor);
+            Box("D1_Floor_N", g, new Vector3(-0.8f, -0.5f, hole.yMax), new Vector3(1.4f, 0f, 2.5f), floor);
+            Box("D1_Floor_W", g, new Vector3(-0.8f, -0.5f, hole.yMin), new Vector3(hole.xMin, 0f, hole.yMax), floor);
+            Box("D1_Floor_E", g, new Vector3(hole.xMax, -0.5f, hole.yMin), new Vector3(1.4f, 0f, hole.yMax), floor);
             WallWithHatchX("D1_Wall_S", g, -10.7f, -10.5f, -0.8f, 1.4f, ExitDuctX, WallTop, wall);
             Box("D1_Wall_W", g, new Vector3(-0.8f, 0f, -10.5f), new Vector3(-0.6f, WallTop, 2.5f), wall);
             // East side opens into the corridor toward 04 Fan Junction (02 Service Junction is a three-way hub)
@@ -264,7 +269,10 @@ namespace VentsAndVending.Editor
             Box("DuctFloor", g, new Vector3(-8.6f, -0.5f, 15.5f), new Vector3(-7.4f, 0f, 20.3f), floor);
             float gapL = PlazaVentX - 0.55f, gapR = PlazaVentX + 0.55f;
             Box("Wall_West", g, new Vector3(-PlazaHalfWidth - 0.5f, 0f, 20f), new Vector3(gapL, 4f, 20.5f), wall);
-            Box("Wall_East", g, new Vector3(gapR, 0f, 20f), new Vector3(PlazaHalfWidth + 0.5f, 4f, 20.5f), wall);
+            // East of the vent gap: a doorway at x 2.4…3.6 for the underpass emergency exit
+            Box("Wall_East", g, new Vector3(gapR, 0f, 20f), new Vector3(2.4f, 4f, 20.5f), wall);
+            Box("Wall_East_Exit", g, new Vector3(3.6f, 0f, 20f), new Vector3(PlazaHalfWidth + 0.5f, 4f, 20.5f), wall);
+            Box("Wall_Exit_Lintel", g, new Vector3(2.4f, 2.3f, 20f), new Vector3(3.6f, 4f, 20.5f), wall);
             Box("Wall_Lintel", g, new Vector3(gapL, 0.95f, 20f), new Vector3(gapR, 4f, 20.5f), wall);
         }
 

@@ -623,7 +623,9 @@ namespace VentsAndVending.Editor
             {
                 Room(TunnelIds.Nook, "Starting Nook", "old_maintenance", 3, C(TunnelIds.ServiceJunction)),
                 Room(TunnelIds.ServiceJunction, "Service Junction", "old_maintenance", 3, C(TunnelIds.Nook), C(TunnelIds.LongCrawl), C(TunnelIds.FanJunction)),
-                Room(TunnelIds.LongCrawl, "The Long Crawl", "old_maintenance", 3, C(TunnelIds.ServiceJunction), C(TunnelIds.PlazaAccess)),
+                Room(TunnelIds.LongCrawl, "The Long Crawl", "old_maintenance", 3, C(TunnelIds.ServiceJunction), C(TunnelIds.PlazaAccess),
+                    C(TunnelIds.Underpass, TunnelIds.GrateGate, oneWay: true)),
+                Room(TunnelIds.Underpass, "Maintenance Underpass", "underpass", 4, C("PLAZA", TunnelIds.UnderpassExit, oneWay: true)),
                 Room(TunnelIds.PlazaAccess, "Plaza Access", "plaza_network", 2, C(TunnelIds.LongCrawl), C(TunnelIds.StashDuct)),
                 Room(TunnelIds.StashDuct, "Forgotten Stash", "old_maintenance", 3, C(TunnelIds.PlazaAccess)),
                 Room(TunnelIds.FanJunction, "Fan Junction", "old_maintenance", 3, C(TunnelIds.ServiceJunction), C(TunnelIds.PowerDistribution),
@@ -664,6 +666,10 @@ namespace VentsAndVending.Editor
                 (TunnelIds.DropHatch, new Vector3(17.7f, HighFloor, 20.8f), new Vector3(19.3f, 4.8f, 24.6f)),
                 (TunnelIds.PlazaServiceHub, new Vector3(16.5f, 0f, 21f), new Vector3(23f, 2.4f, 31f)),
                 (TunnelIds.CustomerVent, new Vector3(19.55f, 0f, 31.2f), new Vector3(20.45f, 0.85f, 34.6f)),
+                (TunnelIds.Underpass, new Vector3(-7.5f, UpFloor, -1f), new Vector3(2f, UpCeil, 2f)),
+                (TunnelIds.Underpass, new Vector3(-11f, UpFloor, 2f), new Vector3(-1f, UpCeil, 10.5f)),
+                (TunnelIds.Underpass, new Vector3(-7.5f, UpFloor, 10.5f), new Vector3(4.5f, UpCeil, 13.5f)),
+                (TunnelIds.Underpass, new Vector3(1.5f, UpFloor, 13.5f), new Vector3(4.5f, 2.6f, 20f)),
             };
             var vroot = Group("Room Volumes", root.transform);
             foreach (var (id, min, max) in volumes)
