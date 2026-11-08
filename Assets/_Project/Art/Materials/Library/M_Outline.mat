@@ -29,8 +29,8 @@ Material:
     - _FadeEnd: 55
     - _FadeStart: 18
     - _NormalSensitivity: 1.2
-    - _Strength: 0.85
-    - _Thickness: 1.4
+    - _Strength: 1
+    - _Thickness: 2.3
     m_Colors:
     - _OutlineColor: {r: 0.06, g: 0.05, b: 0.1, a: 1}
   m_BuildTextureStacks: []
