@@ -52,10 +52,10 @@ namespace VentsAndVending.Editor
             }
 
             mat.SetColor("_OutlineColor", new Color(0.06f, 0.05f, 0.1f));
-            mat.SetFloat("_Thickness", 2.3f);
+            mat.SetFloat("_Thickness", 1.95f);
             mat.SetFloat("_DepthSensitivity", 2.5f);
             mat.SetFloat("_NormalSensitivity", 1.2f);
-            mat.SetFloat("_Strength", 1f);
+            mat.SetFloat("_Strength", 0.95f);
             mat.SetFloat("_FadeStart", 18f);
             mat.SetFloat("_FadeEnd", 55f);
             EditorUtility.SetDirty(mat);
