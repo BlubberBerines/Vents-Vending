@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VentsAndVending.Customers;
+using VentsAndVending.Economy;
+using VentsAndVending.Inventory;
 using VentsAndVending.Interaction;
 using VentsAndVending.Orders;
 
@@ -35,6 +37,13 @@ namespace VentsAndVending.UI
         private readonly List<(TextMeshProUGUI text, CustomerOrder order)> _timers = new List<(TextMeshProUGUI, CustomerOrder)>();
         private readonly Dictionary<string, Image> _spotDots = new Dictionary<string, Image>();
         private bool _dirty;
+        private bool _showSupplies;
+        private Button _tabMessages;
+        private Button _tabSupplies;
+
+        [Header("Supplies (delivered to the den locker)")]
+        [SerializeField] private SupplyListing[] _supplies = new SupplyListing[0];
+        [SerializeField] private InventoryComponent _locker;
 
         private void OnEnable() => VentNetTerminal.PanelRequested += OnPanelRequested;
 
@@ -112,11 +121,22 @@ namespace VentsAndVending.UI
                 if (o.Status == OrderStatus.Offered)
                 {
                     offers++;
-                    OfferCard(manager, o);
+                    if (!_showSupplies)
+                    {
+                        OfferCard(manager, o);
+                    }
                 }
             }
-            _inboxTitle.text = offers > 0 ? $"MESSAGES · {offers} NEW" : "MESSAGES";
-            if (offers == 0)
+            _inboxTitle.text = _showSupplies ? "SUPPLIES · DELIVERED TO YOUR LOCKER" : offers > 0 ? $"MESSAGES · {offers} NEW" : "MESSAGES";
+            StyleTabs(offers);
+            if (_showSupplies)
+            {
+                foreach (SupplyListing listing in _supplies)
+                {
+                    SupplyCard(listing);
+                }
+            }
+            else if (offers == 0)
             {
                 Note(_inbox, "No new messages. Customers ping you every minute or so — better trust, more pings.");
             }
@@ -150,6 +170,60 @@ namespace VentsAndVending.UI
             {
                 Note(_deals, history.ToString(), 28f);
             }
+        }
+
+        private void ShowSupplies(bool on)
+        {
+            _showSupplies = on;
+            Rebuild();
+        }
+
+        private void StyleTabs(int offers)
+        {
+            if (_tabMessages == null)
+            {
+                return;
+            }
+            _tabMessages.GetComponentInChildren<TextMeshProUGUI>().text = offers > 0 ? $"Messages ({offers})" : "Messages";
+            _tabMessages.interactable = _showSupplies;
+            _tabSupplies.interactable = !_showSupplies;
+        }
+
+        /// <summary>A supplies listing: what it is, the price, and a Buy button (delivered to the den locker).</summary>
+        private void SupplyCard(SupplyListing listing)
+        {
+            if (listing.Item == null)
+            {
+                return;
+            }
+            Image card = UiFactory.Panel(_inbox, listing.Item.Id, TermCard, 0f, 14f);
+            UiFactory.Layout(card.gameObject, preferredHeight: 120f);
+            Transform c = card.transform;
+
+            Image swatch = UiFactory.Panel(c, "Swatch", listing.Item.UiColor, 0f, 12f);
+            UiFactory.Place(swatch.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(52f, 52f));
+            TextMeshProUGUI name = UiFactory.Heading(c, "Name", listing.Item.DisplayName, 22f);
+            UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(86f, -14f), new Vector2(460f, 30f));
+            TextMeshProUGUI blurb = UiFactory.Text(c, "Blurb", $"“{listing.Blurb}”  <color=#8FB39A>{listing.Item.Description}</color>", 17f, TextAlignmentOptions.TopLeft, TermText);
+            UiFactory.Place(blurb.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(86f, -46f), new Vector2(560f, 60f));
+            blurb.overflowMode = TextOverflowModes.Ellipsis;
+
+            TextMeshProUGUI price = UiFactory.Mono(c, "Price", $"{listing.Price} CC", 24f, TextAlignmentOptions.Right, UiFactory.Credit);
+            UiFactory.Place(price.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-214f, -18f), new Vector2(120f, 30f));
+            UiFactory.Button(c, "Buy", "Buy", () => Buy(listing),
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 18f), new Vector2(180f, 46f), ButtonStyle.Go);
+        }
+
+        private void Buy(SupplyListing listing)
+        {
+            var wallet = Interactor != null ? Interactor.GetComponent<PlayerWallet>() : null;
+            if (wallet == null || _locker == null)
+            {
+                return;
+            }
+            PurchaseResult result = SupplyShop.TryBuy(listing, wallet.Wallet, _locker.Model);
+            Interactor.Notify(SupplyShop.Message(result));
+            _dirty = true;
         }
 
         private void OfferCard(OrderManager manager, CustomerOrder o)
@@ -400,6 +474,10 @@ namespace VentsAndVending.UI
             // Left: inbox + deals
             _inboxTitle = UiFactory.Label(w, "InboxTitle", "Messages", TermMuted);
             UiFactory.Place(_inboxTitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -96f), new Vector2(500f, 24f));
+            _tabMessages = UiFactory.Button(w, "TabMessages", "Messages", () => ShowSupplies(false),
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(690f, -84f), new Vector2(170f, 38f));
+            _tabSupplies = UiFactory.Button(w, "TabSupplies", "Supplies", () => ShowSupplies(true),
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(870f, -84f), new Vector2(120f, 38f));
             _inbox = UiFactory.Rect("Inbox", w);
             UiFactory.Place(_inbox, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -128f), new Vector2(960f, 456f));
             UiFactory.VerticalList(_inbox, 12f).childAlignment = TextAnchor.UpperLeft;
