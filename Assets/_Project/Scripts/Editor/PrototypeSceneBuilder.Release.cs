@@ -61,7 +61,7 @@ namespace VentsAndVending.Editor
 
             RenderSettings.skybox = null;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.08f, 0.08f, 0.12f);
+            RenderSettings.ambientLight = new Color(0.2f, 0.19f, 0.27f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = new Color(0.03f, 0.03f, 0.06f);

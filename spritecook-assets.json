@@ -1,11 +1,16 @@
 {
   "project": { "name": "Vents & Vending", "id": "d34a1c6f-3b9f-41e0-a830-36bfae28afe4" },
-  "style_anchor": "f09cb59e-9306-4587-92fb-d2bd684f5bf7",
+  "style_anchor": "8df4b81e-9215-4db1-bfb2-95308f0a451d",
   "assets": [
-    { "asset_id": "f09cb59e-9306-4587-92fb-d2bd684f5bf7", "sha12": "812fe4af4f2d", "label": "T_PaintedMetal (style anchor)" },
-    { "asset_id": "2ee4b3b6-f50b-4c6d-9d45-dfd8164e3ec8", "sha12": "9b466209b85b", "label": "T_FloorPlate" },
-    { "asset_id": "a97071e6-2128-4f91-830e-88d51021488e", "sha12": "286290f8ea9e", "label": "T_Concrete" },
-    { "asset_id": "2e0b92d5-afcd-4cf7-a33a-e56452475a0c", "sha12": "9e8c9c81f50c", "label": "T_PlazaTile" },
-    { "asset_id": "b47fb19d-42cd-483b-b40d-c99d10fa558a", "sha12": "cd0f08592b71", "label": "T_PlazaPanel" }
+    { "asset_id": "8df4b81e-9215-4db1-bfb2-95308f0a451d", "sha12": "fe5e870c0e2a", "label": "T_PaintedMetal cartoon (style anchor, active)" },
+    { "asset_id": "cdd448b8-b9df-49a9-8686-1eb82820bdc4", "sha12": "d3296b8e9f6f", "label": "T_FloorPlate cartoon (active)" },
+    { "asset_id": "21411f86-f5f3-4146-8c74-f1bf20455668", "sha12": "c6f1872306ba", "label": "T_Concrete cartoon (active)" },
+    { "asset_id": "3f4a070e-dd08-424c-ac34-df5f9c0319a1", "sha12": "5f10db835ea3", "label": "T_PlazaTile cartoon (active)" },
+    { "asset_id": "236d72ae-f3f2-4434-a030-aa296c149e05", "sha12": "761b7ad1916c", "label": "T_PlazaPanel cartoon (active)" },
+    { "asset_id": "f09cb59e-9306-4587-92fb-d2bd684f5bf7", "sha12": "812fe4af4f2d", "label": "T_PaintedMetal realistic (archived, _source_realistic)" },
+    { "asset_id": "2ee4b3b6-f50b-4c6d-9d45-dfd8164e3ec8", "sha12": "9b466209b85b", "label": "T_FloorPlate realistic (archived)" },
+    { "asset_id": "a97071e6-2128-4f91-830e-88d51021488e", "sha12": "286290f8ea9e", "label": "T_Concrete realistic (archived)" },
+    { "asset_id": "2e0b92d5-afcd-4cf7-a33a-e56452475a0c", "sha12": "9e8c9c81f50c", "label": "T_PlazaTile realistic (archived)" },
+    { "asset_id": "b47fb19d-42cd-483b-b40d-c99d10fa558a", "sha12": "cd0f08592b71", "label": "T_PlazaPanel realistic (archived)" }
   ]
 }

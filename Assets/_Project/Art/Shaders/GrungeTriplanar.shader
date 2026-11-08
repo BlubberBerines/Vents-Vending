@@ -40,6 +40,15 @@ Shader "VentsAndVending/Grunge Triplanar"
 
         [Header(Emission)]
         [HDR] _EmissionColor ("Emission", Color) = (0, 0, 0, 1)
+
+        [Header(Stylized Lighting  cartoony but not cel comic)]
+        _RampThreshold ("Light Ramp Threshold", Range(-1, 1)) = 0.05
+        _RampSoftness ("Light Ramp Softness", Range(0.001, 0.5)) = 0.12
+        _ShadowTint ("Shadow Tint", Color) = (0.8, 0.76, 0.95, 1)
+        _AmbientStrength ("Ambient Strength", Range(0, 6)) = 2.6
+        _SpecStrength ("Highlight Strength", Range(0, 2)) = 0.45
+        _RimStrength ("Rim Light Strength", Range(0, 1)) = 0.18
+        _WearCrispness ("Wear Crispness (painted blobs)", Range(0, 1)) = 0.7
     }
 
     SubShader
@@ -72,6 +81,13 @@ Shader "VentsAndVending/Grunge Triplanar"
             half _EdgeWear;
             float _EdgeWidth;
             half4 _EmissionColor;
+            half _RampThreshold;
+            half _RampSoftness;
+            half4 _ShadowTint;
+            half _AmbientStrength;
+            half _SpecStrength;
+            half _RimStrength;
+            half _WearCrispness;
         CBUFFER_END
 
         TEXTURE2D(_BaseMap);  SAMPLER(sampler_BaseMap);
@@ -151,6 +167,30 @@ Shader "VentsAndVending/Grunge Triplanar"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            // One light, stylized: soft two-tone ramp, crisp shadows, gently posterized point-light falloff
+            // (cartoon light pools) and a banded highlight that only glossy/metal surfaces get.
+            half3 VV_ToonLight(Light light, half3 n, half3 v, half3 albedo, half smoothness, half metallic, bool isMain)
+            {
+                half ndl = dot(n, light.direction);
+                half lit = smoothstep(_RampThreshold - _RampSoftness, _RampThreshold + _RampSoftness, ndl);
+                half shadow = smoothstep(0.35, 0.65, light.shadowAttenuation);
+                half atten = light.distanceAttenuation;
+                if (!isMain)
+                {
+                    atten = lerp(atten, floor(atten * 4.0 + 0.5) * 0.25, 0.45);
+                }
+
+                half amount = lit * shadow * atten;
+                half3 diffuse = albedo * light.color * amount;
+
+                half3 h = SafeNormalize(light.direction + v);
+                half spec = pow(saturate(dot(n, h)), exp2(smoothness * 9.0 + 1.0));
+                // Only glossy surfaces get a highlight — rough paint and concrete stay flat (cartoon read)
+                half band = smoothstep(0.45, 0.55, spec) * smoothstep(0.45, 0.7, smoothness) * _SpecStrength;
+                half3 specColor = lerp(half3(1.0, 1.0, 1.0), albedo * 2.0, metallic);
+                return diffuse + specColor * light.color * band * amount;
+            }
 
             struct Attributes
             {
@@ -237,8 +277,10 @@ Shader "VentsAndVending/Grunge Triplanar"
                     float mn = min(d.x, min(d.y, d.z));
                     float mx = max(d.x, max(d.y, d.z));
                     float mid = d.x + d.y + d.z - mn - mx;
-                    float chip = smoothstep(0.35, 0.55, VV_Fbm(posWS * 9.0 + 3.7));
-                    edge = saturate((1.0 - saturate(mid / _EdgeWidth)) * 1.6) * chip * _EdgeWear;
+                    float crispE = lerp(0.1, 0.02, _WearCrispness);
+                    float chip = smoothstep(0.45 - crispE, 0.45 + crispE, VV_Fbm(posWS * 6.0 + 3.7));
+                    float band = lerp(saturate((1.0 - saturate(mid / _EdgeWidth)) * 1.6), step(mid, _EdgeWidth * 0.7), _WearCrispness);
+                    edge = band * chip * _EdgeWear;
                     albedo = lerp(albedo, _EdgeColor.rgb, edge);
                     metallic = lerp(metallic, 0.85, edge);
                     smoothness = lerp(smoothness, 0.6, edge);
@@ -250,19 +292,29 @@ Shader "VentsAndVending/Grunge Triplanar"
                 {
                     float rn = VV_Fbm(posWS * _RustScale + 11.3);
                     float threshold = 1.0 - _RustAmount * 0.9;
-                    float rust = smoothstep(threshold, threshold + 0.12, rn + height * 0.12 + edge * 0.3);
-                    half3 rustCol = lerp(_RustColor.rgb, _RustColor.rgb * 0.55, VV_ValueNoise(posWS * 7.0));
+                    float rustEdge = lerp(0.12, 0.02, _WearCrispness);
+                    float rust = smoothstep(threshold, threshold + rustEdge, rn + height * 0.12 + edge * 0.3);
+                    // Two flat rust tones instead of noisy gradients (painted look)
+                    half3 rustCol = lerp(_RustColor.rgb, _RustColor.rgb * 0.62, step(0.55, VV_ValueNoise(posWS * 3.0)) * _WearCrispness
+                                         + VV_ValueNoise(posWS * 7.0) * (1.0 - _WearCrispness));
                     albedo = lerp(albedo, rustCol, rust);
                     metallic = lerp(metallic, 0.1, rust);
                     smoothness = lerp(smoothness, 0.12, rust);
                 }
 
-                // Grime: creeps up walls from the floor, plus patchy dirt everywhere
+                // Grime: creeps up walls from the floor, plus patchy dirt everywhere.
+                // Crisp mode turns it into a wavy painted band and flat blotches (cartoon grime).
                 float upFacing = saturate(geoN.y);
-                float floorGrime = saturate(1.0 - posWS.y / max(_GrimeHeight, 0.01));
-                floorGrime = floorGrime * floorGrime * (1.0 - upFacing) * _GrimeAmount;
-                float patches = saturate((VV_Fbm(posWS * _GrimeScale + 5.1) - 0.42) * 3.0) * _GrimePatches;
-                float grime = saturate(max(floorGrime, patches) * lerp(0.7, 1.15, VV_ValueNoise(posWS * 3.1)));
+                float wave = VV_Fbm(posWS * 1.3 + 2.2);
+                float softFloor = saturate(1.0 - posWS.y / max(_GrimeHeight, 0.01));
+                softFloor *= softFloor;
+                float crispFloor = step(posWS.y, _GrimeHeight * (0.35 + 0.65 * wave)) * 0.75;
+                float floorGrime = lerp(softFloor, crispFloor, _WearCrispness) * (1.0 - upFacing) * _GrimeAmount;
+                float pn = VV_Fbm(posWS * _GrimeScale + 5.1);
+                float softPatch = saturate((pn - 0.42) * 3.0);
+                float crispPatch = smoothstep(0.5, 0.52, pn) * 0.8;
+                float patches = lerp(softPatch, crispPatch, _WearCrispness) * _GrimePatches;
+                float grime = saturate(max(floorGrime, patches) * lerp(lerp(0.7, 1.15, VV_ValueNoise(posWS * 3.1)), 1.0, _WearCrispness));
                 albedo = lerp(albedo, albedo * _GrimeColor.rgb, grime);
                 smoothness *= 1.0 - grime * 0.7;
 
@@ -286,9 +338,38 @@ Shader "VentsAndVending/Grunge Triplanar"
                 surface.emission = _EmissionColor.rgb;
                 surface.alpha = 1.0;
 
-                half4 color = UniversalFragmentPBR(inputData, surface);
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
-                return color;
+                // ---------------- Stylized (cel-ish) lighting ----------------
+                half4 shadowMask = CalculateShadowMask(inputData);
+                AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surface);
+                half3 baseAlbedo = surface.albedo * lerp(1.0, 0.8, metallic); // metals read a touch darker in toon shading
+
+                // Ambient: tinted toward the cool shadow colour so unlit sides read as coloured shade, not grey
+                half3 color = baseAlbedo * inputData.bakedGI * _AmbientStrength * _ShadowTint.rgb * aoFactor.indirectAmbientOcclusion;
+
+                Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+                color += VV_ToonLight(mainLight, inputData.normalWS, inputData.viewDirectionWS, baseAlbedo, smoothness, metallic, true);
+
+                uint pixelLightCount = GetAdditionalLightsCount();
+                #if USE_CLUSTER_LIGHT_LOOP
+                [loop] for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
+                {
+                    CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
+                    Light dirLight = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+                    color += VV_ToonLight(dirLight, inputData.normalWS, inputData.viewDirectionWS, baseAlbedo, smoothness, metallic, false);
+                }
+                #endif
+                LIGHT_LOOP_BEGIN(pixelLightCount)
+                    Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+                    color += VV_ToonLight(light, inputData.normalWS, inputData.viewDirectionWS, baseAlbedo, smoothness, metallic, false);
+                LIGHT_LOOP_END
+
+                // Rim light (subtle cartoon edge glow, picks up the main light colour)
+                half rim = smoothstep(0.62, 0.7, 1.0 - saturate(dot(inputData.normalWS, inputData.viewDirectionWS)));
+                color += baseAlbedo * rim * _RimStrength * (mainLight.color * 0.5 + 0.5);
+
+                color += surface.emission;
+                color = MixFog(color, inputData.fogCoord);
+                return half4(color, 1.0);
             }
             ENDHLSL
         }

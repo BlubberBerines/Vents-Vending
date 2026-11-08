@@ -116,11 +116,11 @@ namespace VentsAndVending.Editor
             // Indoor station: no sky, dark void beyond the walls.
             RenderSettings.skybox = null;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.10f, 0.11f, 0.13f);
+            RenderSettings.ambientLight = new Color(0.24f, 0.24f, 0.30f); // bright cool fill: cartoony shade, not black
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = new Color(0.05f, 0.06f, 0.08f);
-            RenderSettings.fogDensity = 0.03f;
+            RenderSettings.fogDensity = 0.018f;
 
             var sun = new GameObject("Key Light").AddComponent<Light>();
             sun.type = LightType.Directional;
@@ -735,23 +735,36 @@ namespace VentsAndVending.Editor
                 }
             }
 
+            // Everything else (characters, props, neon, screens) uses the same stylized shader as a plain toon material:
+            // flat colour, no texture or wear, optional emission — so the whole game shares one lighting model.
             string path = $"{MaterialFolder}/{name}.mat";
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader toon = ArtLibrary.Shader;
             if (mat == null)
             {
-                var shader = Shader.Find("Universal Render Pipeline/Lit");
-                mat = new Material(shader);
+                mat = new Material(toon);
                 AssetDatabase.CreateAsset(mat, path);
+            }
+            else if (mat.shader != toon)
+            {
+                mat.shader = toon;
             }
 
             mat.SetColor("_BaseColor", baseColor);
             mat.SetFloat("_Smoothness", smoothness);
-            if (emission.HasValue)
-            {
-                mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", emission.Value);
-                mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-            }
+            mat.SetFloat("_Metallic", 0f);
+            mat.SetTexture("_BaseMap", null);
+            mat.SetFloat("_TextureStrength", 0f);
+            mat.SetTexture("_BumpMap", null);
+            mat.SetFloat("_BumpScale", 0f);
+            mat.SetFloat("_SeamDarkness", 0f);
+            mat.SetFloat("_GrimeAmount", 0f);
+            mat.SetFloat("_GrimePatches", 0f);
+            mat.SetFloat("_RustAmount", 0f);
+            mat.SetFloat("_EdgeWear", 0f);
+            mat.SetColor("_EmissionColor", emission ?? Color.black);
+            mat.globalIlluminationFlags = emission.HasValue ? MaterialGlobalIlluminationFlags.RealtimeEmissive : MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            ArtLibrary.ApplyToonLook(mat);
 
             EditorUtility.SetDirty(mat);
             return mat;

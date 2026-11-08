@@ -21,7 +21,7 @@ namespace VentsAndVending.Editor
 
             RenderSettings.skybox = null;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.10f, 0.11f, 0.13f);
+            RenderSettings.ambientLight = new Color(0.24f, 0.24f, 0.30f);
             RenderSettings.fog = false;
 
             var camGo = new GameObject("Main Camera");

@@ -2,6 +2,8 @@
 
 Source: GDD Part 15 (Art Direction & Visual Bible). This guide turns it into concrete, reusable rules.
 Decision (2026-11-08): **stylized grunge** look; **procedural grime + AI-generated base textures**.
+Revision (2026-11-08): pushed **slightly cartoony** — toward Schedule I / Rick and Morty readability without becoming a full
+cartoon: soft cel lighting with tinted shade, ink outlines, flatter cartoon textures, a little extra saturation.
 
 ## 1. The look in one paragraph
 
@@ -9,6 +11,23 @@ Simple, chunky low-poly shapes carry **detailed material work**: worn paint, rus
 read clearly from a few metres away. Wear is **bold and legible, never photoreal noise**. Lighting and colour do the
 mood — the **maintenance network is dark, warm and dirty**; the **public plaza is cleaner, polished and neon**. That
 contrast is the game's visual identity (GDD §28).
+
+## 1b. What makes it "slightly cartoony"
+
+| Lever | Setting | Where |
+|---|---|---|
+| Soft cel lighting | 2-tone ramp (threshold 0.05, softness 0.12), crisp shadows, gently posterised point-light pools | `GrungeTriplanar.shader` (`VV_ToonLight`) |
+| Tinted shade | Shadow tint lilac `(0.8, 0.76, 0.95)`, ambient strength 2.6, scene ambient `(0.24, 0.24, 0.30)` | shader + `ArtLibrary.ApplyToonLook`, scene builders |
+| Highlights | Only glossy/metal surfaces get a small banded highlight; rough paint and concrete stay flat | shader |
+| Rim light | Subtle (0.18) | shader |
+| Ink outlines | Screen-space, colour `#0F0D1A`, 1.4 px p, fade 18–55 m | `OutlineFullscreen.shader`, "Toon Outline" renderer feature |
+| Wear | Crispness 0.75 — grime is a wavy painted band and flat blotches; rust is two flat tones | shader `_WearCrispness` |
+| Textures | Cartoon-style detail maps (flat tones, clean scratches, blobby stains), normal maps at 35 % | `_source/`, `ToonNormalScale` |
+| Colour grade | Saturation +18, contrast +8 | `GlobalVolumeProfile` |
+| One look everywhere | Characters, props, neon and screens all use the same shader (flat colour, no wear) | `GetOrCreateMaterial` |
+
+Re-apply the renderer/volume part with *Vents & Vending → Art → Apply Toon Rendering Setup*.
+Don't go further than this without a decision: thicker outlines, hard (0-softness) ramps or fully flat textures tip it into full cartoon.
 
 ## 2. Palettes (GDD §15.4)
 
@@ -74,12 +93,14 @@ Emissive materials (neon, screens, liquids, lamps) and characters stay on **URP 
 - **Authoring:** tileable, **neutral grey**, flat-lit, head-on, no baked shadows/perspective, no text.
   Process with *Vents & Vending → Art → Process Source Textures* (desaturate, mean-normalise, derive normal map).
 - **Generating with SpriteCook:** project "Vents & Vending"; model `gpt-image-2.5-flare`, `mode=texture`,
-  `pixel=false`, 1K, medium quality; **always pass the style anchor** `f09cb59e-9306-4587-92fb-d2bd684f5bf7`
-  (T_PaintedMetal) in `style_asset_ids`. Prompt template:
-  > *Seamless tileable square texture of …, viewed perfectly flat and head-on (orthographic). [wear details].
-  > Even, flat, shadowless lighting. Neutral desaturated mid-grey (no dominant colour), medium contrast.
-  > Tiles seamlessly on all sides. No text, no borders, no seams.*
-  Style: *"stylized grunge game texture for a low-poly sci-fi game, clean readable wear, not photoreal, not painterly"*.
+  `pixel=false`, 1K, medium quality; **always pass the cartoon style anchor** `8df4b81e-9215-4db1-bfb2-95308f0a451d`
+  (T_PaintedMetal cartoon) in `style_asset_ids`. Prompt template:
+  > *Seamless tileable square texture of …, viewed perfectly flat and head-on (orthographic). Drawn in a simplified
+  > cartoon style like an animated TV show background: [a few clean scratch lines, chunky crisp-edged flecks, two or
+  > three big blobby stains]. Flat even lighting, no photographic noise or grain, limited tones. Neutral desaturated
+  > mid-grey (no dominant colour). Tiles seamlessly on all sides. No text, no borders, no seams.*
+  Style: *"stylized cartoon game texture, hand-drawn animated-series look, simplified shapes, clean readable wear,
+  not photoreal, not painterly brushwork"*. The earlier realistic set is archived in `_source_realistic/`.
   Record every asset ID in `spritecook-assets.json`.
 
 ## 5. Geometry (GDD §15.2)

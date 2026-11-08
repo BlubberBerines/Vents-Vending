@@ -33,8 +33,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AmbientStrength: 2.6
     - _BlendSharpness: 6
-    - _BumpScale: 0.8
+    - _BumpScale: 0.28
     - _EdgeWear: 0.3
     - _EdgeWidth: 0.04
     - _GrimeAmount: 0.6
@@ -43,18 +44,24 @@ Material:
     - _GrimeScale: 0.8
     - _Metallic: 0.5
     - _PanelSize: 1.5
+    - _RampSoftness: 0.12
+    - _RampThreshold: 0.05
+    - _RimStrength: 0.18
     - _RustAmount: 0.7
     - _RustScale: 1.6
     - _SeamDarkness: 0.3
     - _SeamWidth: 0.012
     - _Smoothness: 0.25
+    - _SpecStrength: 0.45
     - _TextureStrength: 1
     - _TileSize: 2
+    - _WearCrispness: 0.75
     m_Colors:
     - _BaseColor: {r: 0.36, g: 0.24, b: 0.17, a: 1}
     - _EdgeColor: {r: 0.62, g: 0.6, b: 0.56, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GrimeColor: {r: 0.34999996, g: 0.29999998, b: 0.23999995, a: 1}
     - _RustColor: {r: 0.41999996, g: 0.19999996, b: 0.079999976, a: 1}
+    - _ShadowTint: {r: 0.8, g: 0.76, b: 0.95, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

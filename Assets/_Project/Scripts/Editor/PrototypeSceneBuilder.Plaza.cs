@@ -83,11 +83,11 @@ namespace VentsAndVending.Editor
                 new Vector3(PlazaHalfWidth - 0.05f, 3.2f, 33f), 90f, 0.9f, Color.white, 5f);
 
             // Lighting — brighter and more colourful than the maintenance areas (GDD §15.4)
-            CreatePointLight("Plaza Cyan", new Vector3(-8f, 4.6f, 29f), new Color(0.2f, 0.9f, 1f), 15f, 4f, plaza);
-            CreatePointLight("Plaza Magenta", new Vector3(8f, 4.6f, 29f), new Color(1f, 0.25f, 0.85f), 15f, 4f, plaza);
-            CreatePointLight("Plaza Violet", new Vector3(-8f, 4.6f, 44f), new Color(0.6f, 0.35f, 1f), 15f, 4f, plaza);
-            CreatePointLight("Plaza Amber", new Vector3(8f, 4.6f, 44f), new Color(1f, 0.6f, 0.2f), 15f, 4f, plaza);
-            CreatePointLight("Plaza Fill", new Vector3(0f, 5.5f, 37f), new Color(0.8f, 0.85f, 1f), 18f, 2f, plaza);
+            CreatePointLight("Plaza Cyan", new Vector3(-8f, 4.6f, 29f), new Color(0.2f, 0.9f, 1f), 16f, 5f, plaza);
+            CreatePointLight("Plaza Magenta", new Vector3(8f, 4.6f, 29f), new Color(1f, 0.25f, 0.85f), 16f, 5f, plaza);
+            CreatePointLight("Plaza Violet", new Vector3(-8f, 4.6f, 44f), new Color(0.6f, 0.35f, 1f), 16f, 5f, plaza);
+            CreatePointLight("Plaza Amber", new Vector3(8f, 4.6f, 44f), new Color(1f, 0.6f, 0.2f), 16f, 5f, plaza);
+            CreatePointLight("Plaza Fill", new Vector3(0f, 5.5f, 37f), new Color(0.85f, 0.88f, 1f), 22f, 3.5f, plaza);
 
             BuildPlazaVent(level, vent, accent, glow);
             return plaza;
