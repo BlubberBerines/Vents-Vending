@@ -18,6 +18,17 @@ namespace VentsAndVending.Customers
         [SerializeField] private float _floatHeight = 1.05f;
         [SerializeField] private float _floatSpeed = 1.6f;
         [SerializeField] private CharacterFace _face;
+
+        [Header("Limbs")]
+        [Tooltip("Shoulder/hip pivots that swing around their local X axis while walking.")]
+        [SerializeField] private Transform[] _swingPivots = new Transform[0];
+        [Tooltip("Per pivot: phase in radians (0 or PI makes arms/legs alternate).")]
+        [SerializeField] private float[] _swingPhases = new float[0];
+        [SerializeField] private float _swingAngle = 28f;
+        [SerializeField] private float _swingSpeed = 6f;
+        [SerializeField] private float _idleSway = 4f;
+
+        private Quaternion[] _swingBase;
         [Tooltip("Renderers recoloured per visit (body colour variety).")]
         [SerializeField] private Renderer[] _tintRenderers = new Renderer[0];
 
@@ -31,6 +42,14 @@ namespace VentsAndVending.Customers
         private float _phase;
 
         public CharacterFace Face => _face;
+
+        internal void ConfigureLimbs(Transform[] pivots, float[] phases, float angle, float speed)
+        {
+            _swingPivots = pivots;
+            _swingPhases = phases;
+            _swingAngle = angle;
+            _swingSpeed = speed;
+        }
 
         /// <summary>Recolours the body for this visit. Emission follows the colour faintly (jelly glow).</summary>
         public void ApplyTint(Color color, float glow)
@@ -66,6 +85,11 @@ namespace VentsAndVending.Customers
                 _bodyOrigin = _body.localPosition;
             }
             _phase = Random.value * 10f;
+            _swingBase = new Quaternion[_swingPivots.Length];
+            for (int i = 0; i < _swingPivots.Length; i++)
+            {
+                _swingBase[i] = _swingPivots[i] != null ? _swingPivots[i].localRotation : Quaternion.identity;
+            }
         }
 
         public void PlayHappy()
@@ -100,6 +124,20 @@ namespace VentsAndVending.Customers
                     shake = new Vector3(Mathf.Sin(Time.time * 60f) * 0.04f * (_shakeTimer / 0.5f), 0f, 0f);
                 }
                 _body.localPosition = _bodyOrigin + shake + Vector3.up * (Mathf.Abs(Mathf.Sin(t)) * _bobHeight * moving + hop);
+            }
+
+            // Limb swing: full stride when walking, a lazy sway when standing about
+            float stride = (Time.time + _phase) * _swingSpeed;
+            for (int i = 0; i < _swingPivots.Length; i++)
+            {
+                if (_swingPivots[i] == null)
+                {
+                    continue;
+                }
+                float phase = i < _swingPhases.Length ? _swingPhases[i] : 0f;
+                float angle = Mathf.Sin(stride + phase) * _swingAngle * moving
+                            + Mathf.Sin((Time.time + _phase) * 1.3f + phase) * _idleSway * (1f - moving);
+                _swingPivots[i].localRotation = _swingBase[i] * Quaternion.Euler(angle, 0f, 0f);
             }
 
             for (int i = 0; i < _floaters.Length; i++)

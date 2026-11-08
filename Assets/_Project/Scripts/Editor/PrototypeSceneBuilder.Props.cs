@@ -40,6 +40,37 @@ namespace VentsAndVending.Editor
             BuildWallRuns(g, duct, dark, cable, cableRed, hazard);
         }
 
+        /// <summary>
+        /// Soften pass: rounds the corners of soft and hand-scale props (radius in metres). Structures — walls, floors,
+        /// pillars, ducts — stay sharp on purpose (style guide §5).
+        /// </summary>
+        private static readonly System.Collections.Generic.Dictionary<string, float> SoftRadii = new System.Collections.Generic.Dictionary<string, float>
+        {
+            // Soft furnishings
+            { "Mattress", 0.09f }, { "Pillow", 0.065f }, { "Blanket", 0.035f }, { "BlanketRoll", 0.05f }, { "Bench_W", 0.1f }, { "Bench_E", 0.1f },
+            // Hand-scale props
+            { "Pallet", 0.02f }, { "Box_Open", 0.025f }, { "Box_Taped", 0.025f }, { "LooseBox", 0.03f }, { "FlatPacks", 0.025f },
+            { "Tabletop", 0.025f }, { "Body", 0.045f }, { "Band", 0.05f }, { "BandV", 0.05f },
+            { "Storage Locker", 0.045f }, { "Locker_Trim", 0.02f },
+            { "Bench", 0.045f }, { "BenchTop", 0.025f }, { "GaugeBack", 0.025f },
+            { "Housing", 0.035f }, { "Keypad", 0.02f },
+            { "Counter", 0.06f }, { "BackPanel", 0.03f }, { "Awning", 0.03f }, { "Goods_Crate", 0.035f }, { "Pedestal", 0.07f },
+            { "Crate_A", 0.05f }, { "Crate_B", 0.04f },
+        };
+
+        private static void SoftenProps()
+        {
+            int rounded = 0;
+            foreach (MeshFilter filter in Object.FindObjectsByType<MeshFilter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (SoftRadii.TryGetValue(filter.gameObject.name, out float radius) && RoundedMeshFactory.RoundCube(filter.gameObject, radius))
+                {
+                    rounded++;
+                }
+            }
+            Debug.Log($"[PrototypeSceneBuilder] Softened {rounded} props.");
+        }
+
         // ------------------------------------------------------------------ Workshop pieces
 
         /// <summary>Locker front faces +Z: door seam, vent slats, handles, feet and a sticker.</summary>
@@ -107,12 +138,13 @@ namespace VentsAndVending.Editor
                 NoCollider(Block("PalletSlatGap", g, basePos + new Vector3(i * 0.7f, 0.141f, 0f), new Vector3(0.04f, 0.002f, 1.1f), GetOrCreateMaterial("Prop_Seam", new Color(0.05f, 0.04f, 0.06f), 0.2f)));
             }
             var bed = Block("Mattress", g, basePos + new Vector3(0f, 0.24f, 0f), new Vector3(1.95f, 0.2f, 0.95f), mattress);
-            NoCollider(Block("MattressStain", g, basePos + new Vector3(0.35f, 0.342f, 0.1f), new Vector3(0.4f, 0.004f, 0.3f), stain));
-            Part("Pillow", g, basePos + new Vector3(-0.72f, 0.4f, 0f), new Vector3(0.4f, 0.13f, 0.62f), mattress, PrimitiveType.Sphere);
+            NoCollider(Block("MattressStain", g, basePos + new Vector3(-0.42f, 0.343f, 0.3f), new Vector3(0.22f, 0.004f, 0.16f), stain));
+            Part("Pillow", g, basePos + new Vector3(-0.68f, 0.4f, 0f), new Vector3(0.42f, 0.14f, 0.62f), mattress, PrimitiveType.Cube).transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
             var cover = Part("Blanket", g, basePos + new Vector3(0.3f, 0.37f, 0.03f), new Vector3(1.2f, 0.08f, 1.0f), blanket, PrimitiveType.Cube);
             cover.transform.localRotation = Quaternion.Euler(0f, 8f, 3f);
-            var fold = Part("BlanketFold", g, basePos + new Vector3(-0.25f, 0.42f, -0.2f), new Vector3(0.35f, 0.14f, 0.5f), blanket, PrimitiveType.Sphere);
-            fold.transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
+            // Rolled-back top edge of the blanket
+            var fold = Part("BlanketRoll", g, basePos + new Vector3(-0.27f, 0.41f, 0.05f), new Vector3(0.2f, 0.11f, 1.0f), blanket, PrimitiveType.Cube);
+            fold.transform.localRotation = Quaternion.Euler(0f, 8f, 3f);
             _ = bed;
         }
 

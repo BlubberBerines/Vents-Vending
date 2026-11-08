@@ -159,9 +159,19 @@ namespace VentsAndVending.Editor
             var f1 = Part("Floater_1", root.transform, new Vector3(0.6f, 1.05f, 0f), Vector3.one * 0.14f, floaterMat, PrimitiveType.Sphere).transform;
             var f2 = Part("Floater_2", root.transform, new Vector3(-0.6f, 1.05f, 0f), Vector3.one * 0.12f, floaterMat, PrimitiveType.Sphere).transform;
 
+            // Stubby jelly arms attached to the sides, angled out, little round hands
+            var tint = new System.Collections.Generic.List<Renderer> { jelly.GetComponent<Renderer>(), footL.GetComponent<Renderer>(), footR.GetComponent<Renderer>() };
+            var armL = Limb(body, "Arm_L", new Vector3(-0.43f, 0.55f, 0.04f), Quaternion.Euler(0f, 0f, -38f), 0.2f, 0.13f, 0.14f, 0.115f, -20f,
+                bodyMat, bodyMat, Vector3.one * 0.13f, Vector3.zero, tint);
+            var armR = Limb(body, "Arm_R", new Vector3(0.43f, 0.55f, 0.04f), Quaternion.Euler(0f, 0f, 38f), 0.2f, 0.13f, 0.14f, 0.115f, -20f,
+                bodyMat, bodyMat, Vector3.one * 0.13f, Vector3.zero, tint);
+            // Every arm part (including hands) gets the body colour
+            foreach (Renderer r in armL.GetComponentsInChildren<Renderer>()) { if (!tint.Contains(r)) tint.Add(r); }
+            foreach (Renderer r in armR.GetComponentsInChildren<Renderer>()) { if (!tint.Contains(r)) tint.Add(r); }
+
             return FinishCustomerPrefab(root, body, new[] { f1, f2 }, bubbleHeight: 1.65f, bobSpeed: 7f, squash: 0.08f,
-                $"{CharacterPrefabFolder}/Customer_Blorb.prefab", eyes, mouth,
-                new[] { jelly.GetComponent<Renderer>(), footL.GetComponent<Renderer>(), footR.GetComponent<Renderer>() });
+                $"{CharacterPrefabFolder}/Customer_Blorb.prefab", eyes, mouth, tint.ToArray(),
+                new[] { armL, armR }, new[] { 0f, Mathf.PI }, 32f, 7f);
         }
 
         // ------------------------------------------------------------------ Gromflomite (GDD §8.1)
@@ -217,24 +227,36 @@ namespace VentsAndVending.Editor
             col.height = 1.9f;
 
             var body = Group("Body", root.transform);
-            var legL = Part("Leg_L", body, new Vector3(-0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
-            var legR = Part("Leg_R", body, new Vector3(0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
-            Part("Shoe_L", body, new Vector3(-0.1f, 0.03f, 0.05f), new Vector3(0.11f, 0.06f, 0.2f), pupilMat, PrimitiveType.Sphere);
-            Part("Shoe_R", body, new Vector3(0.1f, 0.03f, 0.05f), new Vector3(0.11f, 0.06f, 0.2f), pupilMat, PrimitiveType.Sphere);
+            var tint = new System.Collections.Generic.List<Renderer>();
+
+            // Legs: hip → thigh → knee → shin → shoe (noodle limbs, attached at the hips)
+            var hipL = Limb(body, "Leg_L", new Vector3(-0.1f, 0.72f, 0f), Quaternion.identity, 0.34f, 0.095f, 0.32f, 0.085f, 0f,
+                suitMat, pupilMat, new Vector3(0.11f, 0.065f, 0.21f), new Vector3(0f, -0.005f, 0.05f), tint);
+            var hipR = Limb(body, "Leg_R", new Vector3(0.1f, 0.72f, 0f), Quaternion.identity, 0.34f, 0.095f, 0.32f, 0.085f, 0f,
+                suitMat, pupilMat, new Vector3(0.11f, 0.065f, 0.21f), new Vector3(0f, -0.005f, 0.05f), tint);
+            tint.Add(Part("Hips", body, new Vector3(0f, 0.74f, 0f), new Vector3(0.3f, 0.12f, 0.22f), suitMat, PrimitiveType.Sphere).GetComponent<Renderer>());
+
             var torso = Part("Torso", body, new Vector3(0f, 1.05f, 0f), new Vector3(0.45f, 0.4f, 0.32f), suitMat, PrimitiveType.Capsule);
+            tint.Add(torso.GetComponent<Renderer>());
             Part("ShirtFront", body, new Vector3(0f, 1.22f, 0.13f), new Vector3(0.14f, 0.18f, 0.05f), shirtMat);
             Part("Tie", body, new Vector3(0f, 1.12f, 0.16f), new Vector3(0.05f, 0.24f, 0.02f), tieMat);
             Part("TieKnot", body, new Vector3(0f, 1.26f, 0.165f), new Vector3(0.06f, 0.05f, 0.03f), tieMat);
             Part("OversizedBadge", body, new Vector3(0.14f, 1.1f, 0.165f), new Vector3(0.14f, 0.18f, 0.02f), badgeMat);
 
-            Part("Arm_L", body, new Vector3(-0.29f, 1.0f, 0.05f), new Vector3(0.06f, 0.5f, 0.06f), suitMat).transform.localRotation = Quaternion.Euler(-25f, 0f, 6f);
-            Part("Arm_R", body, new Vector3(0.29f, 1.02f, 0f), new Vector3(0.06f, 0.5f, 0.06f), suitMat).transform.localRotation = Quaternion.Euler(0f, 0f, -6f);
-            Part("Hand_L", body, new Vector3(-0.31f, 0.8f, 0.17f), Vector3.one * 0.08f, skinMat, PrimitiveType.Sphere);
-            Part("Hand_R", body, new Vector3(0.31f, 0.78f, 0f), Vector3.one * 0.08f, skinMat, PrimitiveType.Sphere);
-            var board = Part("Clipboard", body, new Vector3(-0.27f, 0.86f, 0.24f), new Vector3(0.22f, 0.3f, 0.02f), boardMat);
-            board.transform.localRotation = Quaternion.Euler(-55f, 15f, 0f);
-            var paper = Part("Paper", board.transform, new Vector3(0f, -0.05f, 0.6f), new Vector3(0.85f, 0.75f, 0.5f), paperMat);
-            paper.transform.localRotation = Quaternion.identity;
+            // Arms: shoulder → upper arm → elbow → forearm → hand. Left elbow bent to carry the clipboard.
+            var shoulders = Part("Shoulders", body, new Vector3(0f, 1.33f, 0f), new Vector3(0.12f, 0.26f, 0.24f), suitMat, PrimitiveType.Capsule);
+            shoulders.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            tint.Add(shoulders.GetComponent<Renderer>());
+            var shoulderL = Limb(body, "Arm_L", new Vector3(-0.23f, 1.33f, 0f), Quaternion.Euler(0f, 0f, -8f), 0.3f, 0.08f, 0.27f, 0.07f, -75f,
+                suitMat, skinMat, Vector3.one * 0.09f, Vector3.zero, tint, out Transform elbowL);
+            var shoulderR = Limb(body, "Arm_R", new Vector3(0.23f, 1.33f, 0f), Quaternion.Euler(0f, 0f, 8f), 0.3f, 0.08f, 0.27f, 0.07f, -10f,
+                suitMat, skinMat, Vector3.one * 0.09f, Vector3.zero, tint, out _);
+
+            // Clipboard held in the left hand (in the forearm's frame, so it moves with the arm)
+            var board = Part("Clipboard", elbowL, new Vector3(0.02f, -0.3f, 0.05f), new Vector3(0.22f, 0.02f, 0.3f), boardMat);
+            board.transform.localRotation = Quaternion.Euler(-20f, 0f, 0f);
+            Part("Paper", board.transform, new Vector3(0f, -0.6f, -0.05f), new Vector3(0.85f, 0.5f, 0.75f), paperMat);
+            Part("Clip", board.transform, new Vector3(0f, -0.9f, 0.42f), new Vector3(0.4f, 1.2f, 0.12f), pupilMat);
 
             // Head group leans forward: the hunch of someone who has stamped forms for 300 rotations
             var head = Group("Head", body);
@@ -257,9 +279,10 @@ namespace VentsAndVending.Editor
             Part("AntennaTip_L", head, new Vector3(-0.115f, 0.52f, 0.02f), Vector3.one * 0.04f, badgeMat, PrimitiveType.Sphere);
             Part("AntennaTip_R", head, new Vector3(0.115f, 0.52f, 0.02f), Vector3.one * 0.04f, badgeMat, PrimitiveType.Sphere);
 
+            // Gait: right arm swings with the left leg and vice versa
             return FinishCustomerPrefab(root, body, new Transform[0], bubbleHeight: 2.25f, bobSpeed: 9f, squash: 0.015f,
-                $"{CharacterPrefabFolder}/Customer_Gromflomite.prefab", eyes, mouth,
-                new[] { torso.GetComponent<Renderer>(), legL.GetComponent<Renderer>(), legR.GetComponent<Renderer>() });
+                $"{CharacterPrefabFolder}/Customer_Gromflomite.prefab", eyes, mouth, tint.ToArray(),
+                new[] { hipL, hipR, shoulderR, shoulderL }, new[] { 0f, Mathf.PI, 0f, Mathf.PI * 0.5f }, 24f, 6.5f);
         }
 
         // ------------------------------------------------------------------ Shared
@@ -289,8 +312,41 @@ namespace VentsAndVending.Editor
             return new CharacterFace.Eye { Root = root, Pupil = pupilRoot, Range = size * 0.17f };
         }
 
+        /// <summary>
+        /// Two-segment noodle limb from capsules: pivot (shoulder/hip) → upper → joint (elbow/knee, bent by
+        /// <paramref name="bend"/> degrees around X) → lower → end (hand/shoe). Sleeve/trouser renderers go into <paramref name="tint"/>.
+        /// Returns the pivot (swung by CustomerVisual).
+        /// </summary>
+        private static Transform Limb(Transform parent, string name, Vector3 pivotPos, Quaternion pivotRot, float upperLen, float upperThick,
+            float lowerLen, float lowerThick, float bend, Material mat, Material endMat, Vector3 endScale, Vector3 endOffset,
+            System.Collections.Generic.List<Renderer> tint) => Limb(parent, name, pivotPos, pivotRot, upperLen, upperThick, lowerLen,
+            lowerThick, bend, mat, endMat, endScale, endOffset, tint, out _);
+
+        private static Transform Limb(Transform parent, string name, Vector3 pivotPos, Quaternion pivotRot, float upperLen, float upperThick,
+            float lowerLen, float lowerThick, float bend, Material mat, Material endMat, Vector3 endScale, Vector3 endOffset,
+            System.Collections.Generic.List<Renderer> tint, out Transform joint)
+        {
+            var pivot = Group(name, parent);
+            pivot.localPosition = pivotPos;
+            pivot.localRotation = pivotRot;
+            var socket = Part($"{name}_Socket", pivot, Vector3.zero, Vector3.one * upperThick * 1.05f, mat, PrimitiveType.Sphere);
+            tint?.Add(socket.GetComponent<Renderer>());
+            var upper = Part($"{name}_Upper", pivot, new Vector3(0f, -upperLen * 0.5f, 0f), new Vector3(upperThick, upperLen * 0.5f, upperThick), mat, PrimitiveType.Capsule);
+
+            joint = Group($"{name}_Joint", pivot);
+            joint.localPosition = new Vector3(0f, -upperLen, 0f);
+            joint.localRotation = Quaternion.Euler(bend, 0f, 0f);
+            var lower = Part($"{name}_Lower", joint, new Vector3(0f, -lowerLen * 0.5f, 0f), new Vector3(lowerThick, lowerLen * 0.5f, lowerThick), mat, PrimitiveType.Capsule);
+            Part($"{name}_End", joint, new Vector3(0f, -lowerLen, 0f) + endOffset, endScale, endMat, PrimitiveType.Sphere);
+
+            tint?.Add(upper.GetComponent<Renderer>());
+            tint?.Add(lower.GetComponent<Renderer>());
+            return pivot;
+        }
+
         private static GameObject FinishCustomerPrefab(GameObject root, Transform body, Transform[] floaters, float bubbleHeight,
-            float bobSpeed, float squash, string path, CharacterFace.Eye[] eyes = null, Transform mouth = null, Renderer[] tint = null)
+            float bobSpeed, float squash, string path, CharacterFace.Eye[] eyes = null, Transform mouth = null, Renderer[] tint = null,
+            Transform[] limbs = null, float[] limbPhases = null, float swingAngle = 28f, float swingSpeed = 6f)
         {
             var face = root.AddComponent<CharacterFace>();
             face.Configure(eyes ?? new CharacterFace.Eye[0], mouth);
@@ -316,6 +372,7 @@ namespace VentsAndVending.Editor
             vso.FindProperty("_face").objectReferenceValue = face;
             SetList(vso.FindProperty("_tintRenderers"), tint ?? new Renderer[0]);
             vso.ApplyModifiedPropertiesWithoutUndo();
+            visual.ConfigureLimbs(limbs ?? new Transform[0], limbPhases ?? new float[0], swingAngle, swingSpeed);
 
             var customer = root.AddComponent<Customer>();
             var cso = new SerializedObject(customer);

@@ -97,6 +97,7 @@ namespace VentsAndVending.Editor
             BuildProps(level);
             BuildProgression(level, wallMat, accentMat);
             BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
+            SoftenProps();
             BakeNavMesh(level.gameObject);
             BuildSecurity();
             CreateSaveSystem();
