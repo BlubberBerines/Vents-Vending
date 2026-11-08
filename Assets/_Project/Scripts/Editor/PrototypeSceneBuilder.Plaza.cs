@@ -232,29 +232,29 @@ namespace VentsAndVending.Editor
                 new Bounds(new Vector3(21.75f, 0f, 39.9f), new Vector3(9.5f, 10f, 9.2f)), true);
         }
 
-        private static Transform PatrolPoint(Transform parent, string name, Stop s, float altitude)
+        private static Transform PatrolPoint(Transform parent, string name, Stop s, float altitude, float floorY = 0f)
         {
             var p = new GameObject(name).transform;
             p.SetParent(parent, false);
-            p.position = new Vector3(s.At.x, altitude, s.At.y);
+            p.position = new Vector3(s.At.x, floorY + altitude, s.At.y);
             Transform look = null;
             if (s.Look.HasValue)
             {
                 look = new GameObject("LookAt").transform;
                 look.SetParent(p, false);
-                look.position = new Vector3(s.Look.Value.x, 1f, s.Look.Value.y);
+                look.position = new Vector3(s.Look.Value.x, floorY + 1f, s.Look.Value.y);
             }
             p.gameObject.AddComponent<DronePatrolPoint>().Configure(s.Wait, s.Sweep, look);
             return p;
         }
 
-        private static void BuildDrone(string name, float altitude, Stop[] main, (int from, Stop[] points, float chance)[] detours, Bounds zone, bool gold)
+        private static void BuildDrone(string name, float altitude, Stop[] main, (int from, Stop[] points, float chance)[] detours, Bounds zone, bool gold, float floorY = 0f)
         {
             var routeRoot = new GameObject($"{name} Route").transform;
             var patrol = new Transform[main.Length];
             for (int i = 0; i < main.Length; i++)
             {
-                patrol[i] = PatrolPoint(routeRoot, $"Patrol {i + 1}", main[i], altitude);
+                patrol[i] = PatrolPoint(routeRoot, $"Patrol {i + 1}", main[i], altitude, floorY);
             }
             var detourRoutes = new SecurityDrone.DetourRoute[detours.Length];
             for (int d = 0; d < detours.Length; d++)
@@ -262,7 +262,7 @@ namespace VentsAndVending.Editor
                 var pts = new Transform[detours[d].points.Length];
                 for (int i = 0; i < pts.Length; i++)
                 {
-                    pts[i] = PatrolPoint(routeRoot, $"Detour {d + 1}.{i + 1}", detours[d].points[i], altitude);
+                    pts[i] = PatrolPoint(routeRoot, $"Detour {d + 1}.{i + 1}", detours[d].points[i], altitude, floorY);
                 }
                 detourRoutes[d] = new SecurityDrone.DetourRoute { FromMain = detours[d].from, Points = pts, Chance = detours[d].chance };
             }
@@ -323,7 +323,7 @@ namespace VentsAndVending.Editor
             voice.playOnAwake = false;
 
             var drone = root.AddComponent<SecurityDrone>();
-            drone.SetPatrol(patrol, detourRoutes, zone);
+            drone.SetPatrol(patrol, detourRoutes, zone, floorY);
             var so = new SerializedObject(drone);
             so.FindProperty("_eye").objectReferenceValue = eye.transform;
             so.FindProperty("_eyeRenderer").objectReferenceValue = eye.GetComponent<Renderer>();
@@ -334,6 +334,7 @@ namespace VentsAndVending.Editor
             so.FindProperty("_voice").objectReferenceValue = voice;
             so.FindProperty("_chirp").objectReferenceValue = ProceduralAudio.DroneChirp;
             so.FindProperty("_alarm").objectReferenceValue = ProceduralAudio.DroneAlarm;
+            so.FindProperty("_altitude").floatValue = altitude;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

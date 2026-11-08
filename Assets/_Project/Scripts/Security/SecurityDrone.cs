@@ -17,6 +17,8 @@ namespace VentsAndVending.Security
         [Header("Route")]
         [SerializeField] private Transform[] _patrolPoints = new Transform[0];
         [SerializeField] private float _altitude = 2.7f;
+        [Tooltip("World height of the floor this drone patrols over; altitude is measured from here.")]
+        [SerializeField] private float _floorY;
         [SerializeField] private float _pursuitAltitude = 2.2f;
         [SerializeField] private float _waitAtPoint = 1.5f;
         [Tooltip("Optional branches off the main loop (FromMain = index of the main point they leave from).")]
@@ -286,7 +288,7 @@ namespace VentsAndVending.Security
                 return p;
             }
             Vector3 min = _zone.min, max = _zone.max;
-            return new Vector3(Mathf.Clamp(p.x, min.x, max.x), 0f, Mathf.Clamp(p.z, min.z, max.z));
+            return new Vector3(Mathf.Clamp(p.x, min.x, max.x), _floorY, Mathf.Clamp(p.z, min.z, max.z));
         }
 
         // ------------------------------------------------------------------ Movement
@@ -295,7 +297,7 @@ namespace VentsAndVending.Security
         {
             Vector3 target;
             float speed;
-            float altitude = _altitude;
+            float altitude = _floorY + _altitude;
             bool faceTarget = false;
             float sweep = _scanSweep;
             Transform lookAt = null;
@@ -350,7 +352,7 @@ namespace VentsAndVending.Security
                     var info = point.GetComponent<DronePatrolPoint>();
                     target = Flat(point.position);
                     speed = _patrolSpeed;
-                    altitude = _altitude + (info != null ? info.AltitudeOffset : 0f);
+                    altitude = _floorY + _altitude + (info != null ? info.AltitudeOffset : 0f);
                     arrived = (Flat(transform.position) - target).sqrMagnitude < 0.09f;
                     if (arrived)
                     {
@@ -437,7 +439,8 @@ namespace VentsAndVending.Security
             return _corners.Count > 0 ? _corners[0] : target;
         }
 
-        private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
+        /// <summary>Project onto this drone's floor plane (so NavMesh sampling happens on its own level, e.g. underground).</summary>
+        private Vector3 Flat(Vector3 v) => new Vector3(v.x, _floorY, v.z);
 
         private void Play(AudioClip clip, float volume)
         {
@@ -533,8 +536,9 @@ namespace VentsAndVending.Security
             _pathTarget = new Vector3(float.MaxValue, 0f, 0f);
         }
 
-        internal void SetPatrol(Transform[] points, DetourRoute[] detours = null, Bounds zone = default)
+        internal void SetPatrol(Transform[] points, DetourRoute[] detours = null, Bounds zone = default, float floorY = 0f)
         {
+            _floorY = floorY;
             _patrolPoints = points;
             _detours = detours ?? new DetourRoute[0];
             _zone = zone;
