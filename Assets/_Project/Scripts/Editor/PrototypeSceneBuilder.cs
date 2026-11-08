@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using VentsAndVending.Crafting;
 using VentsAndVending.Interaction;
 using VentsAndVending.Inventory;
 using VentsAndVending.Player;
@@ -26,9 +27,16 @@ namespace VentsAndVending.Editor
         private const string ItemFolder = "Assets/_Project/ScriptableObjects/Items";
         private const string ItemPrefabFolder = "Assets/_Project/Prefabs/Items";
 
+        private const string ProductFolder = "Assets/_Project/ScriptableObjects/Products";
+        private const string RecipeFolder = "Assets/_Project/ScriptableObjects/Recipes";
+        private const string MachinePrefabFolder = "Assets/_Project/Prefabs/Machines";
+        private const string ParticleMaterialPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ParticlesUnlit.mat";
+
         private static ItemDefinition _glarb;
         private static ItemDefinition _lumina;
         private static ItemDefinition _stabiliser;
+        private static ProductDefinition _glarbJuice;
+        private static RecipeDefinition _glarbJuiceRecipe;
 
         // Maintenance palette (GDD §15.4)
         private static readonly Color DarkGrey = new Color(0.16f, 0.17f, 0.18f);
@@ -59,8 +67,12 @@ namespace VentsAndVending.Editor
             EnsureFolder(MaterialFolder);
             EnsureFolder(ItemFolder);
             EnsureFolder(ItemPrefabFolder);
+            EnsureFolder(ProductFolder);
+            EnsureFolder(RecipeFolder);
+            EnsureFolder(MachinePrefabFolder);
             EnsureFolder(Path.GetDirectoryName(ScenePath)!.Replace('\\', '/'));
             CreateItems();
+            CreateProductsAndRecipes();
 
             var floorMat = GetOrCreateMaterial("Greybox_Floor", DarkGrey, 0.25f);
             var wallMat = GetOrCreateMaterial("Greybox_Wall", IndustrialBlue, 0.2f);
@@ -81,6 +93,7 @@ namespace VentsAndVending.Editor
             BuildCrouchTunnel(level, tunnelMat, accentMat);
             BuildVentDuct(level, ventMat, accentMat, glowMat);
             BuildInteractables(level, propMat, accentMat, ventMat);
+            BuildMixingStation(level, wallMat, accentMat);
 
             var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
             CreateHud(player.GetComponent<InteractionController>());
@@ -258,6 +271,7 @@ namespace VentsAndVending.Editor
             var hud = new GameObject("HUD");
             SetReference(hud.AddComponent<HudController>(), "_interactor", interactor);
             SetReference(hud.AddComponent<InventoryScreen>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
         }
@@ -268,13 +282,195 @@ namespace VentsAndVending.Editor
         {
             _glarb = GetOrCreateItem("Item_GlarbExtract", "glarb_extract", "Glarb Extract",
                 "Thick neon-green biological extract. Smells faintly of regret and citrus.",
-                10, 4, new Color(0.35f, 1f, 0.2f));
+                10, 5, new Color(0.35f, 1f, 0.2f));
             _lumina = GetOrCreateItem("Item_LuminaGel", "lumina_gel", "Lumina Gel",
                 "Light-sensitive synthetic gel. Glows brighter when you're watching it.",
-                10, 3, new Color(0.1f, 0.95f, 1f));
+                10, 4, new Color(0.1f, 0.95f, 1f));
             _stabiliser = GetOrCreateItem("Item_StabiliserGel", "stabiliser_gel", "Stabiliser Gel",
                 "General-purpose stabilising gel. Keeps reactions from getting… creative.",
-                10, 2, new Color(1f, 0.93f, 0.55f));
+                10, 3, new Color(1f, 0.93f, 0.55f));
+        }
+
+        /// <summary>Product 001 Glarb-Juice (GDD §7.3) and its recipe. Ingredient values sum to the §12.4 cost of 12 CC.</summary>
+        private static void CreateProductsAndRecipes()
+        {
+            string productPath = $"{ProductFolder}/Product_GlarbJuice.asset";
+            _glarbJuice = AssetDatabase.LoadAssetAtPath<ProductDefinition>(productPath);
+            if (_glarbJuice == null)
+            {
+                _glarbJuice = ScriptableObject.CreateInstance<ProductDefinition>();
+                AssetDatabase.CreateAsset(_glarbJuice, productPath);
+            }
+
+            var juiceColor = new Color(0.25f, 1f, 0.15f);
+            _glarbJuice.Configure("glarb_juice", "Glarb-Juice",
+                "A suspiciously luminous green liquid extracted from a multi-eyed biological organism. Popular among interdimensional travellers who require an energy boost.",
+                ItemCategory.Product, 10, 12, juiceColor);
+            _glarbJuice.ConfigureProduct("Energy stimulant", ProductDifficulty.Beginner, DemandLevel.High, 12, 24);
+            _glarbJuice.SetWorldPrefab(CreateItemPrefab(_glarbJuice, juiceColor, 1.35f));
+            EditorUtility.SetDirty(_glarbJuice);
+
+            string recipePath = $"{RecipeFolder}/Recipe_GlarbJuice.asset";
+            _glarbJuiceRecipe = AssetDatabase.LoadAssetAtPath<RecipeDefinition>(recipePath);
+            if (_glarbJuiceRecipe == null)
+            {
+                _glarbJuiceRecipe = ScriptableObject.CreateInstance<RecipeDefinition>();
+                AssetDatabase.CreateAsset(_glarbJuiceRecipe, recipePath);
+            }
+
+            _glarbJuiceRecipe.Configure("recipe_glarb_juice", _glarbJuice, 1, CraftingEquipment.MixingStation, 6f, 2.5f,
+                (_glarb, 1), (_lumina, 1), (_stabiliser, 1));
+            EditorUtility.SetDirty(_glarbJuiceRecipe);
+        }
+
+        /// <summary>
+        /// Basic Mixing Station (GDD §6.2): workbench, vessel with liquid, motorised stirrer, progress gauge with the
+        /// premium (green) and overheat (red) bands marked, a status lamp and a smoke burst. Saved as a prefab.
+        /// </summary>
+        private static void BuildMixingStation(Transform parent, Material metal, Material accent)
+        {
+            var liquidMat = GetOrCreateMaterial("Mix_Liquid", Color.gray, 0.9f, Color.gray);
+            var gaugeMat = GetOrCreateMaterial("Mix_Gauge", Color.cyan, 0.5f, Color.cyan);
+            var statusMat = GetOrCreateMaterial("Mix_Status", Color.gray, 0.5f, Color.gray);
+            var greenMat = GetOrCreateMaterial("Mix_ZoneGreen", new Color(0.1f, 0.6f, 0.2f), 0.4f, new Color(0.2f, 1.5f, 0.4f));
+            var redMat = GetOrCreateMaterial("Mix_ZoneRed", new Color(0.6f, 0.1f, 0.1f), 0.4f, new Color(1.5f, 0.15f, 0.1f));
+            var darkMat = GetOrCreateMaterial("Mix_DarkMetal", new Color(0.08f, 0.08f, 0.09f), 0.6f);
+
+            var root = new GameObject("Mixing Station");
+            root.transform.SetParent(parent, false);
+            root.transform.position = new Vector3(1.6f, 0f, -16.6f);
+            var collider = root.AddComponent<BoxCollider>();
+            collider.center = new Vector3(0f, 0.8f, 0f);
+            collider.size = new Vector3(1.45f, 1.6f, 0.75f);
+
+            Transform shake = Group("Visuals", root.transform);
+
+            Part("Bench", shake, new Vector3(0f, 0.45f, 0f), new Vector3(1.4f, 0.9f, 0.7f), metal);
+            Part("BenchTop", shake, new Vector3(0f, 0.925f, 0f), new Vector3(1.45f, 0.05f, 0.75f), accent);
+
+            // Vessel
+            var vesselX = -0.25f;
+            Part("VesselBase", shake, new Vector3(vesselX, 0.965f, 0f), new Vector3(0.44f, 0.015f, 0.44f), darkMat, PrimitiveType.Cylinder);
+            Part("VesselRim", shake, new Vector3(vesselX, 1.58f, 0f), new Vector3(0.46f, 0.012f, 0.46f), darkMat, PrimitiveType.Cylinder);
+            for (int i = 0; i < 4; i++)
+            {
+                float a = i * Mathf.PI * 0.5f + Mathf.PI * 0.25f;
+                Part($"VesselPost_{i}", shake, new Vector3(vesselX + Mathf.Cos(a) * 0.2f, 1.27f, Mathf.Sin(a) * 0.2f), new Vector3(0.025f, 0.62f, 0.025f), darkMat);
+            }
+
+            var liquidPivot = Group("LiquidPivot", shake);
+            liquidPivot.localPosition = new Vector3(vesselX, 0.98f, 0f);
+            var liquid = Part("Liquid", liquidPivot, Vector3.zero, new Vector3(0.36f, 0.29f, 0.36f), liquidMat, PrimitiveType.Cylinder);
+            liquid.transform.localPosition = new Vector3(0f, 0.29f, 0f);
+
+            // Stirrer + motor
+            Part("Motor", shake, new Vector3(vesselX, 1.66f, 0f), new Vector3(0.16f, 0.07f, 0.16f), metal, PrimitiveType.Cylinder);
+            var stirrer = Group("Stirrer", shake);
+            stirrer.localPosition = new Vector3(vesselX, 1.0f, 0f);
+            var shaft = Part("Shaft", stirrer, Vector3.zero, new Vector3(0.025f, 0.62f, 0.025f), darkMat);
+            shaft.transform.localPosition = new Vector3(0f, 0.32f, 0f);
+            var paddle = Part("Paddle", stirrer, Vector3.zero, new Vector3(0.26f, 0.07f, 0.02f), accent);
+            paddle.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+
+            // Gauge (front faces +Z): 0 → AutoStopAt maps to 0 → 0.6 m
+            const float gaugeX = 0.35f, gaugeBottom = 0.97f, gaugeHeight = 0.6f, gaugeFront = 0.05f;
+            Part("GaugeBack", shake, new Vector3(gaugeX, gaugeBottom + gaugeHeight * 0.5f, 0f), new Vector3(0.14f, gaugeHeight + 0.04f, 0.08f), darkMat);
+            float Y(float progress) => gaugeBottom + gaugeHeight * (progress / MixingRules.AutoStopAt);
+            Part("ZoneGreen", shake, new Vector3(gaugeX - 0.085f, (Y(MixingRules.PremiumFrom) + Y(MixingRules.PremiumTo)) * 0.5f, gaugeFront),
+                new Vector3(0.03f, Y(MixingRules.PremiumTo) - Y(MixingRules.PremiumFrom), 0.03f), greenMat);
+            Part("ZoneRed", shake, new Vector3(gaugeX - 0.085f, (Y(MixingRules.OverheatFrom) + Y(MixingRules.AutoStopAt)) * 0.5f, gaugeFront),
+                new Vector3(0.03f, Y(MixingRules.AutoStopAt) - Y(MixingRules.OverheatFrom), 0.03f), redMat);
+            var gaugePivot = Group("GaugeFillPivot", shake);
+            gaugePivot.localPosition = new Vector3(gaugeX, gaugeBottom, gaugeFront);
+            var gaugeFill = Part("GaugeFill", gaugePivot, Vector3.zero, new Vector3(0.08f, gaugeHeight, 0.02f), gaugeMat);
+            gaugeFill.transform.localPosition = new Vector3(0f, gaugeHeight * 0.5f, 0f);
+
+            // Status lamp
+            var lamp = Part("StatusLamp", shake, new Vector3(0.58f, 1.0f, 0.24f), Vector3.one * 0.08f, statusMat, PrimitiveType.Sphere);
+
+            // Smoke burst
+            var smokeGo = new GameObject("Smoke");
+            smokeGo.transform.SetParent(shake, false);
+            smokeGo.transform.localPosition = new Vector3(vesselX, 1.6f, 0f);
+            smokeGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+            var smoke = smokeGo.AddComponent<ParticleSystem>();
+            ConfigureSmoke(smoke);
+
+            var station = root.AddComponent<MixingStation>();
+            station.ConfigureRecipes(new[] { _glarbJuiceRecipe });
+            var so = new SerializedObject(station);
+            so.FindProperty("_liquidPivot").objectReferenceValue = liquidPivot;
+            so.FindProperty("_liquidRenderer").objectReferenceValue = liquid.GetComponent<Renderer>();
+            so.FindProperty("_stirrer").objectReferenceValue = stirrer;
+            so.FindProperty("_gaugeFillPivot").objectReferenceValue = gaugePivot;
+            so.FindProperty("_gaugeFillRenderer").objectReferenceValue = gaugeFill.GetComponent<Renderer>();
+            so.FindProperty("_statusLight").objectReferenceValue = lamp.GetComponent<Renderer>();
+            so.FindProperty("_smoke").objectReferenceValue = smoke;
+            so.FindProperty("_shakeRoot").objectReferenceValue = shake;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            CreatePointLight("Mixing Lamp", root.transform.position + new Vector3(-0.25f, 2.2f, 0.4f), new Color(0.6f, 1f, 0.7f), 4f, 1.2f, root.transform);
+
+            PrefabUtility.SaveAsPrefabAssetAndConnect(root, $"{MachinePrefabFolder}/MixingStation.prefab", InteractionMode.AutomatedAction);
+        }
+
+        /// <summary>A primitive with no collider (the station root has one box collider for interaction).</summary>
+        private static GameObject Part(string name, Transform parent, Vector3 localPosition, Vector3 scale, Material mat,
+            PrimitiveType type = PrimitiveType.Cube)
+        {
+            var go = GameObject.CreatePrimitive(type);
+            go.name = name;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+            go.transform.localScale = scale;
+            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            return go;
+        }
+
+        /// <summary>GDD §7.6: "the machine releases colourful smoke".</summary>
+        private static void ConfigureSmoke(ParticleSystem ps)
+        {
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.duration = 1f;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.6f, 2.6f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 1.3f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.25f, 0.6f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.2f, 0.85f, 0.9f), new Color(0.3f, 1f, 0.3f, 0.9f));
+            main.gravityModifier = -0.05f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.maxParticles = 200;
+
+            var emission = ps.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 45), new ParticleSystem.Burst(0.25f, 25) });
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 30f;
+            shape.radius = 0.12f;
+
+            var colorOverLife = ps.colorOverLifetime;
+            colorOverLife.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(0.6f, 0.4f, 1f), 1f) },
+                new[] { new GradientAlphaKey(0.9f, 0f), new GradientAlphaKey(0.6f, 0.4f), new GradientAlphaKey(0f, 1f) });
+            colorOverLife.color = fade;
+
+            var sizeOverLife = ps.sizeOverLifetime;
+            sizeOverLife.enabled = true;
+            sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 2.2f));
+
+            var renderer = ps.GetComponent<ParticleSystemRenderer>();
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(ParticleMaterialPath);
+            if (mat == null)
+            {
+                mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            }
+            renderer.sharedMaterial = mat;
         }
 
         private static ItemDefinition GetOrCreateItem(string assetName, string id, string displayName, string description,
@@ -289,13 +485,16 @@ namespace VentsAndVending.Editor
             }
 
             item.Configure(id, displayName, description, ItemCategory.Ingredient, maxStack, baseValue, color);
-            item.SetWorldPrefab(CreateItemPrefab(item, color));
+            if (!(item is ProductDefinition))
+            {
+                item.SetWorldPrefab(CreateItemPrefab(item, color));
+            }
             EditorUtility.SetDirty(item);
             return item;
         }
 
         /// <summary>Greybox vial: glowing cylinder with a dark cap, physics, and a PickupItem.</summary>
-        private static GameObject CreateItemPrefab(ItemDefinition item, Color color)
+        private static GameObject CreateItemPrefab(ItemDefinition item, Color color, float scale = 1f)
         {
             string path = $"{ItemPrefabFolder}/Pickup_{item.Id}.prefab";
             var liquid = GetOrCreateMaterial($"Item_{item.Id}", color * 0.6f, 0.8f, color * 1.5f);
@@ -326,6 +525,7 @@ namespace VentsAndVending.Editor
             body3d.interpolation = RigidbodyInterpolation.Interpolate;
             body3d.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             root.AddComponent<PickupItem>().Configure(item, 1);
+            root.transform.localScale = Vector3.one * scale;
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);

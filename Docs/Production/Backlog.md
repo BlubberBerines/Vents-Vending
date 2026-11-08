@@ -32,11 +32,11 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 11. [x] Basic storage container (`StorageContainer`, two-column transfer view)
 12. [~] First ventilation section (greybox L-duct in `Greybox_Movement` — no modular prefabs yet)
 13. [~] Entering and exiting vents (`VentHatch` open/close; grate drop-down exits still to do)
-14. [ ] Basic mixing machine
+14. [x] Basic mixing machine (`MixingStation` prefab: vessel, stirrer, gauge, status lamp, overheat smoke; `MixingPanel`)
 15. [x] First ingredient ScriptableObjects (Glarb Extract, Lumina Gel, Stabiliser Gel — generic `ItemDefinition` for now)
-16. [ ] First RecipeDefinition
-17. [ ] Ingredient consumption
-18. [ ] Product generation
+16. [x] First RecipeDefinition (`Recipe_GlarbJuice`: Glarb Extract → Lumina Gel → Stabiliser Gel)
+17. [x] Ingredient consumption (loaded from pockets; Empty vessel returns them)
+18. [x] Product generation (`ProductDefinition` Glarb-Juice, 4 quality tiers from mix timing + order; 27 EditMode tests)
 19. [ ] Basic customer
 20. [ ] One complete sale
 21. [ ] Cosmic Credits

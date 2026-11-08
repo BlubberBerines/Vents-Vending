@@ -39,7 +39,7 @@ namespace VentsAndVending.UI
                 swatch.preserveAspect = true;
             }
 
-            TextMeshProUGUI name = UiFactory.Text(bg.transform, "Name", stack.Item.DisplayName, 22f);
+            TextMeshProUGUI name = UiFactory.Text(bg.transform, "Name", QualityStyle.Name(stack), 22f);
             UiFactory.Layout(name.gameObject, flexibleWidth: 1f);
 
             TextMeshProUGUI count = UiFactory.Text(bg.transform, "Count", $"x{stack.Count}", 22f, TextAlignmentOptions.Right, UiFactory.Accent);

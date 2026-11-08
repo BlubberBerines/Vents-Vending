@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5299073bbfef6ef45a9f66838d73ff97, type: 3}
+  m_Name: Recipe_GlarbJuice
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Crafting.RecipeDefinition
+  _id: recipe_glarb_juice
+  _output: {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _outputCount: 1
+  _ingredients:
+  - Item: {fileID: 11400000, guid: c74f6033e072048448d07efccce0743d, type: 2}
+    Quantity: 1
+  - Item: {fileID: 11400000, guid: 021bed5d1ee66f04e8467504956032ce, type: 2}
+    Quantity: 1
+  - Item: {fileID: 11400000, guid: d963da7f115e03e4fbc32223172d7e9e, type: 2}
+    Quantity: 1
+  _equipment: 0
+  _mixDuration: 6
+  _settleDuration: 2.5

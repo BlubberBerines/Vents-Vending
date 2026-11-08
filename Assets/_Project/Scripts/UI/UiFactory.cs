@@ -87,6 +87,28 @@ namespace VentsAndVending.UI
             return layout;
         }
 
+        /// <summary>Flat button with a centred label. Returns the Button so callers can toggle interactable.</summary>
+        public static Button Button(Transform parent, string name, string label, UnityEngine.Events.UnityAction onClick,
+            Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        {
+            Image bg = Image(parent, name, new Color(0.1f, 0.9f, 1f, 0.16f));
+            Place(bg.rectTransform, anchor, pivot, position, size);
+            var button = bg.gameObject.AddComponent<Button>();
+            var colors = button.colors;
+            colors.normalColor = new Color(1f, 1f, 1f, 1f);
+            colors.highlightedColor = new Color(1.6f, 1.6f, 1.6f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
+            button.colors = colors;
+            button.navigation = new Navigation { mode = Navigation.Mode.None };
+            button.onClick.AddListener(onClick);
+
+            TextMeshProUGUI text = Text(bg.transform, "Label", label, 22f, TextAlignmentOptions.Center);
+            Stretch(text.rectTransform);
+            text.fontStyle = FontStyles.Bold;
+            return button;
+        }
+
         public static LayoutElement Layout(GameObject go, float preferredHeight = -1f, float preferredWidth = -1f, float flexibleWidth = -1f)
         {
             if (!go.TryGetComponent(out LayoutElement element))

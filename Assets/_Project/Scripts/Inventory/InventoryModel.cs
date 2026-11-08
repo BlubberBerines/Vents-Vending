@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace VentsAndVending.Inventory
 {
     /// <summary>
-    /// Slot-based inventory with stacking (GDD §17.3, §18.3). Plain C# so it is unit-testable and reusable by the
-    /// player, storage containers, machines and save data.
+    /// Slot-based inventory with stacking (GDD §17.3, §18.3). Stacks only merge when item AND quality match.
+    /// Plain C# so it is unit-testable and reusable by the player, storage, machines and save data.
     /// </summary>
     public sealed class InventoryModel
     {
@@ -45,6 +45,7 @@ namespace VentsAndVending.Inventory
 
         public bool IsEmpty => UsedSlots == 0;
 
+        /// <summary>Total of an item across all qualities.</summary>
         public int Count(ItemDefinition item)
         {
             int total = 0;
@@ -58,8 +59,21 @@ namespace VentsAndVending.Inventory
             return total;
         }
 
-        /// <summary>How many more of <paramref name="item"/> would fit.</summary>
-        public int SpaceFor(ItemDefinition item)
+        public int Count(ItemDefinition item, ItemQuality quality)
+        {
+            int total = 0;
+            foreach (ItemStack s in _slots)
+            {
+                if (s.CanStackWith(item, quality))
+                {
+                    total += s.Count;
+                }
+            }
+            return total;
+        }
+
+        /// <summary>How many more of <paramref name="item"/> at <paramref name="quality"/> would fit.</summary>
+        public int SpaceFor(ItemDefinition item, ItemQuality quality = ItemQuality.Standard)
         {
             if (item == null)
             {
@@ -73,7 +87,7 @@ namespace VentsAndVending.Inventory
                 {
                     space += item.MaxStack;
                 }
-                else if (s.Item == item)
+                else if (s.CanStackWith(item, quality))
                 {
                     space += item.MaxStack - s.Count;
                 }
@@ -81,10 +95,11 @@ namespace VentsAndVending.Inventory
             return space;
         }
 
-        public bool CanAdd(ItemDefinition item, int amount) => SpaceFor(item) >= amount;
+        public bool CanAdd(ItemDefinition item, int amount, ItemQuality quality = ItemQuality.Standard) =>
+            SpaceFor(item, quality) >= amount;
 
-        /// <summary>Adds as much as fits, topping up existing stacks first. Returns the amount that did NOT fit.</summary>
-        public int Add(ItemDefinition item, int amount)
+        /// <summary>Adds as much as fits, topping up matching stacks first. Returns the amount that did NOT fit.</summary>
+        public int Add(ItemDefinition item, int amount, ItemQuality quality = ItemQuality.Standard)
         {
             if (item == null)
             {
@@ -102,10 +117,10 @@ namespace VentsAndVending.Inventory
             for (int i = 0; i < _slots.Length && remaining > 0; i++)
             {
                 ItemStack s = _slots[i];
-                if (!s.IsEmpty && s.Item == item && s.Count < max)
+                if (s.CanStackWith(item, quality) && s.Count < max)
                 {
                     int add = Math.Min(max - s.Count, remaining);
-                    _slots[i] = new ItemStack(item, s.Count + add);
+                    _slots[i] = new ItemStack(item, s.Count + add, quality);
                     remaining -= add;
                 }
             }
@@ -115,7 +130,7 @@ namespace VentsAndVending.Inventory
                 if (_slots[i].IsEmpty)
                 {
                     int add = Math.Min(max, remaining);
-                    _slots[i] = new ItemStack(item, add);
+                    _slots[i] = new ItemStack(item, add, quality);
                     remaining -= add;
                 }
             }
@@ -128,8 +143,13 @@ namespace VentsAndVending.Inventory
             return remaining;
         }
 
-        /// <summary>Removes up to <paramref name="amount"/>, from the last stacks first. Returns the amount removed.</summary>
-        public int Remove(ItemDefinition item, int amount)
+        /// <summary>Removes up to <paramref name="amount"/> of any quality, last stacks first. Returns the amount removed.</summary>
+        public int Remove(ItemDefinition item, int amount) => RemoveWhere(item, amount, null);
+
+        /// <summary>Removes up to <paramref name="amount"/> of one quality. Returns the amount removed.</summary>
+        public int Remove(ItemDefinition item, int amount, ItemQuality quality) => RemoveWhere(item, amount, quality);
+
+        private int RemoveWhere(ItemDefinition item, int amount, ItemQuality? quality)
         {
             if (item == null || amount <= 0)
             {
@@ -140,13 +160,13 @@ namespace VentsAndVending.Inventory
             for (int i = _slots.Length - 1; i >= 0 && remaining > 0; i--)
             {
                 ItemStack s = _slots[i];
-                if (s.IsEmpty || s.Item != item)
+                if (s.IsEmpty || s.Item != item || (quality.HasValue && s.Quality != quality.Value))
                 {
                     continue;
                 }
 
                 int take = Math.Min(s.Count, remaining);
-                _slots[i] = s.Count - take > 0 ? new ItemStack(item, s.Count - take) : default;
+                _slots[i] = s.Count - take > 0 ? new ItemStack(item, s.Count - take, s.Quality) : default;
                 remaining -= take;
             }
 
@@ -187,11 +207,11 @@ namespace VentsAndVending.Inventory
                 return 0;
             }
 
-            int notMoved = target.Add(s.Item, s.Count);
+            int notMoved = target.Add(s.Item, s.Count, s.Quality);
             int moved = s.Count - notMoved;
             if (moved > 0)
             {
-                _slots[index] = notMoved > 0 ? new ItemStack(s.Item, notMoved) : default;
+                _slots[index] = notMoved > 0 ? new ItemStack(s.Item, notMoved, s.Quality) : default;
                 Changed?.Invoke();
             }
 

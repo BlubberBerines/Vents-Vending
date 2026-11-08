@@ -20,5 +20,5 @@ MonoBehaviour:
   _icon: {fileID: 0}
   _uiColor: {r: 0.35, g: 1, b: 0.2, a: 1}
   _maxStack: 10
-  _baseValue: 4
+  _baseValue: 5
   _worldPrefab: {fileID: 1017762454331520549, guid: e9037c261fd25374ea8d6b63dd2d9d41, type: 3}
