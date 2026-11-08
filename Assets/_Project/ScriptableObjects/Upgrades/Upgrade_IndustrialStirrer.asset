@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91d4213e680ed244ba492bddf6d9275c, type: 3}
+  m_Name: Upgrade_IndustrialStirrer
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Progression.UpgradeDefinition
+  _id: upg_industrial_stirrer
+  _displayName: Industrial Stirrer
+  _description: Widens the green zone by another 4%. Smells faintly of hot metal
+    and ambition.
+  _category: 0
+  _tier: 2
+  _cost: 120
+  _prerequisite: {fileID: 11400000, guid: 7307373077a79814dbc4884bbc2e540f, type: 2}
+  _effects:
+  - Key: mixer.window
+    Amount: 0.04

@@ -94,6 +94,7 @@ namespace VentsAndVending.Editor
             BuildVentDuct(level, ventMat, accentMat, glowMat);
             BuildInteractables(level, propMat, accentMat, ventMat);
             BuildMixingStation(level, wallMat, accentMat);
+            BuildProgression(level, wallMat, accentMat);
             BuildPlazaDoorAndCustomers(level, wallMat, accentMat);
             BakeNavMesh(level.gameObject);
 
@@ -244,7 +245,7 @@ namespace VentsAndVending.Editor
             var look = player.AddComponent<PlayerCamera>();
             player.AddComponent<PlayerMovement>();
             var pockets = player.AddComponent<InventoryComponent>();
-            pockets.Configure("Pockets", 8);
+            pockets.Configure("Pockets", 8, VentsAndVending.Progression.UpgradeKeys.PocketsCapacity);
             var interaction = player.AddComponent<InteractionController>();
             player.AddComponent<VentsAndVending.Economy.PlayerWallet>();
 
@@ -276,6 +277,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<InventoryScreen>(), "_interactor", interactor);
             SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<UpgradePanel>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
         }
@@ -380,7 +382,7 @@ namespace VentsAndVending.Editor
             const float gaugeX = 0.35f, gaugeBottom = 0.97f, gaugeHeight = 0.6f, gaugeFront = 0.05f;
             Part("GaugeBack", shake, new Vector3(gaugeX, gaugeBottom + gaugeHeight * 0.5f, 0f), new Vector3(0.14f, gaugeHeight + 0.04f, 0.08f), darkMat);
             float Y(float progress) => gaugeBottom + gaugeHeight * (progress / MixingRules.AutoStopAt);
-            Part("ZoneGreen", shake, new Vector3(gaugeX - 0.085f, (Y(MixingRules.PremiumFrom) + Y(MixingRules.PremiumTo)) * 0.5f, gaugeFront),
+            var greenBand = Part("ZoneGreen", shake, new Vector3(gaugeX - 0.085f, (Y(MixingRules.PremiumFrom) + Y(MixingRules.PremiumTo)) * 0.5f, gaugeFront),
                 new Vector3(0.03f, Y(MixingRules.PremiumTo) - Y(MixingRules.PremiumFrom), 0.03f), greenMat);
             Part("ZoneRed", shake, new Vector3(gaugeX - 0.085f, (Y(MixingRules.OverheatFrom) + Y(MixingRules.AutoStopAt)) * 0.5f, gaugeFront),
                 new Vector3(0.03f, Y(MixingRules.AutoStopAt) - Y(MixingRules.OverheatFrom), 0.03f), redMat);
@@ -411,6 +413,9 @@ namespace VentsAndVending.Editor
             so.FindProperty("_statusLight").objectReferenceValue = lamp.GetComponent<Renderer>();
             so.FindProperty("_smoke").objectReferenceValue = smoke;
             so.FindProperty("_shakeRoot").objectReferenceValue = shake;
+            so.FindProperty("_premiumBand").objectReferenceValue = greenBand.transform;
+            so.FindProperty("_gaugeBottom").floatValue = gaugeBottom;
+            so.FindProperty("_gaugeHeight").floatValue = gaugeHeight;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             CreatePointLight("Mixing Lamp", root.transform.position + new Vector3(-0.25f, 2.2f, 0.4f), new Color(0.6f, 1f, 0.7f), 4f, 1.2f, root.transform);
@@ -545,7 +550,7 @@ namespace VentsAndVending.Editor
             locker.isStatic = false;
             Block("Locker_Trim", g, new Vector3(-2.5f, 1.82f, -16.5f), new Vector3(1.25f, 0.05f, 0.65f), accent);
             var lockerInv = locker.AddComponent<InventoryComponent>();
-            lockerInv.Configure("Storage Locker", 8);
+            lockerInv.Configure("Storage Locker", 8, VentsAndVending.Progression.UpgradeKeys.LockerCapacity);
             lockerInv.AddStartingItem(_lumina, 4);
             lockerInv.AddStartingItem(_stabiliser, 3);
             locker.AddComponent<StorageContainer>();

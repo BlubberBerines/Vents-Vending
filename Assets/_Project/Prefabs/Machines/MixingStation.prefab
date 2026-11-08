@@ -6527,6 +6527,9 @@ MonoBehaviour:
   _statusLight: {fileID: 7498204374730948856}
   _smoke: {fileID: 1262581782689190163}
   _shakeRoot: {fileID: 3273817033458797479}
+  _premiumBand: {fileID: 4140955227547554691}
+  _gaugeBottom: 0.97
+  _gaugeHeight: 0.6
 --- !u!1 &7719969382320200254
 GameObject:
   m_ObjectHideFlags: 0

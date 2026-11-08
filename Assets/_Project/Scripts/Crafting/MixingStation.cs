@@ -31,6 +31,10 @@ namespace VentsAndVending.Crafting
         [SerializeField] private ParticleSystem _smoke;
         [Tooltip("Shakes while the mix is past 100% (GDD §7.6: 'a mixing station starts shaking').")]
         [SerializeField] private Transform _shakeRoot;
+        [Tooltip("Green marker beside the gauge; resized when upgrades widen the premium window.")]
+        [SerializeField] private Transform _premiumBand;
+        [SerializeField] private float _gaugeBottom = 0.97f;
+        [SerializeField] private float _gaugeHeight = 0.6f;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
@@ -57,12 +61,34 @@ namespace VentsAndVending.Crafting
             }
         }
 
+        private void Start() => Progression.ProgressionManager.Subscribe(ApplyUpgrades);
+
         private void OnDestroy()
         {
+            Progression.ProgressionManager.Unsubscribe(ApplyUpgrades);
             if (_process != null)
             {
                 _process.Stopped -= OnMixStopped;
                 _process.Finished -= OnMixFinished;
+            }
+        }
+
+        private void ApplyUpgrades()
+        {
+            var progression = Progression.ProgressionManager.Instance;
+            _process.WindowBonus = progression != null ? progression.Bonus(Progression.UpgradeKeys.MixerWindow) : 0f;
+            _process.SettleSpeed = 1f + (progression != null ? progression.Bonus(Progression.UpgradeKeys.MixerSettleSpeed) : 0f);
+
+            if (_premiumBand != null)
+            {
+                float from = MixingRules.PremiumStart(_process.WindowBonus) / MixingRules.AutoStopAt;
+                float to = MixingRules.PremiumEnd(_process.WindowBonus) / MixingRules.AutoStopAt;
+                Vector3 pos = _premiumBand.localPosition;
+                pos.y = _gaugeBottom + _gaugeHeight * (from + to) * 0.5f;
+                _premiumBand.localPosition = pos;
+                Vector3 scale = _premiumBand.localScale;
+                scale.y = _gaugeHeight * (to - from);
+                _premiumBand.localScale = scale;
             }
         }
 
@@ -240,7 +266,7 @@ namespace VentsAndVending.Crafting
             // Status light
             Color status = phase switch
             {
-                MixingPhase.Mixing => progress >= MixingRules.PremiumTo
+                MixingPhase.Mixing => progress > MixingRules.PremiumEnd(_process.WindowBonus)
                     ? (Mathf.Repeat(Time.time * 6f, 1f) > 0.5f ? Color.red : new Color(0.3f, 0f, 0f))
                     : GaugeColor(progress),
                 MixingPhase.Settling => new Color(1f, 0.6f, 0.1f),
@@ -252,22 +278,22 @@ namespace VentsAndVending.Crafting
             // Shake when pushing past 100%
             if (_shakeRoot != null)
             {
-                float danger = phase == MixingPhase.Mixing ? Mathf.InverseLerp(MixingRules.PremiumTo, MixingRules.AutoStopAt, progress) : 0f;
+                float danger = phase == MixingPhase.Mixing ? Mathf.InverseLerp(MixingRules.PremiumEnd(_process.WindowBonus), MixingRules.AutoStopAt, progress) : 0f;
                 _shakeRoot.localPosition = _shakeRootOrigin + (danger > 0f ? UnityEngine.Random.insideUnitSphere * 0.012f * danger : Vector3.zero);
             }
         }
 
-        private static Color GaugeColor(float progress)
+        private Color GaugeColor(float progress)
         {
             if (progress >= MixingRules.OverheatFrom)
             {
                 return Color.red;
             }
-            if (progress > MixingRules.PremiumTo)
+            if (progress > MixingRules.PremiumEnd(_process.WindowBonus))
             {
                 return new Color(1f, 0.45f, 0.05f);
             }
-            if (progress >= MixingRules.PremiumFrom)
+            if (progress >= MixingRules.PremiumStart(_process.WindowBonus))
             {
                 return Color.green;
             }

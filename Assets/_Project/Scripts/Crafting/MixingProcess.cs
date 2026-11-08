@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using VentsAndVending.Inventory;
 
 namespace VentsAndVending.Crafting
@@ -34,18 +35,23 @@ namespace VentsAndVending.Crafting
 
         public static bool IsOverheated(float progress) => progress >= OverheatFrom;
 
-        public static ItemQuality Grade(float progress, bool correctOrder)
+        /// <summary>Premium window after upgrades widen it by <paramref name="windowBonus"/> on each side.</summary>
+        public static float PremiumStart(float windowBonus) => PremiumFrom - Mathf.Max(0f, windowBonus);
+        public static float PremiumEnd(float windowBonus) => Mathf.Min(OverheatFrom - 0.01f, PremiumTo + Mathf.Max(0f, windowBonus));
+
+        public static ItemQuality Grade(float progress, bool correctOrder, float windowBonus = 0f)
         {
+            float bonus = Mathf.Max(0f, windowBonus);
             ItemQuality quality;
             if (IsOverheated(progress) || progress < UndermixedBelow)
             {
                 quality = ItemQuality.Poor;
             }
-            else if (progress >= ExceptionalFrom && progress <= ExceptionalTo && correctOrder)
+            else if (progress >= ExceptionalFrom - bonus * 0.5f && progress <= ExceptionalTo + bonus * 0.5f && correctOrder)
             {
                 quality = ItemQuality.Exceptional;
             }
-            else if (progress >= PremiumFrom && progress <= PremiumTo)
+            else if (progress >= PremiumStart(bonus) && progress <= PremiumEnd(bonus))
             {
                 quality = ItemQuality.Premium;
             }
@@ -89,6 +95,12 @@ namespace VentsAndVending.Crafting
         public float SettleRemaining { get; private set; }
         public ItemQuality ResultQuality { get; private set; }
         public bool Overheated { get; private set; }
+
+        /// <summary>Upgrade bonus widening the premium window (progress units per side).</summary>
+        public float WindowBonus { get; set; }
+
+        /// <summary>Settle speed multiplier (upgrades). 2 = settles twice as fast.</summary>
+        public float SettleSpeed { get; set; } = 1f;
 
         public bool CanLoad => Phase == MixingPhase.Idle && _loaded.Count < Capacity;
 
@@ -194,8 +206,8 @@ namespace VentsAndVending.Crafting
 
             bool correctOrder = ActiveRecipe.IsCorrectOrder(_loaded);
             Overheated = MixingRules.IsOverheated(Progress);
-            ResultQuality = MixingRules.Grade(Progress, correctOrder);
-            SettleRemaining = ActiveRecipe.SettleDuration;
+            ResultQuality = MixingRules.Grade(Progress, correctOrder, WindowBonus);
+            SettleRemaining = ActiveRecipe.SettleDuration / Mathf.Max(0.1f, SettleSpeed);
             Phase = MixingPhase.Settling;
             Stopped?.Invoke(ResultQuality, Overheated);
 

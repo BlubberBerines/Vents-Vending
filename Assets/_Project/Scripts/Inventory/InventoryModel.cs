@@ -9,7 +9,7 @@ namespace VentsAndVending.Inventory
     /// </summary>
     public sealed class InventoryModel
     {
-        private readonly ItemStack[] _slots;
+        private ItemStack[] _slots;
 
         public InventoryModel(int capacity)
         {
@@ -216,6 +216,18 @@ namespace VentsAndVending.Inventory
             }
 
             return moved;
+        }
+
+        /// <summary>Grows the inventory (upgrades). Shrinking is ignored so items are never lost.</summary>
+        public void Resize(int newCapacity)
+        {
+            if (newCapacity <= _slots.Length)
+            {
+                return;
+            }
+
+            Array.Resize(ref _slots, newCapacity);
+            Changed?.Invoke();
         }
 
         public void Clear()

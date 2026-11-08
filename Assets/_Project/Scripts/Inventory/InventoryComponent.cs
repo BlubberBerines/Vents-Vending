@@ -18,10 +18,16 @@ namespace VentsAndVending.Inventory
         [SerializeField] private string _displayName = "Inventory";
         [SerializeField, Min(1)] private int _capacity = 12;
         [SerializeField] private List<StartingItem> _startingItems = new List<StartingItem>();
+        [Tooltip("Optional upgrade effect key that adds slots (e.g. capacity.pockets).")]
+        [SerializeField] private string _capacityUpgradeKey;
 
         private InventoryModel _inventory;
 
         public string DisplayName => _displayName;
+        public string CapacityUpgradeKey => _capacityUpgradeKey;
+
+        /// <summary>Applies an extra-slot bonus on top of the base capacity (grow only).</summary>
+        public void ApplyCapacityBonus(int extraSlots) => Model.Resize(_capacity + Mathf.Max(0, extraSlots));
 
         public InventoryModel Model
         {
@@ -51,10 +57,11 @@ namespace VentsAndVending.Inventory
             }
         }
 
-        internal void Configure(string displayName, int capacity)
+        internal void Configure(string displayName, int capacity, string capacityUpgradeKey = null)
         {
             _displayName = displayName;
             _capacity = Mathf.Max(1, capacity);
+            _capacityUpgradeKey = capacityUpgradeKey;
             _startingItems.Clear();
         }
 

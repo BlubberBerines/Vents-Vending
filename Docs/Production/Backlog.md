@@ -40,7 +40,7 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 19. [x] Basic customer (`CustomerDefinition` data, NavMesh `Customer` lifecycle, Blorb + Gromflomite, `CustomerSpawner`, speech bubbles)
 20. [x] One complete sale (`SalePanel`: pick quality, set price, haggle via `SaleNegotiation`)
 21. [x] Cosmic Credits (`Wallet` + `PlayerWallet`, HUD counter; start 20 CC)
-22. [ ] First upgrade
+22. [x] First upgrade (6 `UpgradeDefinition`s, `ProgressionManager` + `UpgradeLedger`, Upgrade Terminal + shop panel; effects: lighting, pockets, locker, mixer window, settle speed)
 23. [ ] Connect hideout to the alien plaza
 24. [ ] Simple security drone
 25. [ ] First playable build
