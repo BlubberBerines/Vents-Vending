@@ -1,6 +1,6 @@
 # Vents & Vending — agent notes
 
-Unity 6.3 LTS (6000.3.28f1) / URP / C# first-person business sim. The full design is `# VENTS & VENDING.txt` at the repo root and is authoritative. Read the relevant PART before implementing a system. Scope rules: PART 27. First tasks: Appendix B, tracked in `Docs/Production/Backlog.md`.
+Unity 6.3 LTS (6000.3.28f1) / URP / C# first-person business sim. The full design is `# VENTS & VENDING.txt` at the repo root and is authoritative. Read the relevant PART before implementing a system. Scope rules: PART 27. First tasks: Appendix B, tracked in `Docs/Production/Backlog.md`. Vent layout and tunnel progression: `Docs/Design/TunnelNetwork.md` (§0 holds agreed amendments).
 
 - Unity project = repo root. First-party content only under `Assets/_Project/`.
 - Runtime code: `Assets/_Project/Scripts/<System>/`, namespace `VentsAndVending.<System>`, assembly `VentsAndVending`.

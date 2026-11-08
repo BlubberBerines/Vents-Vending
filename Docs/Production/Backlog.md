@@ -49,3 +49,15 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 
 Next candidates (GDD Phase 3 Vertical Slice): audio pass, packaging machine + second product,
 reputation (GDD 9.3), customer orders, Federation Inspector, production state in saves, art pass on the greybox.
+
+## Tunnel slice (Docs/Design/TunnelNetwork.md §0)
+
+- [x] Hideout rebuilt as a cramped maintenance chamber + service gallery (rooms 01, 02/03, 05, secret stash)
+- [x] Less-perfect prop pass (wonky meshes, careless placement, wear, sagging cables)
+- [ ] Tunnel data: `VentRoomDefinition` / connections / gates (stable IDs), room-discovery triggers, discovery + gate state in saves
+- [ ] Debug overlay: room ID, plane, connections, gate and hazard state
+- [ ] 02 Service Junction as a real three-way hub with old-station signage
+- [ ] 16 Power Distribution (breaker wall, `BRK_FAN_04`) + 17 Industrial Fan Room + 04 Fan Junction (`FAN_17` blocks until isolated)
+- [ ] 06 Drop Hatch → 07 Plaza Service Hub → 08 Customer Vent over the richer mezzanine customers; 07 → 05 return hatch shortcut
+- [ ] Richer customer tier (bigger budgets, higher quality expectations) served only via 08
+- [ ] Pass 2 hideout dressing: clutter, idle motion (fan, drip, swaying bulb), ambient audio
