@@ -14,6 +14,8 @@ namespace VentsAndVending.Editor
         private const string CharacterPrefabFolder = "Assets/_Project/Prefabs/Characters";
         private const string CustomerDefinitionFolder = "Assets/_Project/ScriptableObjects/Characters";
         private const string NavMeshPath = "Assets/_Project/Scenes/Prototype/Greybox_Movement_NavMesh.asset";
+        private static CustomerDefinition _blorbDefinition;
+        private static CustomerDefinition _gromflomiteDefinition;
 
         /// <summary>Customer entrance at the far end of the plaza, trade spots and the spawner.</summary>
         private static void BuildPlazaDoorAndCustomers(Transform plaza, Material wall, Material accent)
@@ -59,6 +61,8 @@ namespace VentsAndVending.Editor
 
             CustomerDefinition blorb = CreateBlorbDefinition();
             CustomerDefinition gromflomite = CreateGromflomiteDefinition();
+            _blorbDefinition = blorb;
+            _gromflomiteDefinition = gromflomite;
 
             var spawnerGo = new GameObject("Customer Spawner");
             spawnerGo.transform.SetParent(g, false);

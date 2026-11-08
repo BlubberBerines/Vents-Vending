@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd5b2996b442ec4c9135cfacb8783ed, type: 3}
+  m_Name: Customer_BlorbSocialite
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Customers.CustomerDefinition
+  _id: blorb_socialite
+  _speciesName: Blorb Socialite
+  _names:
+  - Glimmerella
+  - Lady Wobblesworth
+  - Opalisque
+  - Jellissima
+  _prefab: {fileID: 1043555187315682355, guid: 089255b4daf31ea45b7a25353cc68dce, type: 3}
+  _wants:
+  - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _quantityRange: {x: 2, y: 3}
+  _priceToleranceRange: {x: 0.5, y: 0.9}
+  _minimumQuality: 1
+  _likesPoorQuality: 0
+  _haggleAttempts: 2
+  _patience: 55
+  _bodyColors:
+  - {r: 0.95, g: 0.85, b: 0.95, a: 1}
+  - {r: 1, g: 0.8, b: 0.35, a: 1}
+  - {r: 0.7, g: 0.9, b: 1, a: 1}
+  _bodyGlow: 0.22
+  _lines:
+    Greeting:
+    - Darling! Everyone's talking about your {product}!
+    - Mwah! I need {product} for my gala. Lots of it!
+    - I'm {name}, you've heard of me. {product}, please!
+    Accept:
+    - Fabulous! I'll tell absolutely everyone. Discreetly!
+    - Divine! My wobble is SHIMMERING!
+    - Ciao, darling!
+    TooExpensive:
+    - Darling, {price}? Let's say {counter}, for love.
+    - Ooh, steep! {counter}, and I'll mention you at brunch.
+    QualityRejected:
+    - Oh no, darling, that one's tragic.
+    - My guests would faint. Something sparklier?
+    WalkAway:
+    - I simply can't. Kisses!
+    - Tragic. Toodles!
+    Impatient:
+    - Darling, I'm late for being fashionably late!
+    - Oh! A champagne fountain! Bye!

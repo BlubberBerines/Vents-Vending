@@ -9,6 +9,7 @@ using VentsAndVending.Inventory;
 using VentsAndVending.Player;
 using VentsAndVending.Progression;
 using VentsAndVending.Security;
+using VentsAndVending.Tunnels;
 
 namespace VentsAndVending.Saving
 {
@@ -122,6 +123,11 @@ namespace VentsAndVending.Saving
                 data.SecurityIncidents = SecurityManager.Instance.Incidents;
             }
 
+            if (TunnelManager.Instance != null)
+            {
+                data.Tunnels = TunnelManager.Instance.Capture();
+            }
+
             if (ProgressionManager.Instance != null)
             {
                 foreach (UpgradeDefinition upgrade in ProgressionManager.Instance.Ledger.Owned)
@@ -212,6 +218,11 @@ namespace VentsAndVending.Saving
             if (SecurityManager.Instance != null)
             {
                 SecurityManager.Instance.RestoreIncidents(data.SecurityIncidents);
+            }
+
+            if (TunnelManager.Instance != null)
+            {
+                TunnelManager.Instance.Restore(data.Tunnels);
             }
 
             var interactor = FindAnyObjectByType<InteractionController>();

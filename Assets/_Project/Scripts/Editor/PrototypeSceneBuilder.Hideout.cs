@@ -127,7 +127,10 @@ namespace VentsAndVending.Editor
             Box("D1_Floor", g, new Vector3(-0.8f, -0.5f, -10.7f), new Vector3(1.4f, 0f, 2.5f), floor);
             WallWithHatchX("D1_Wall_S", g, -10.7f, -10.5f, -0.8f, 1.4f, ExitDuctX, WallTop, wall);
             Box("D1_Wall_W", g, new Vector3(-0.8f, 0f, -10.5f), new Vector3(-0.6f, WallTop, 2.5f), wall);
-            Box("D1_Wall_E", g, new Vector3(1.2f, 0f, -10.5f), new Vector3(1.4f, WallTop, 4.5f), wall);
+            // East side opens into the corridor toward 04 Fan Junction (02 Service Junction is a three-way hub)
+            Box("D1_Wall_E_South", g, new Vector3(1.2f, 0f, -10.5f), new Vector3(1.4f, WallTop, -9.8f), wall);
+            Box("D1_Wall_E", g, new Vector3(1.2f, 0f, -8.2f), new Vector3(1.4f, WallTop, 4.5f), wall);
+            Box("D1_Wall_E_Lintel", g, new Vector3(1.2f, 2.3f, -9.8f), new Vector3(1.4f, WallTop, -8.2f), wall);
             CeilingWithGrate(g, new Vector2(-0.8f, -10.7f), new Vector2(1.4f, 2.5f), new Vector2(-0.3f, -1.6f), new Vector2(0.9f, -0.9f),
                 2.3f, WallTop, vent, dark, new Color(0.55f, 0.75f, 1f));
 

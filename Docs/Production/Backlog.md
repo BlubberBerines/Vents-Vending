@@ -54,10 +54,10 @@ reputation (GDD 9.3), customer orders, Federation Inspector, production state in
 
 - [x] Hideout rebuilt as a cramped maintenance chamber + service gallery (rooms 01, 02/03, 05, secret stash)
 - [x] Less-perfect prop pass (wonky meshes, careless placement, wear, sagging cables)
-- [ ] Tunnel data: `VentRoomDefinition` / connections / gates (stable IDs), room-discovery triggers, discovery + gate state in saves
-- [ ] Debug overlay: room ID, plane, connections, gate and hazard state
-- [ ] 02 Service Junction as a real three-way hub with old-station signage
-- [ ] 16 Power Distribution (breaker wall, `BRK_FAN_04`) + 17 Industrial Fan Room + 04 Fan Junction (`FAN_17` blocks until isolated)
-- [ ] 06 Drop Hatch → 07 Plaza Service Hub → 08 Customer Vent over the richer mezzanine customers; 07 → 05 return hatch shortcut
-- [ ] Richer customer tier (bigger budgets, higher quality expectations) served only via 08
+- [x] Tunnel data: `VentRoomDefinition` / connections / gates (stable IDs), room-discovery triggers, discovery + gate state in saves
+- [x] Debug overlay (F3): room ID, plane, connections, gate and hazard state
+- [x] 02 Service Junction as a real three-way hub with old-station signage
+- [x] 16 Power Distribution (breaker wall, `BRK_FAN_04`) + 17 Industrial Fan Room + 04 Fan Junction (`FAN_17` blocks until isolated)
+- [x] 06 Drop Hatch → 07 Plaza Service Hub → 08 Customer Vent over the richer mezzanine customers; staff-door latch (07 → plaza) is the shortcut home
+- [x] Richer customer tier (Gromflomite Executive, Blorb Socialite in the Concourse Lounge) (bigger budgets, higher quality expectations) served only via 08
 - [ ] Pass 2 hideout dressing: clutter, idle motion (fan, drip, swaying bulb), ambient audio

@@ -17,6 +17,8 @@ namespace VentsAndVending.Saving
         public int SecurityIncidents;
         public List<string> Upgrades = new List<string>();
         public List<InventorySave> Inventories = new List<InventorySave>();
+        /// <summary>v2: discovered tunnel rooms and infrastructure switches (breakers, latches).</summary>
+        public VentsAndVending.Tunnels.TunnelSave Tunnels = new VentsAndVending.Tunnels.TunnelSave();
     }
 
     [Serializable]

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd5b2996b442ec4c9135cfacb8783ed, type: 3}
+  m_Name: Customer_GromflomiteExec
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Customers.CustomerDefinition
+  _id: gromflomite_exec
+  _speciesName: Gromflomite Executive
+  _names:
+  - Director Krell
+  - Undersecretary Vorp
+  - Chairman Thrax
+  - Auditor Zeeb
+  _prefab: {fileID: 1094076098666393098, guid: 8cb2f1ec393e9c3439247170d874bacf, type: 3}
+  _wants:
+  - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _quantityRange: {x: 2, y: 3}
+  _priceToleranceRange: {x: 0.6, y: 1.1}
+  _minimumQuality: 2
+  _likesPoorQuality: 0
+  _haggleAttempts: 1
+  _patience: 40
+  _bodyColors:
+  - {r: 0.16, g: 0.15, b: 0.2, a: 1}
+  - {r: 0.75, g: 0.6, b: 0.2, a: 1}
+  - {r: 0.35, g: 0.08, b: 0.12, a: 1}
+  _bodyGlow: 0.08
+  _lines:
+    Greeting:
+    - You. Vent person. I require {product}. Discreetly.
+    - My assistant said you have {product}. My assistant is usually wrong.
+    - '{name}, Regional Director of Paperwork. {product}. Now.'
+    Accept:
+    - Acceptable. Invoice my shell company.
+    - Adequate. Don't tell the Federation.
+    - Fine. This meeting never happened.
+    TooExpensive:
+    - '{price}? I''ve audited people for less. {counter}.'
+    - Absurd. {counter}, and I'll forget your face.
+    QualityRejected:
+    - "This is beneath me. Literally \u2014 I'm standing on a better carpet."
+    - I said premium. Do you know what premium means?
+    WalkAway:
+    - I have a three o'clock. Goodbye.
+    - Wasting my time is a billable offence.
+    Impatient:
+    - My time is worth more than your entire vent.
+    - I'm leaving. Write that down.

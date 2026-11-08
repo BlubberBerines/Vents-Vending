@@ -34,7 +34,12 @@ namespace VentsAndVending.Editor
             // Shell
             var shell = Group("Shell", plaza);
             Block("Floor", shell, new Vector3(0f, -0.5f, midZ - 0.25f), new Vector3(PlazaHalfWidth * 2f, 1f, length + 0.5f), floorMat);
-            Block("Wall_E", shell, new Vector3(PlazaHalfWidth + 0.25f, PlazaWallHeight * 0.5f, midZ), new Vector3(0.5f, PlazaWallHeight, length + 1f), wallMat);
+            // East wall has the staff door from 07 Plaza Service Hub (Tunnels.cs builds the door itself)
+            float wx = PlazaHalfWidth + 0.25f, z0 = PlazaSouthZ - 0.5f, z1 = PlazaFarZ + 0.5f;
+            Block("Wall_E_South", shell, new Vector3(wx, PlazaWallHeight * 0.5f, (z0 + StaffDoorZ0) * 0.5f), new Vector3(0.5f, PlazaWallHeight, StaffDoorZ0 - z0), wallMat);
+            Block("Wall_E", shell, new Vector3(wx, PlazaWallHeight * 0.5f, (StaffDoorZ1 + z1) * 0.5f), new Vector3(0.5f, PlazaWallHeight, z1 - StaffDoorZ1), wallMat);
+            Block("Wall_E_Lintel", shell, new Vector3(wx, (StaffDoorHeight + PlazaWallHeight) * 0.5f, (StaffDoorZ0 + StaffDoorZ1) * 0.5f),
+                new Vector3(0.5f, PlazaWallHeight - StaffDoorHeight, StaffDoorZ1 - StaffDoorZ0), wallMat);
             Block("Wall_W", shell, new Vector3(-PlazaHalfWidth - 0.25f, PlazaWallHeight * 0.5f, midZ), new Vector3(0.5f, PlazaWallHeight, length + 1f), wallMat);
             Block("Wall_N", shell, new Vector3(0f, PlazaWallHeight * 0.5f, PlazaFarZ + 0.25f), new Vector3(PlazaHalfWidth * 2f + 1f, PlazaWallHeight, 0.5f), wallMat);
             Block("Wall_S_Upper", shell, new Vector3(0f, 5f, 20.25f), new Vector3(PlazaHalfWidth * 2f + 1f, 2f, 0.5f), wallMat);

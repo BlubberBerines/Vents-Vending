@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d3c5dcbb1c571428378be4d3cfa802, type: 3}
+  m_Name: Room_R08
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Tunnels.VentRoomDefinition
+  _roomId: R08
+  _displayName: Customer Vent
+  _districtId: plaza_network
+  _plane: 2
+  _connections:
+  - DestinationRoomId: R07
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0
+  - DestinationRoomId: LOUNGE
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0
