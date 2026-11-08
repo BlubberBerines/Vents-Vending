@@ -16,10 +16,30 @@ namespace VentsAndVending.Tunnels
         [SerializeField] private Vector3 _openableSide = Vector3.right;
         [SerializeField] private string _lockedMessage = "Locked. STAFF ONLY — and the latch is on the other side.";
         [SerializeField] private AudioClip _sound;
+        [Tooltip("0 = stays open for good (saved shortcut). Above 0 = a push-bar door: opens for now, swings shut this many seconds later once the player has moved away, and is never saved open.")]
+        [SerializeField] private float _autoCloseSeconds;
+        [SerializeField] private string _openPrompt = "Lift the latch";
 
         private float _yaw;
+        private bool _tempOpen;
+        private float _openTimer;
+        private Transform _opener;
 
-        public bool IsOpen => TunnelManager.Instance != null && TunnelManager.Instance.GetSwitch(_gateId, false);
+        private bool AutoClose => _autoCloseSeconds > 0f;
+
+        public bool IsOpen => AutoClose ? _tempOpen : TunnelManager.Instance != null && TunnelManager.Instance.GetSwitch(_gateId, false);
+
+        internal void Configure(string gateId, Transform pivot, float openYaw, Vector3 openableSide, string lockedMessage, string openPrompt, AudioClip sound, float autoCloseSeconds)
+        {
+            _gateId = gateId;
+            _pivot = pivot;
+            _openYaw = openYaw;
+            _openableSide = openableSide;
+            _lockedMessage = lockedMessage;
+            _openPrompt = openPrompt;
+            _sound = sound;
+            _autoCloseSeconds = autoCloseSeconds;
+        }
 
         private void Start()
         {
@@ -46,6 +66,16 @@ namespace VentsAndVending.Tunnels
 
         private void Update()
         {
+            if (AutoClose && _tempOpen)
+            {
+                _openTimer += Time.deltaTime;
+                bool clear = _opener == null || (_opener.position - transform.position).sqrMagnitude > 1.5f * 1.5f;
+                if (_openTimer >= _autoCloseSeconds && clear)
+                {
+                    _tempOpen = false;
+                    VentsAndVending.World.Sfx.PlayAt(_sound, transform.position, 0.8f, 1.1f);
+                }
+            }
             float target = IsOpen ? _openYaw : 0f;
             if (!Mathf.Approximately(_yaw, target))
             {
@@ -66,7 +96,7 @@ namespace VentsAndVending.Tunnels
             {
                 return null;
             }
-            return OnOpenableSide(interactor) ? "Lift the latch" : "Locked";
+            return OnOpenableSide(interactor) ? _openPrompt : "Locked";
         }
 
         public void Interact(InteractionController interactor)
@@ -79,6 +109,14 @@ namespace VentsAndVending.Tunnels
             {
                 interactor.Notify(_lockedMessage);
                 VentsAndVending.World.Sfx.PlayAt(_sound, transform.position, 0.5f, 1.35f);
+                return;
+            }
+            if (AutoClose)
+            {
+                _tempOpen = true;
+                _openTimer = 0f;
+                _opener = interactor.transform;
+                VentsAndVending.World.Sfx.PlayAt(_sound, transform.position, 1f, 0.9f);
                 return;
             }
             TunnelManager.Instance.SetSwitch(_gateId, true, false);

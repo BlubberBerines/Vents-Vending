@@ -28,6 +28,7 @@ namespace VentsAndVending.Editor
         public static AudioClip KnockB => Get(SfxFolder, "sfx_pipe_knock_b", 0.9f, false, (b, r) => KnockSynth(b, r, 260f, 0.7f));
         public static AudioClip Tick => Get(SfxFolder, "sfx_pipe_tick", 0.25f, false, TickSynth);
         public static AudioClip Clunk => Get(SfxFolder, "sfx_clunk", 0.45f, false, ClunkSynth);
+        public static AudioClip PryScreech => Get(SfxFolder, "sfx_pry_screech", 1.4f, false, PryScreechSynth);
         public static AudioClip FlickerBuzz => Get(SfxFolder, "sfx_flicker_buzz", 0.6f, false, FlickerSynth);
 
         public static AudioClip Message => Get(SfxFolder, "sfx_ventnet_message", 0.35f, false, MessageSynth);
@@ -346,6 +347,26 @@ namespace VentsAndVending.Editor
                 float rattle = lp * Mathf.Exp(-t / 0.05f) * 1.5f;
                 float clank = Mathf.Sin(2f * Mathf.PI * 840f * t) * Mathf.Exp(-t / 0.03f) * 0.25f;
                 b[i] = thump + rattle + clank;
+            }
+        }
+
+        /// <summary>Metal grinding against rusted metal (rising, wobbling squeal over grit), ending in a hard clank as it gives.</summary>
+        private static void PryScreechSynth(float[] b, System.Random r)
+        {
+            float lp = 0f, phase = 0f;
+            float end = b.Length / (float)Rate;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                lp += 0.15f * (White(r) - lp);
+                float f = 520f + 380f * (t / end) + 60f * Mathf.Sin(2f * Mathf.PI * 7f * t);
+                phase += 2f * Mathf.PI * f / Rate;
+                float squeal = (Mathf.Sin(phase) + 0.4f * Mathf.Sin(phase * 2.01f)) * 0.35f;
+                float grind = lp * 0.9f * (0.6f + 0.4f * Mathf.Sin(2f * Mathf.PI * 23f * t));
+                float body = Mathf.Clamp01(t / 0.08f) * Mathf.Clamp01((end - 0.25f - t) / 0.1f);
+                float release = t > end - 0.25f ? Mathf.Exp(-(t - (end - 0.25f)) / 0.05f) : 0f;
+                float clank = release * (Mathf.Sin(2f * Mathf.PI * 760f * t) * 0.6f + Mathf.Sin(2f * Mathf.PI * 95f * t));
+                b[i] = (squeal + grind) * body + clank;
             }
         }
 
