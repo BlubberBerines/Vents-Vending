@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3a5c12ee6865a44abbf091603d6fc80, type: 3}
+  m_Name: Item_LuminaGel
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Inventory.ItemDefinition
+  _id: lumina_gel
+  _displayName: Lumina Gel
+  _description: Light-sensitive synthetic gel. Glows brighter when you're watching
+    it.
+  _category: 0
+  _icon: {fileID: 0}
+  _uiColor: {r: 0.1, g: 0.95, b: 1, a: 1}
+  _maxStack: 10
+  _baseValue: 3
+  _worldPrefab: {fileID: 8628184570372284564, guid: 8b8b096f5c0b30e4faec3e8f16723559, type: 3}

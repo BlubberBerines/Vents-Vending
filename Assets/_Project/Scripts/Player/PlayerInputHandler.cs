@@ -24,8 +24,15 @@ namespace VentsAndVending.Player
         private InputAction _crouch;
         private InputAction _crawl;
         private InputAction _interact;
+        private InputAction _inventory;
+        private InputAction _cancel;
 
         public Vector2 Move { get; private set; }
+        public bool InventoryPressed { get; private set; }
+        public bool CancelPressed { get; private set; }
+
+        /// <summary>Display string of the interact key, e.g. "E".</summary>
+        public string InteractBindingLabel { get; private set; } = "E";
         public Vector2 Look { get; private set; }
         /// <summary>True when Look came from a mouse/pointer delta (pixels), false for sticks (-1..1).</summary>
         public bool LookIsPointer { get; private set; }
@@ -59,13 +66,26 @@ namespace VentsAndVending.Player
             _crouch = _map.FindAction("Crouch", throwIfNotFound: true);
             _interact = _map.FindAction("Interact", throwIfNotFound: true);
             _crawl = _map.FindAction("Crawl", throwIfNotFound: false);
-            if (_crawl == null)
+            _inventory = _map.FindAction("Inventory", throwIfNotFound: false);
+            _cancel = asset.FindAction("UI/Cancel", throwIfNotFound: false);
+            if (_crawl == null || _inventory == null)
             {
-                Debug.LogWarning("[PlayerInputHandler] No 'Crawl' action in the Player map; manual crawling is disabled.", this);
+                Debug.LogWarning("[PlayerInputHandler] 'Crawl' or 'Inventory' action missing from the Player map. Run Vents & Vending > Prototype > Build Movement Greybox Scene to add them.", this);
+            }
+
+            string label = _interact.GetBindingDisplayString(InputBinding.MaskByGroup("Keyboard&Mouse"),
+                InputBinding.DisplayStringOptions.DontIncludeInteractions);
+            if (!string.IsNullOrEmpty(label))
+            {
+                InteractBindingLabel = label;
             }
         }
 
-        private void OnEnable() => _map?.Enable();
+        private void OnEnable()
+        {
+            _map?.Enable();
+            _cancel?.actionMap?.Enable();
+        }
 
         private void Update()
         {
@@ -75,6 +95,8 @@ namespace VentsAndVending.Player
             SprintHeld = _sprint.IsPressed();
             JumpPressed = _jump.WasPressedThisFrame();
             InteractPressed = _interact.WasPressedThisFrame();
+            InventoryPressed = _inventory != null && _inventory.WasPressedThisFrame();
+            CancelPressed = _cancel != null && _cancel.WasPressedThisFrame();
 
             if (_holdStance)
             {

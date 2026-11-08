@@ -3,8 +3,13 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using VentsAndVending.Interaction;
+using VentsAndVending.Inventory;
 using VentsAndVending.Player;
+using VentsAndVending.UI;
 using VentsAndVending.World;
 
 namespace VentsAndVending.Editor
@@ -18,6 +23,12 @@ namespace VentsAndVending.Editor
         public const string ScenePath = "Assets/_Project/Scenes/Prototype/Greybox_Movement.unity";
         private const string MaterialFolder = "Assets/_Project/Art/Materials/Greybox";
         private const string InputActionsPath = "Assets/_Project/Settings/Input/InputSystem_Actions.inputactions";
+        private const string ItemFolder = "Assets/_Project/ScriptableObjects/Items";
+        private const string ItemPrefabFolder = "Assets/_Project/Prefabs/Items";
+
+        private static ItemDefinition _glarb;
+        private static ItemDefinition _lumina;
+        private static ItemDefinition _stabiliser;
 
         // Maintenance palette (GDD §15.4)
         private static readonly Color DarkGrey = new Color(0.16f, 0.17f, 0.18f);
@@ -37,16 +48,19 @@ namespace VentsAndVending.Editor
 
             Build();
             EditorUtility.DisplayDialog("Greybox built",
-                $"Scene saved to {ScenePath}.\nPress Play. WASD move, Mouse look, Shift sprint, Space jump, C crouch, Z/Ctrl crawl, Esc unlock cursor.",
+                $"Scene saved to {ScenePath}.\nPress Play. WASD move, Mouse look, Shift sprint, Space jump, C crouch, Z/Ctrl crawl, E interact, Tab inventory, Esc unlock cursor.",
                 "OK");
         }
 
         /// <summary>Builds and saves the scene. Returns the scene path.</summary>
         public static string Build()
         {
-            EnsureCrawlAction();
+            EnsureInputActions();
             EnsureFolder(MaterialFolder);
+            EnsureFolder(ItemFolder);
+            EnsureFolder(ItemPrefabFolder);
             EnsureFolder(Path.GetDirectoryName(ScenePath)!.Replace('\\', '/'));
+            CreateItems();
 
             var floorMat = GetOrCreateMaterial("Greybox_Floor", DarkGrey, 0.25f);
             var wallMat = GetOrCreateMaterial("Greybox_Wall", IndustrialBlue, 0.2f);
@@ -66,8 +80,10 @@ namespace VentsAndVending.Editor
             BuildRamp(level, accentMat);
             BuildCrouchTunnel(level, tunnelMat, accentMat);
             BuildVentDuct(level, ventMat, accentMat, glowMat);
+            BuildInteractables(level, propMat, accentMat, ventMat);
 
-            CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
+            var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
+            CreateHud(player.GetComponent<InteractionController>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddSceneToBuildSettings(ScenePath);
@@ -212,6 +228,9 @@ namespace VentsAndVending.Editor
             var crouch = player.AddComponent<PlayerCrouch>();
             var look = player.AddComponent<PlayerCamera>();
             player.AddComponent<PlayerMovement>();
+            var pockets = player.AddComponent<InventoryComponent>();
+            pockets.Configure("Pockets", 8);
+            var interaction = player.AddComponent<InteractionController>();
 
             var cameraRoot = new GameObject("CameraRoot").transform;
             cameraRoot.SetParent(player.transform, false);
@@ -230,13 +249,146 @@ namespace VentsAndVending.Editor
 
             SetReference(crouch, "_cameraRoot", cameraRoot);
             SetReference(look, "_pitchRoot", cameraRoot);
+            SetReference(interaction, "_camera", cam);
             return player;
+        }
+
+        private static void CreateHud(InteractionController interactor)
+        {
+            var hud = new GameObject("HUD");
+            SetReference(hud.AddComponent<HudController>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<InventoryScreen>(), "_interactor", interactor);
+
+            new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+        }
+
+        // ------------------------------------------------------------------ Items & interactables
+
+        private static void CreateItems()
+        {
+            _glarb = GetOrCreateItem("Item_GlarbExtract", "glarb_extract", "Glarb Extract",
+                "Thick neon-green biological extract. Smells faintly of regret and citrus.",
+                10, 4, new Color(0.35f, 1f, 0.2f));
+            _lumina = GetOrCreateItem("Item_LuminaGel", "lumina_gel", "Lumina Gel",
+                "Light-sensitive synthetic gel. Glows brighter when you're watching it.",
+                10, 3, new Color(0.1f, 0.95f, 1f));
+            _stabiliser = GetOrCreateItem("Item_StabiliserGel", "stabiliser_gel", "Stabiliser Gel",
+                "General-purpose stabilising gel. Keeps reactions from getting… creative.",
+                10, 2, new Color(1f, 0.93f, 0.55f));
+        }
+
+        private static ItemDefinition GetOrCreateItem(string assetName, string id, string displayName, string description,
+            int maxStack, int baseValue, Color color)
+        {
+            string path = $"{ItemFolder}/{assetName}.asset";
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null)
+            {
+                item = ScriptableObject.CreateInstance<ItemDefinition>();
+                AssetDatabase.CreateAsset(item, path);
+            }
+
+            item.Configure(id, displayName, description, ItemCategory.Ingredient, maxStack, baseValue, color);
+            item.SetWorldPrefab(CreateItemPrefab(item, color));
+            EditorUtility.SetDirty(item);
+            return item;
+        }
+
+        /// <summary>Greybox vial: glowing cylinder with a dark cap, physics, and a PickupItem.</summary>
+        private static GameObject CreateItemPrefab(ItemDefinition item, Color color)
+        {
+            string path = $"{ItemPrefabFolder}/Pickup_{item.Id}.prefab";
+            var liquid = GetOrCreateMaterial($"Item_{item.Id}", color * 0.6f, 0.8f, color * 1.5f);
+            var cap = GetOrCreateMaterial("Item_Cap", new Color(0.12f, 0.12f, 0.13f), 0.4f);
+
+            var root = new GameObject($"Pickup_{item.Id}");
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            body.name = "Vial";
+            body.transform.SetParent(root.transform, false);
+            body.transform.localScale = new Vector3(0.12f, 0.1f, 0.12f);
+            body.transform.localPosition = new Vector3(0f, 0.1f, 0f);
+            body.GetComponent<MeshRenderer>().sharedMaterial = liquid;
+            Object.DestroyImmediate(body.GetComponent<Collider>());
+
+            var lid = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            lid.name = "Cap";
+            lid.transform.SetParent(root.transform, false);
+            lid.transform.localScale = new Vector3(0.13f, 0.02f, 0.13f);
+            lid.transform.localPosition = new Vector3(0f, 0.215f, 0f);
+            lid.GetComponent<MeshRenderer>().sharedMaterial = cap;
+            Object.DestroyImmediate(lid.GetComponent<Collider>());
+
+            var box = root.AddComponent<BoxCollider>();
+            box.center = new Vector3(0f, 0.12f, 0f);
+            box.size = new Vector3(0.13f, 0.24f, 0.13f);
+            var body3d = root.AddComponent<Rigidbody>();
+            body3d.mass = 0.3f;
+            body3d.interpolation = RigidbodyInterpolation.Interpolate;
+            body3d.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            root.AddComponent<PickupItem>().Configure(item, 1);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
+            Object.DestroyImmediate(root);
+            return prefab;
+        }
+
+        private static void BuildInteractables(Transform parent, Material prop, Material accent, Material vent)
+        {
+            var g = Group("Interactables", parent);
+
+            // Storage locker by the spawn, pre-stocked
+            var locker = Block("Storage Locker", g, new Vector3(-2.5f, 0.9f, -16.5f), new Vector3(1.2f, 1.8f, 0.6f), prop);
+            locker.isStatic = false;
+            Block("Locker_Trim", g, new Vector3(-2.5f, 1.82f, -16.5f), new Vector3(1.25f, 0.05f, 0.65f), accent);
+            var lockerInv = locker.AddComponent<InventoryComponent>();
+            lockerInv.Configure("Storage Locker", 8);
+            lockerInv.AddStartingItem(_lumina, 4);
+            lockerInv.AddStartingItem(_stabiliser, 3);
+            locker.AddComponent<StorageContainer>();
+
+            // Loose ingredients near the spawn
+            PlacePickup(_glarb, 2, new Vector3(-8f, 1.02f, -12f), g);   // on Crate_A
+            PlacePickup(_lumina, 1, new Vector3(1.5f, 0.02f, -11.5f), g);
+            PlacePickup(_stabiliser, 1, new Vector3(2.0f, 0.02f, -11.2f), g);
+
+            // Hidden stash at the bend of the vent duct (reward for crawling in)
+            PlacePickup(_glarb, 5, new Vector3(12.05f, 0.02f, 3.85f), g);
+            PlacePickup(_stabiliser, 2, new Vector3(12.25f, 0.02f, 4.1f), g);
+
+            // Hinged hatch over the vent entrance (duct: x=12, z=-6, 0.9 x 0.85 m)
+            var hatch = new GameObject("Vent Hatch");
+            hatch.transform.SetParent(g, false);
+            hatch.transform.position = new Vector3(12f, 0.85f, -6.04f);
+            var pivot = new GameObject("Pivot").transform;
+            pivot.SetParent(hatch.transform, false);
+            var panel = Block("Panel", pivot, Vector3.zero, new Vector3(0.94f, 0.85f, 0.04f), vent);
+            panel.isStatic = false;
+            panel.transform.localPosition = new Vector3(0f, -0.425f, 0f);
+            var grille = Block("Grille", pivot, Vector3.zero, new Vector3(0.6f, 0.3f, 0.02f), accent);
+            grille.isStatic = false;
+            grille.transform.localPosition = new Vector3(0f, -0.45f, -0.025f);
+            Object.DestroyImmediate(grille.GetComponent<Collider>());
+            SetReference(hatch.AddComponent<VentHatch>(), "_pivot", pivot);
+        }
+
+        private static void PlacePickup(ItemDefinition item, int count, Vector3 position, Transform parent)
+        {
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(item.WorldPrefab);
+            go.transform.SetParent(parent, true);
+            go.transform.position = position;
+            go.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+            var so = new SerializedObject(go.GetComponent<PickupItem>());
+            so.FindProperty("_count").intValue = count;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ------------------------------------------------------------------ Input
 
-        /// <summary>Adds a "Crawl" action (Z / Left Ctrl / right-stick press) to the Player map if missing.</summary>
-        public static void EnsureCrawlAction()
+        /// <summary>
+        /// Adds game-specific actions to the Player map if missing:
+        /// Crawl (Z / Left Ctrl / right-stick press) and Inventory (Tab / I / gamepad Select).
+        /// </summary>
+        public static void EnsureInputActions()
         {
             var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
             if (asset == null)
@@ -245,7 +397,14 @@ namespace VentsAndVending.Editor
                 return;
             }
 
-            if (asset.FindActionMap("Player", throwIfNotFound: true).FindAction("Crawl") != null)
+            var required = new (string name, (string path, string group)[] bindings)[]
+            {
+                ("Crawl", new[] { ("<Keyboard>/z", "Keyboard&Mouse"), ("<Keyboard>/leftCtrl", "Keyboard&Mouse"), ("<Gamepad>/rightStickPress", "Gamepad") }),
+                ("Inventory", new[] { ("<Keyboard>/tab", "Keyboard&Mouse"), ("<Keyboard>/i", "Keyboard&Mouse"), ("<Gamepad>/select", "Gamepad") })
+            };
+
+            InputActionMap existing = asset.FindActionMap("Player", throwIfNotFound: true);
+            if (required.All(r => existing.FindAction(r.name) != null))
             {
                 return;
             }
@@ -254,10 +413,22 @@ namespace VentsAndVending.Editor
             var copy = InputActionAsset.FromJson(asset.ToJson());
             try
             {
-                var crawl = copy.FindActionMap("Player", throwIfNotFound: true).AddAction("Crawl", InputActionType.Button);
-                crawl.AddBinding("<Keyboard>/z", groups: "Keyboard&Mouse");
-                crawl.AddBinding("<Keyboard>/leftCtrl", groups: "Keyboard&Mouse");
-                crawl.AddBinding("<Gamepad>/rightStickPress", groups: "Gamepad");
+                InputActionMap map = copy.FindActionMap("Player", throwIfNotFound: true);
+                foreach (var (name, bindings) in required)
+                {
+                    if (map.FindAction(name) != null)
+                    {
+                        continue;
+                    }
+
+                    InputAction action = map.AddAction(name, InputActionType.Button);
+                    foreach (var (path, group) in bindings)
+                    {
+                        action.AddBinding(path, groups: group);
+                    }
+                    Debug.Log($"[PrototypeSceneBuilder] Added '{name}' action to the Player input map.");
+                }
+
                 File.WriteAllText(InputActionsPath, copy.ToJson());
             }
             finally
@@ -266,7 +437,6 @@ namespace VentsAndVending.Editor
             }
 
             AssetDatabase.ImportAsset(InputActionsPath, ImportAssetOptions.ForceUpdate);
-            Debug.Log("[PrototypeSceneBuilder] Added 'Crawl' action to the Player input map.");
         }
 
         // ------------------------------------------------------------------ Helpers

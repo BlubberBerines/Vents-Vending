@@ -62,13 +62,14 @@ namespace VentsAndVending.Player
 
         private void Update()
         {
-            HandleCursorLock();
-            if (Cursor.lockState != CursorLockMode.Locked || _pitchRoot == null)
+            // While a menu/machine owns the cursor, don't look around or grab the cursor back.
+            if (_state != null && (_state.IsInteracting || _state.Current == PlayerMovementState.Interacting))
             {
                 return;
             }
 
-            if (_state != null && _state.Current == PlayerMovementState.Interacting)
+            HandleCursorLock();
+            if (Cursor.lockState != CursorLockMode.Locked || _pitchRoot == null)
             {
                 return;
             }

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3a5c12ee6865a44abbf091603d6fc80, type: 3}
+  m_Name: Item_StabiliserGel
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Inventory.ItemDefinition
+  _id: stabiliser_gel
+  _displayName: Stabiliser Gel
+  _description: "General-purpose stabilising gel. Keeps reactions from getting\u2026
+    creative."
+  _category: 0
+  _icon: {fileID: 0}
+  _uiColor: {r: 1, g: 0.93, b: 0.55, a: 1}
+  _maxStack: 10
+  _baseValue: 2
+  _worldPrefab: {fileID: 7555082286968870449, guid: a6ad72927e986d34998d73094d988b65, type: 3}

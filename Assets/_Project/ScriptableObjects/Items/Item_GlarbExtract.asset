@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3a5c12ee6865a44abbf091603d6fc80, type: 3}
+  m_Name: Item_GlarbExtract
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Inventory.ItemDefinition
+  _id: glarb_extract
+  _displayName: Glarb Extract
+  _description: Thick neon-green biological extract. Smells faintly of regret and
+    citrus.
+  _category: 0
+  _icon: {fileID: 0}
+  _uiColor: {r: 0.35, g: 1, b: 0.2, a: 1}
+  _maxStack: 10
+  _baseValue: 4
+  _worldPrefab: {fileID: 1017762454331520549, guid: e9037c261fd25374ea8d6b63dd2d9d41, type: 3}

@@ -25,15 +25,15 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 4. [x] Camera movement (mouse + gamepad, pitch clamp, cursor lock)
 5. [x] Crouching (toggle or hold, headroom check)
 6. [x] Crawling (manual + forced inside `VentZone`)
-7. [ ] Interaction interface (`IInteractable`)
-8. [ ] Raycast interactions + prompt UI
-9. [ ] Pickupable object
-10. [ ] Inventory
-11. [ ] Basic storage container
+7. [x] Interaction interface (`IInteractable`, `InteractionController`)
+8. [x] Raycast interactions + prompt UI (`HudController`)
+9. [x] Pickupable object (`PickupItem`, physics vial prefabs, drop from inventory)
+10. [x] Inventory (`InventoryModel` + `InventoryComponent`, Tab screen, 12 EditMode tests)
+11. [x] Basic storage container (`StorageContainer`, two-column transfer view)
 12. [~] First ventilation section (greybox L-duct in `Greybox_Movement` — no modular prefabs yet)
-13. [ ] Entering and exiting vents
+13. [~] Entering and exiting vents (`VentHatch` open/close; grate drop-down exits still to do)
 14. [ ] Basic mixing machine
-15. [ ] First ingredient ScriptableObjects
+15. [x] First ingredient ScriptableObjects (Glarb Extract, Lumina Gel, Stabiliser Gel — generic `ItemDefinition` for now)
 16. [ ] First RecipeDefinition
 17. [ ] Ingredient consumption
 18. [ ] Product generation
