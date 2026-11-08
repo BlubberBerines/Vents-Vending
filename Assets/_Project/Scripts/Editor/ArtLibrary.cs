@@ -86,6 +86,10 @@ namespace VentsAndVending.Editor
                 SeamDarkness = 0f, GrimeAmount = 0.3f, GrimePatches = 0.2f, EdgeWear = 0.5f,
                 BaseTexture = "T_PaintedMetal_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 0.7f, NormalStrength = 0.6f },
 
+            new Preset { Name = "M_Cardboard", Base = new Color(0.66f, 0.5f, 0.31f), Metallic = 0f, Smoothness = 0.15f,
+                SeamDarkness = 0f, GrimeAmount = 0.35f, GrimePatches = 0.3f, EdgeWear = 0f,
+                BaseTexture = "T_PaintedMetal_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 0.35f, NormalStrength = 0.3f },
+
             // Public plaza — neon cyan, purple, magenta, warm orange, deep blue, metallic silver (cleaner, polished)
             new Preset { Name = "M_PlazaTile", Base = new Color(0.44f, 0.45f, 0.53f), Metallic = 0.1f, Smoothness = 0.72f,
                 TileSize = 2f, PanelSize = 1f, SeamDarkness = 0.45f, GrimeAmount = 0f, GrimePatches = 0.12f,

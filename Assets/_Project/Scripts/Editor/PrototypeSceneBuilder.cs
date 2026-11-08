@@ -94,6 +94,7 @@ namespace VentsAndVending.Editor
             BuildVentDuct(level, ventMat, accentMat, glowMat);
             BuildInteractables(level, propMat, accentMat, ventMat);
             BuildMixingStation(level, wallMat, accentMat);
+            BuildProps(level);
             BuildProgression(level, wallMat, accentMat);
             BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
             BakeNavMesh(level.gameObject);

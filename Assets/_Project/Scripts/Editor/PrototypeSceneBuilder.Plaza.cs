@@ -105,6 +105,14 @@ namespace VentsAndVending.Editor
             Solid("Post_R", root, new Vector3(1.3f, 1.2f, 0.6f), new Vector3(0.08f, 2.4f, 0.08f), counter);
             Solid("Awning", root, new Vector3(0f, 2.45f, 0.15f), new Vector3(3f, 0.08f, 1.7f), awning);
 
+            // Goods on the counter: a crate and a row of glowing product jars in the stall's neon colour
+            Part("Goods_Crate", root, new Vector3(-0.8f, 1.14f, 0.25f), new Vector3(0.36f, 0.28f, 0.32f), body);
+            for (int j = 0; j < 4; j++)
+            {
+                Part($"Goods_Jar_{j}", root, new Vector3(-0.3f + j * 0.22f, 1.09f, 0.3f), new Vector3(0.12f, 0.09f, 0.12f), awning, PrimitiveType.Cylinder);
+            }
+            Part("Goods_PriceTag", root, new Vector3(0.75f, 1.08f, 0.45f), new Vector3(0.2f, 0.16f, 0.02f), counter);
+
             Vector3 signPos = root.TransformPoint(new Vector3(0f, 2.75f, 0.95f));
             CreateSign($"{name}_Sign", label, signPos, yaw + 180f, 1.2f, Color.white, 3f);
         }
