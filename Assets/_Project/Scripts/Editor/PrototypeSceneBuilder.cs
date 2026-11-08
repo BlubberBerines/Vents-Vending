@@ -211,6 +211,57 @@ namespace VentsAndVending.Editor
             _stabiliser = GetOrCreateItem("Item_StabiliserGel", "stabiliser_gel", "Stabiliser Gel",
                 "General-purpose stabilising gel. Keeps reactions from getting… creative.",
                 10, 3, new Color(1f, 0.93f, 0.55f));
+            CreateCrowbar();
+        }
+
+        /// <summary>The crowbar (underpass design): a legal, reusable tool that pries the Long Crawl grate.</summary>
+        internal static ItemDefinition Crowbar { get; private set; }
+
+        private static void CreateCrowbar()
+        {
+            string path = $"{ItemFolder}/Item_Crowbar.asset";
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null)
+            {
+                item = ScriptableObject.CreateInstance<ItemDefinition>();
+                AssetDatabase.CreateAsset(item, path);
+            }
+            var red = new Color(0.62f, 0.12f, 0.1f);
+            item.Configure("crowbar", "Crowbar",
+                "Forged steel, one end bent with purpose. Opens grates, crates and debates.",
+                ItemCategory.Equipment, 1, 25, red);
+            item.SetContraband(false);
+            item.SetWorldPrefab(CreateCrowbarPrefab(item, red));
+            EditorUtility.SetDirty(item);
+            Crowbar = item;
+        }
+
+        /// <summary>A bent bar: shaft, hooked claw end and a chisel tip, lying flat with physics and a PickupItem.</summary>
+        private static GameObject CreateCrowbarPrefab(ItemDefinition item, Color color)
+        {
+            string path = $"{ItemPrefabFolder}/Pickup_{item.Id}.prefab";
+            var paint = GetOrCreateMaterial("Item_CrowbarPaint", color, 0.45f);
+            var steel = GetOrCreateMaterial("Item_CrowbarSteel", new Color(0.32f, 0.33f, 0.35f), 0.7f);
+
+            var root = new GameObject($"Pickup_{item.Id}");
+            Part("Shaft", root.transform, new Vector3(0f, 0.03f, 0f), new Vector3(0.035f, 0.035f, 0.62f), paint);
+            Part("Claw", root.transform, new Vector3(0f, 0.06f, 0.32f), new Vector3(0.035f, 0.08f, 0.035f), paint)
+                .transform.localRotation = Quaternion.Euler(-35f, 0f, 0f);
+            Part("ClawTip", root.transform, new Vector3(0f, 0.1f, 0.35f), new Vector3(0.05f, 0.02f, 0.05f), steel);
+            Part("Chisel", root.transform, new Vector3(0f, 0.025f, -0.33f), new Vector3(0.05f, 0.015f, 0.06f), steel);
+
+            var box = root.AddComponent<BoxCollider>();
+            box.center = new Vector3(0f, 0.05f, 0f);
+            box.size = new Vector3(0.1f, 0.1f, 0.72f);
+            var body3d = root.AddComponent<Rigidbody>();
+            body3d.mass = 1.2f;
+            body3d.interpolation = RigidbodyInterpolation.Interpolate;
+            body3d.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            root.AddComponent<PickupItem>().Configure(item, 1);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
+            Object.DestroyImmediate(root);
+            return prefab;
         }
 
         /// <summary>Product 001 Glarb-Juice (GDD §7.3) and its recipe. Ingredient values sum to the §12.4 cost of 12 CC.</summary>

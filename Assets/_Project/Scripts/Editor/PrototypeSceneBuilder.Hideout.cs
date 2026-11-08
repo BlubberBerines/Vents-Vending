@@ -341,6 +341,17 @@ namespace VentsAndVending.Editor
             // Hidden stash at the end of the side duct
             PlacePickup(_glarb, 5, new Vector3(-3.45f, 0.02f, StashDuctZ - 0.15f), g);
             PlacePickup(_stabiliser, 2, new Vector3(-3.55f, 0.02f, StashDuctZ + 0.15f), g);
+            // ...and a crowbar someone left behind (pries the Long Crawl grate; taken once, never respawns)
+            PlacePickup(Crowbar, 1, new Vector3(-4.3f, 0.02f, StashDuctZ), g);
+            foreach (PickupItem p in g.GetComponentsInChildren<PickupItem>(true))
+            {
+                if (p.Item == Crowbar)
+                {
+                    var once = new SerializedObject(p);
+                    once.FindProperty("_onceSwitchId").stringValue = VentsAndVending.Tunnels.TunnelIds.CrowbarPickup;
+                    once.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
         }
 
         // ------------------------------------------------------------------ Builders

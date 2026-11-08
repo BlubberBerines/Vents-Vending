@@ -46,7 +46,7 @@ namespace VentsAndVending.Editor
                 AssetDatabase.CreateAsset(database, DatabasePath);
             }
 
-            database.Configure(new Inventory.ItemDefinition[] { _glarb, _lumina, _stabiliser, _glarbJuice }, _upgradeCatalogue);
+            database.Configure(new Inventory.ItemDefinition[] { _glarb, _lumina, _stabiliser, _glarbJuice, Crowbar }, _upgradeCatalogue);
             EditorUtility.SetDirty(database);
 
             var go = new GameObject("Save System");

@@ -99,6 +99,7 @@ MonoBehaviour:
   _item: {fileID: 11400000, guid: c74f6033e072048448d07efccce0743d, type: 2}
   _count: 1
   _quality: 1
+  _onceSwitchId: 
 --- !u!1 &2084407972064942999
 GameObject:
   m_ObjectHideFlags: 0

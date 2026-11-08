@@ -279,3 +279,4 @@ MonoBehaviour:
   _item: {fileID: 11400000, guid: 021bed5d1ee66f04e8467504956032ce, type: 2}
   _count: 1
   _quality: 1
+  _onceSwitchId: 

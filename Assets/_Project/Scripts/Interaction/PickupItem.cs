@@ -1,5 +1,6 @@
 using UnityEngine;
 using VentsAndVending.Inventory;
+using VentsAndVending.Tunnels;
 
 namespace VentsAndVending.Interaction
 {
@@ -9,10 +10,40 @@ namespace VentsAndVending.Interaction
         [SerializeField] private ItemDefinition _item;
         [SerializeField, Min(1)] private int _count = 1;
         [SerializeField] private ItemQuality _quality = ItemQuality.Standard;
+        [Tooltip("Optional: a TunnelState switch set when this is picked up, so a hand-placed pickup never respawns on load.")]
+        [SerializeField] private string _onceSwitchId;
 
         public ItemDefinition Item => _item;
         public int Count => _count;
         public ItemQuality Quality => _quality;
+
+        internal void SetOnce(string switchId) => _onceSwitchId = switchId;
+
+        private void Start()
+        {
+            if (string.IsNullOrEmpty(_onceSwitchId) || TunnelManager.Instance == null)
+            {
+                return;
+            }
+            TunnelManager.Instance.Restored += CheckTaken;
+            CheckTaken();
+        }
+
+        private void OnDestroy()
+        {
+            if (!string.IsNullOrEmpty(_onceSwitchId) && TunnelManager.Instance != null)
+            {
+                TunnelManager.Instance.Restored -= CheckTaken;
+            }
+        }
+
+        private void CheckTaken()
+        {
+            if (this != null && TunnelManager.Instance.GetSwitch(_onceSwitchId, false))
+            {
+                Destroy(gameObject);
+            }
+        }
 
         public string GetPrompt(InteractionController interactor)
         {
@@ -43,6 +74,10 @@ namespace VentsAndVending.Interaction
             interactor.Notify($"+{taken} {_item.DisplayName}");
             if (notAdded == 0)
             {
+                if (!string.IsNullOrEmpty(_onceSwitchId) && TunnelManager.Instance != null)
+                {
+                    TunnelManager.Instance.SetSwitch(_onceSwitchId, true, false);
+                }
                 Destroy(gameObject);
             }
             else
