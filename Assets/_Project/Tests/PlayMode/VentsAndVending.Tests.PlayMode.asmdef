@@ -1,0 +1,24 @@
+{
+  "name": "VentsAndVending.Tests.PlayMode",
+  "rootNamespace": "VentsAndVending.Tests",
+  "references": [
+    "VentsAndVending",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "Unity.InputSystem",
+    "Unity.InputSystem.TestFramework"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

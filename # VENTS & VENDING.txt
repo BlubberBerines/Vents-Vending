@@ -1,0 +1,2891 @@
+# VENTING & VENDING
+## Master Game Design Document & Production Bible
+
+**Document type:** Game Design Document (GDD) / Technical Design Document (TDD) / Production Plan  
+**Working title:** Venting & Vending  
+**Genre:** First-person sci-fi business simulator / immersive sim / stealth management  
+**Engine:** Unity 6 LTS (pin the selected production version)  
+**Rendering:** Universal Render Pipeline (URP)  
+**Programming language:** C#  
+**Platform:** PC – Windows initially  
+**Distribution target:** Steam  
+**Players:** Single-player  
+**Development model:** Solo indie developer  
+**Visual style:** Low-Poly Grungy / Stylized 3D  
+**Camera:** First-person  
+**Design inspirations:** Schedule I, Star Wars underworld aesthetics, Rick and Morty-style cosmic absurdity  
+**Document status:** Master production specification  
+**Target scope:** Complete commercial indie release, with post-launch expansion potential
+
+---
+
+# PART 1 — GAME VISION & IDENTITY
+
+## 1.1 High Concept
+
+Venting & Vending is a first-person sci-fi black-market business simulator set aboard a gigantic, overcrowded intergalactic space station.
+
+The player begins as an insignificant nobody living inside the maintenance ventilation system of a massive alien metropolis.
+
+With practically no money, no connections, no legal identity worth mentioning and a questionable collection of equipment, the player starts a small underground operation manufacturing and selling strange, fictional alien substances.
+
+Through crafting, trading, exploration, stealth, negotiation and increasingly ambitious business decisions, the player gradually builds a criminal enterprise.
+
+What begins as a makeshift laboratory hidden behind a rusty ventilation grate eventually becomes a sophisticated interstellar operation involving automated manufacturing, hired alien workers, private spaceships, multiple distribution locations and relationships with corrupt galactic officials.
+
+The ultimate objective is to become one of the most influential black-market operators in the known galaxy.
+
+The player should feel like an ordinary person who has accidentally stumbled into an enormous and ridiculous criminal opportunity.
+
+## 1.2 The Core Fantasy
+
+The player fantasy is:
+
+"I started with nothing, lived in a ventilation shaft, sold weird alien products to complete strangers, and somehow ended up running a massive intergalactic empire."
+
+The progression from absolute poverty to excessive wealth is central to the game's appeal.
+
+Players should experience:
+
+- The satisfaction of making their first successful sale.
+- The excitement of discovering a profitable new product.
+- The anxiety of conducting an illegal transaction near security.
+- The pleasure of upgrading their equipment.
+- The pride of transforming an embarrassing hideout into a proper operation.
+- The freedom of eventually owning and customising a spaceship.
+- The absurdity of managing employees, customers and galactic politics.
+
+## 1.3 Genre and Gameplay Positioning
+
+The game combines several genres:
+
+| Genre | Contribution |
+|---|---|
+| Business simulator | Production, pricing, sales and profit |
+| First-person simulator | Direct physical interaction |
+| Stealth | Avoiding security and managing risk |
+| Exploration | Discovering districts, customers and resources |
+| Management | Staff, automation and logistics |
+| Progression RPG | Unlocks, reputation and equipment |
+
+The game must not become a traditional combat-focused action game.
+
+The player is a business operator, not a soldier.
+
+Danger comes primarily from operating illegally in an environment controlled by authorities, rival operators and unpredictable aliens.
+
+## 1.4 Design Pillars
+
+All gameplay and production decisions should support five pillars.
+
+### Pillar 1: Satisfying Physical Interactions
+
+Players should physically interact with the majority of important gameplay objects.
+
+Examples:
+
+- Picking up containers.
+- Opening storage units.
+- Pouring liquids.
+- Operating machinery.
+- Mixing fictional substances.
+- Packaging finished products.
+- Inserting ingredients into equipment.
+- Loading products into storage.
+- Opening and closing ventilation hatches.
+
+Menus should support gameplay rather than replace it.
+
+### Pillar 2: Risk Versus Reward
+
+The most profitable opportunities should involve increased risk.
+
+Players must decide whether to:
+
+- Sell somewhere safe for less money.
+- Take a higher-value order in a dangerous district.
+- Carry more inventory and risk losing it.
+- Bribe an official.
+- Pay for better security.
+- Operate during high-security periods.
+
+### Pillar 3: Humorous Science Fiction
+
+The world must constantly communicate that this is a ridiculous universe.
+
+Aliens should have strange personalities, unusual motivations and absurd dialogue.
+
+Humour should emerge naturally from gameplay, environmental storytelling and character behaviour.
+
+### Pillar 4: Meaningful Progression
+
+Every successful business activity should contribute towards a visible objective.
+
+The player should always have something interesting to work towards.
+
+### Pillar 5: A Living World
+
+Customers, workers, security drones and background aliens should make the station feel populated.
+
+Even when the player is not interacting with them, they should behave as if they have their own lives.
+
+---
+
+# PART 2 — WORLD BUILDING & STORY
+
+## 2.1 The Galactic Setting
+
+The game takes place within a technologically advanced but socially dysfunctional galactic civilisation.
+
+Numerous alien species share enormous space stations, commercial hubs and interconnected trade networks.
+
+The Galactic Federation officially maintains order, regulates trade and prevents dangerous technologies from circulating.
+
+In reality, the system is bureaucratic, corrupt, inefficient and full of opportunities for exploitation.
+
+Illegal markets operate in abandoned industrial sectors, maintenance corridors, forgotten docking bays and hidden commercial districts.
+
+The player begins aboard one of the largest stations in the system.
+
+## 2.2 The Main Location: The Citadel
+
+**Working name:** The Grand Exchange / Citadel-9.
+
+The station should feel enormous.
+
+It contains:
+
+- Luxury residential districts.
+- Commercial plazas.
+- Industrial manufacturing sectors.
+- Public teleportation gates.
+- Alien entertainment venues.
+- Docking facilities.
+- Maintenance infrastructure.
+- Government offices.
+- Security checkpoints.
+- Abandoned and restricted sectors.
+
+The player initially has access to only a tiny portion of this environment.
+
+The rest of the station should be visible through windows, distant architecture, signage, background traffic and inaccessible doors.
+
+This creates the impression of a much larger world without requiring every area to be playable.
+
+## 2.3 The Galactic Federation
+
+The Federation is the primary authority.
+
+Its responsibilities include:
+
+- Maintaining station security.
+- Regulating trade.
+- Controlling restricted substances.
+- Monitoring teleportation networks.
+- Collecting taxes and commercial fees.
+- Managing immigration and identity registration.
+
+Its employees range from genuinely competent officers to incompetent bureaucrats.
+
+The Federation should be threatening but frequently ridiculous.
+
+Example dialogue:
+
+"Citizen, please remain stationary while I determine whether your existence violates subsection 84-B."
+
+"Your ventilation access permit expired 312 rotations ago."
+
+"Unlicensed molecular condensation detected. This is a serious administrative inconvenience."
+
+## 2.4 Story Structure
+
+The game should have a light overarching narrative rather than a heavily scripted campaign.
+
+### Chapter 1: Nobody
+
+The player arrives at the station with almost nothing.
+
+A contact introduces them to the maintenance network and explains how to access a forgotten ventilation chamber.
+
+The player establishes their first illegal operation.
+
+### Chapter 2: Small-Time Operator
+
+The player builds a customer network, discovers profitable recipes and upgrades their equipment.
+
+They begin attracting the attention of station security and other operators.
+
+### Chapter 3: Station Reputation
+
+The player unlocks new districts and develops relationships with alien groups.
+
+They gain access to better equipment and larger orders.
+
+### Chapter 4: The Junker
+
+The player acquires an old, partially broken spaceship.
+
+This becomes a mobile headquarters and production facility.
+
+### Chapter 5: Independent Operation
+
+The player establishes automated production, hires workers and begins supplying customers across multiple locations.
+
+### Chapter 6: The Galactic Hustle
+
+The player becomes a major black-market figure.
+
+They can influence officials, exploit political relationships and establish a network of businesses.
+
+The final chapter should provide an endgame sandbox rather than forcing a single ending.
+
+---
+
+# PART 3 — PLAYER CHARACTER & MOVEMENT
+
+## 3.1 Player Perspective
+
+The entire game uses a first-person perspective.
+
+The camera should feel grounded, responsive and immersive.
+
+The player should see:
+
+- Their hands during interactions.
+- Objects being picked up and manipulated.
+- Equipment animations.
+- Their body when looking down, if feasible.
+- Appropriate camera transitions when crawling.
+- Environmental movement and effects.
+
+Avoid excessive camera movement, artificial head bob or unnecessary screen shake.
+
+## 3.2 Movement Modes
+
+The player has five main movement states.
+
+| State | Description |
+|---|---|
+| Normal | Standard first-person walking |
+| Sprinting | Faster movement |
+| Crouching | Reduced height and speed |
+| Crawling | Vent-specific movement |
+| Interacting | Special movement restrictions |
+
+### Initial Movement Tuning
+
+These are starting values to be tested, not final balancing requirements.
+
+| Property | Starting value |
+|---|---:|
+| Walking speed | 4.2 m/s |
+| Sprint speed | 6.2 m/s |
+| Crouch speed | 2.2 m/s |
+| Crawl speed | 1.6 m/s |
+| Jump height | 1.0 m |
+| Gravity | -20 m/s² |
+| Interaction distance | 2.5 m |
+| Normal camera height | 1.65 m |
+| Crouch camera height | 1.05 m |
+| Crawl camera height | 0.55 m |
+
+### Implementation
+
+Use Unity's CharacterController for initial movement.
+
+Create separate scripts:
+
+- PlayerInputHandler.
+- PlayerMovement.
+- PlayerCamera.
+- PlayerStateController.
+- PlayerCrouch.
+- VentCrawler.
+
+Movement states should be managed centrally through an enum or state machine.
+
+Do not allow sprinting or jumping inside restricted vent sections unless a future level mechanic explicitly requires it.
+
+## 3.3 Interaction System
+
+The interaction system is one of the most important technical foundations.
+
+Every interactable object should implement a shared interface.
+
+Objects include:
+
+- Machines.
+- Storage containers.
+- Doors.
+- Hatches.
+- Customers.
+- Shop terminals.
+- Teleporters.
+- Upgrade stations.
+- Beds.
+- Vehicles.
+
+The player aims at an object.
+
+A raycast identifies the target.
+
+The UI displays the relevant interaction prompt.
+
+Example:
+
+[ E ] Open storage
+
+[ E ] Operate mixer
+
+[ E ] Speak to customer
+
+[ E ] Enter ventilation shaft
+
+Interactions should be consistent throughout the game.
+
+---
+
+# PART 4 — THE VENT NETWORK
+
+## 4.1 Core Concept
+
+The ventilation system is the player's first home, transportation network and primary stealth mechanic.
+
+It runs behind walls, beneath floors and above the ceilings of the commercial districts.
+
+It should feel like a hidden world existing directly behind the public environment.
+
+## 4.2 Vent Environment Design
+
+Ventilation spaces should contain:
+
+- Rusty metal walls.
+- Pipes.
+- Cable bundles.
+- Fans.
+- Steam outlets.
+- Electrical junctions.
+- Maintenance lights.
+- Access ladders.
+- Service platforms.
+- Hidden storage locations.
+
+The vents should be claustrophobic but navigable.
+
+The player should occasionally hear aliens talking, music playing or machines operating on the other side of the walls.
+
+## 4.3 Vent Gameplay
+
+The player can:
+
+1. Approach an accessible hatch.
+2. Open the hatch.
+3. Enter the ventilation network.
+4. Crawl through connected sections.
+5. Observe public areas through grates.
+6. Reach different exit points.
+7. Open a grate.
+8. Drop into the environment.
+
+Some vents should only be accessible from one direction.
+
+Later upgrades can unlock additional routes.
+
+## 4.4 Vent Hazards
+
+Potential hazards include:
+
+- Rotating fans.
+- Electrical faults.
+- Hot steam.
+- Toxic alien residue.
+- Collapsing sections.
+- Security scanning devices.
+
+For the initial release, hazards should be limited to two or three well-designed examples.
+
+## 4.5 Vent Navigation
+
+Create the ventilation network using modular pieces.
+
+Each section should have standard connection points.
+
+Suggested prefab types:
+
+- Straight corridor.
+- Left turn.
+- Right turn.
+- Vertical shaft.
+- T-junction.
+- Four-way junction.
+- Fan corridor.
+- Maintenance room.
+- Exit grate.
+- Access hatch.
+
+Use manually constructed level layouts rather than procedural generation.
+
+The vent network should be authored as a connected level graph.
+
+---
+
+# PART 5 — THE HIDEOUT & PROPERTY PROGRESSION
+
+## 5.1 Starting Hideout
+
+The player begins in a forgotten maintenance chamber.
+
+It is dirty, poorly lit and barely functional.
+
+Initial equipment:
+
+- One sleeping area.
+- One storage container.
+- One crude mixing station.
+- One manual packaging surface.
+- One basic ventilation exit.
+
+The hideout should feel personal and gradually become more impressive.
+
+## 5.2 Hideout Upgrades
+
+Upgrades should be purchased using cosmic credits.
+
+### Tier 1: Improvised
+
+- Cardboard storage.
+- Homemade mixer.
+- Basic lighting.
+- Manual packaging.
+
+### Tier 2: Functional
+
+- Proper ingredient storage.
+- Improved mixing equipment.
+- Additional workbench.
+- Better lighting.
+- Basic security camera.
+
+### Tier 3: Professional
+
+- Automated packaging.
+- Advanced refinery.
+- Larger storage.
+- Additional production equipment.
+- Improved ventilation access.
+
+### Tier 4: Industrial
+
+- Automated matter collectors.
+- Multiple production stations.
+- Advanced research equipment.
+- Worker access.
+- Security monitoring.
+
+### Tier 5: Executive
+
+This tier should eventually transition the player towards spaceship ownership.
+
+## 5.3 Property Management
+
+Later in the game, players should be able to acquire:
+
+- Additional maintenance rooms.
+- Hidden commercial units.
+- Abandoned industrial facilities.
+- Private docking spaces.
+- Warehouse facilities.
+
+Each property should have a purpose.
+
+Avoid adding properties that simply duplicate the same functionality.
+
+---
+
+# PART 6 — THE PRODUCTION & CRAFTING SYSTEM
+
+## 6.1 Design Philosophy
+
+Crafting is the heart of the gameplay loop.
+
+It should feel physical, deliberate and rewarding.
+
+The player should not simply click a recipe and wait for a timer.
+
+Instead, machines should have visible stages of operation.
+
+The production system should support:
+
+- Ingredient collection.
+- Storage.
+- Ingredient measurement.
+- Liquid transfer.
+- Mixing.
+- Refining.
+- Stabilisation.
+- Quality inspection.
+- Packaging.
+- Product storage.
+
+All substances in the game are fictional alien materials with invented properties.
+
+## 6.2 Production Equipment
+
+### Equipment 1: Basic Mixing Station
+
+The first production machine.
+
+Visual features:
+
+- Metal workbench.
+- Glass mixing vessel.
+- Manual stirring mechanism.
+- Ingredient slots.
+- Temperature display.
+- Simple pressure gauge.
+
+Player interactions:
+
+- Place ingredients.
+- Pour liquids.
+- Activate mixing.
+- Monitor progress.
+- Collect the finished material.
+
+### Equipment 2: Molecular Refinery
+
+Unlocks advanced recipes.
+
+Features:
+
+- Glowing containment chamber.
+- Rotating molecular components.
+- Cooling system.
+- Digital control panel.
+- Stability monitoring.
+
+### Equipment 3: Stabilisation Chamber
+
+Improves product quality.
+
+Features:
+
+- Containment glass.
+- Temperature regulation.
+- Energy controls.
+- Pressure indicators.
+
+### Equipment 4: Packaging Machine
+
+Turns finished material into sellable units.
+
+Features:
+
+- Empty container loading.
+- Product filling.
+- Sealing.
+- Labelling.
+- Finished product collection.
+
+### Equipment 5: Automated Production Unit
+
+Late-game equipment.
+
+Allows the player to configure recipes and automate manufacturing.
+
+---
+
+# PART 7 — PRODUCT CATALOGUE & RECIPES
+
+## 7.1 Product Design Philosophy
+
+Products should have:
+
+- Unique appearances.
+- Distinct production requirements.
+- Different customer preferences.
+- Different values.
+- Different stability characteristics.
+- Different levels of risk.
+- Unique packaging.
+
+The catalogue should grow with the player's progression.
+
+The initial commercial release should aim for approximately 10–12 products, with three available during the opening gameplay section.
+
+## 7.2 Ingredient Catalogue
+
+Ingredients are fictional materials collected, purchased or produced.
+
+| Ingredient | Description | Visual appearance |
+|---|---|---|
+| Glarb Extract | Biological alien extract | Thick neon-green liquid |
+| Temporal Shards | Unstable time-reactive mineral | Purple crystalline fragments |
+| Void Crystals | Strange gravity-reactive crystals | Dark floating fragments |
+| Lumina Gel | Light-sensitive synthetic gel | Bright cyan gel |
+| Quasar Dust | Energy-rich mineral powder | Orange glowing dust |
+| Nebula Sap | Organic plant-like material | Pink viscous liquid |
+| Plasma Residue | Refined energy by-product | Blue electrical fluid |
+| Null Essence | Rare containment material | Black translucent liquid |
+| Stabiliser Gel | General-purpose stabilising material | Pale yellow gel |
+| Bio-Matrix | Synthetic biological substrate | Green fibrous material |
+| Quantum Fibres | Flexible synthetic material | Silver strands |
+| Cryo Condensate | Cooling material | White-blue liquid |
+
+Each ingredient should have:
+
+- An ID.
+- Display name.
+- Description.
+- Icon.
+- 3D model.
+- Stack limit.
+- Base purchase value.
+- Rarity.
+- Source.
+- Storage requirements.
+
+## 7.3 Product Catalogue
+
+### Product 001: Glarb-Juice
+
+**Category:** Energy stimulant  
+**Difficulty:** Beginner  
+**Customer demand:** High
+
+Description:
+
+A suspiciously luminous green liquid extracted from a multi-eyed biological organism.
+
+Popular among interdimensional travellers who require an energy boost.
+
+Recipe:
+
+- Glarb Extract.
+- Lumina Gel.
+- Stabiliser Gel.
+
+Production process:
+
+1. Place the mixing vessel.
+2. Add Glarb Extract.
+3. Introduce Lumina Gel.
+4. Add stabiliser.
+5. Activate the mixer.
+6. Allow the material to settle.
+7. Transfer into a sellable container.
+
+Gameplay identity:
+
+The beginner's money-making product.
+
+### Product 002: Chronos-Dust
+
+**Category:** Temporal anomaly powder  
+**Difficulty:** Intermediate  
+**Customer demand:** Medium-high
+
+Description:
+
+A strange mineral powder that temporarily changes the way certain species perceive time.
+
+Recipe:
+
+- Temporal Shards.
+- Quasar Dust.
+- Stabiliser Gel.
+
+Production process:
+
+1. Load mineral fragments into the refinery.
+2. Activate the molecular separation stage.
+3. Collect refined powder.
+4. Transfer to the stabilisation chamber.
+5. Package the resulting material.
+
+Gameplay identity:
+
+High-value product with more demanding production requirements.
+
+### Product 003: Void-Paste
+
+**Category:** Gravity anomaly compound  
+**Difficulty:** Intermediate  
+**Customer demand:** Medium
+
+Description:
+
+A dark, semi-liquid material that causes localised gravity disturbances.
+
+Recipe:
+
+- Void Crystals.
+- Lumina Gel.
+- Null Essence.
+
+Production process:
+
+1. Load crystals into the refinery.
+2. Introduce gel.
+3. Stabilise with Null Essence.
+4. Collect the finished compound.
+5. Package into sealed containers.
+
+Gameplay identity:
+
+An unusual premium product.
+
+### Product 004: Nebula Nectar
+
+**Category:** Biological recreational compound  
+**Difficulty:** Beginner  
+**Customer demand:** High
+
+Description:
+
+A colourful, sweet-smelling synthetic nectar popular among certain organic species.
+
+Recipe:
+
+- Nebula Sap.
+- Bio-Matrix.
+- Lumina Gel.
+
+Gameplay identity:
+
+An accessible product with broad customer appeal.
+
+### Product 005: Quasar Fizz
+
+**Category:** Energy-based novelty compound  
+**Difficulty:** Intermediate  
+**Customer demand:** Medium-high
+
+Description:
+
+A volatile-looking fizzy compound that produces tiny bursts of colourful light.
+
+Recipe:
+
+- Quasar Dust.
+- Plasma Residue.
+- Cryo Condensate.
+
+Gameplay identity:
+
+A product with distinctive visual and packaging opportunities.
+
+### Product 006: Null Tonic
+
+**Category:** Perception anomaly  
+**Difficulty:** Advanced  
+**Customer demand:** Medium
+
+Description:
+
+A strange dark liquid that temporarily interferes with electronic and biological perception systems.
+
+Recipe:
+
+- Null Essence.
+- Void Crystals.
+- Stabiliser Gel.
+
+Gameplay identity:
+
+High-risk production with high-value customers.
+
+### Product 007: Quantum Jelly
+
+**Category:** Experimental material  
+**Difficulty:** Advanced  
+**Customer demand:** Low-medium
+
+Description:
+
+A translucent jelly-like substance that appears to occupy multiple positions inside its container.
+
+Recipe:
+
+- Quantum Fibres.
+- Lumina Gel.
+- Temporal Shards.
+
+Gameplay identity:
+
+A premium experimental product.
+
+### Product 008: Plasma Pop
+
+**Category:** Energy novelty  
+**Difficulty:** Beginner-intermediate  
+**Customer demand:** High
+
+Description:
+
+A glowing container of unstable energy gel popular at alien entertainment venues.
+
+Recipe:
+
+- Plasma Residue.
+- Glarb Extract.
+- Cryo Condensate.
+
+Gameplay identity:
+
+A relatively easy product with frequent demand.
+
+### Product 009: Dream Sludge
+
+**Category:** Experimental biological compound  
+**Difficulty:** Advanced  
+**Customer demand:** Variable
+
+Description:
+
+A semi-sentient-looking purple material that reacts to sound and movement.
+
+Recipe:
+
+- Bio-Matrix.
+- Nebula Sap.
+- Null Essence.
+
+Gameplay identity:
+
+A product with unpredictable quality and customer reactions.
+
+### Product 010: Singularity Syrup
+
+**Category:** Luxury experimental compound  
+**Difficulty:** Expert  
+**Customer demand:** Premium
+
+Description:
+
+An extremely rare dark-gold material that briefly produces a miniature gravitational distortion.
+
+Recipe:
+
+- Void Crystals.
+- Temporal Shards.
+- Quantum Fibres.
+- Cryo Condensate.
+
+Gameplay identity:
+
+An endgame product with expensive production requirements and significant profit potential.
+
+## 7.4 Recipe Data Architecture
+
+Recipes should be data-driven.
+
+Each recipe should contain:
+
+- Recipe ID.
+- Product output.
+- Required ingredients.
+- Ingredient quantities.
+- Production duration.
+- Equipment requirement.
+- Minimum skill or unlock requirement.
+- Base quality.
+- Possible quality modifiers.
+- Failure conditions.
+
+The game should support recipes being added through ScriptableObjects.
+
+## 7.5 Product Quality
+
+Products should have four quality levels:
+
+| Quality | Description |
+|---|---|
+| Poor | Unstable, visibly flawed |
+| Standard | Normal production quality |
+| Premium | Improved quality and value |
+| Exceptional | Rare high-quality output |
+
+Quality should be affected by:
+
+- Ingredient quality.
+- Correct production sequence.
+- Machine condition.
+- Production equipment.
+- Stabilisation performance.
+- Optional player skill bonuses.
+
+Poor-quality products should not always be useless. Certain alien customers may specifically prefer unstable or unusual products.
+
+## 7.6 Production Failure
+
+Manufacturing should occasionally create problems.
+
+Potential failures:
+
+- Overheating.
+- Pressure imbalance.
+- Incorrect ingredient quantity.
+- Unstable reaction.
+- Containment leakage.
+- Machine breakdown.
+
+Failures should create entertaining situations rather than constantly punishing the player.
+
+Examples:
+
+- A mixing station starts shaking.
+- A container floats away.
+- The machine releases colourful smoke.
+- The product becomes an unexpected variation.
+- A small explosion covers the room in glowing slime.
+
+Failures should be recoverable unless the player deliberately ignores serious warnings.
+
+---
+
+# PART 8 — SPECIES & ALIEN CHARACTER DESIGN
+
+The alien population is one of the game's biggest opportunities for personality and humour.
+
+Every major species should have distinct anatomy, movement, dialogue, economic preferences and social behaviour.
+
+## 8.1 Species 001: Gromflomites
+
+**Role:** Bureaucrats, officials and administrative workers.
+
+Appearance:
+
+- Insectoid body structure.
+- Large compound eyes.
+- Narrow limbs.
+- Formal uniforms.
+- Oversized identification badges.
+
+Personality:
+
+- Obsessed with regulations.
+- Easily stressed.
+- Procedural.
+- Suspicious of anything unofficial.
+
+Economic behaviour:
+
+- Prefer predictable products.
+- Often request receipts.
+- May offer access to restricted information.
+
+Gameplay role:
+
+- Customers.
+- Government workers.
+- Security administrators.
+- Potential bribery contacts.
+
+## 8.2 Species 002: Blorbs
+
+**Role:** Casual consumers and low-level workers.
+
+Appearance:
+
+- Large gelatinous bodies.
+- Multiple eyes.
+- Small floating appendages.
+- Highly exaggerated facial expressions.
+
+Personality:
+
+- Impulsive.
+- Friendly.
+- Easily distracted.
+- Often forgetful.
+
+Economic behaviour:
+
+- Buy frequently.
+- Prefer novelty products.
+- Respond strongly to promotions.
+
+Gameplay role:
+
+- Common customers.
+- Delivery workers.
+- Informal information sources.
+
+## 8.3 Species 003: Zenthari
+
+**Role:** Wealthy elites and high-value customers.
+
+Appearance:
+
+- Tall, elegant bodies.
+- Smooth angular faces.
+- Long necks.
+- Elaborate clothing.
+- Decorative jewellery.
+
+Personality:
+
+- Arrogant.
+- Status-conscious.
+- Highly selective.
+- Obsessed with exclusivity.
+
+Economic behaviour:
+
+- Pay premium prices for exceptional products.
+- Dislike poor packaging.
+- Expect discreet service.
+
+Gameplay role:
+
+- Luxury customers.
+- High-value order sources.
+- Potential business contacts.
+
+## 8.4 Species 004: Vexlings
+
+**Role:** Mechanics, scavengers and industrial workers.
+
+Appearance:
+
+- Small, angular bodies.
+- Mechanical implants.
+- Multiple articulated arms.
+- Large tool belts.
+
+Personality:
+
+- Practical.
+- Sarcastic.
+- Resourceful.
+- Suspicious of authority.
+
+Economic behaviour:
+
+- Prefer useful materials and experimental products.
+- Offer cheaper equipment.
+- Exchange information for favours.
+
+Gameplay role:
+
+- Ingredient suppliers.
+- Equipment vendors.
+- Repair technicians.
+
+## 8.5 Species 005: Mycelians
+
+**Role:** Biological researchers and organic traders.
+
+Appearance:
+
+- Mushroom-like growths.
+- Multiple tendrils.
+- Soft glowing surfaces.
+- Organic movement.
+
+Personality:
+
+- Calm.
+- Strange.
+- Philosophical.
+- Often communicate in confusing metaphors.
+
+Economic behaviour:
+
+- Prefer biological ingredients.
+- Exchange rare organic materials.
+- Offer specialist production knowledge.
+
+Gameplay role:
+
+- Rare ingredient suppliers.
+- Recipe unlock contacts.
+- Advanced production specialists.
+
+## 8.6 Species 006: Dravaks
+
+**Role:** Mercenaries, smugglers and dangerous customers.
+
+Appearance:
+
+- Large muscular frames.
+- Heavy armour.
+- Thick limbs.
+- Glowing eyes.
+- Scarred skin.
+
+Personality:
+
+- Aggressive.
+- Direct.
+- Impatient.
+- Respect strength and reputation.
+
+Economic behaviour:
+
+- Place large orders.
+- Pay for speed and discretion.
+- May threaten players who fail to fulfil agreements.
+
+Gameplay role:
+
+- High-risk customers.
+- Rival operators.
+- Protection contacts.
+
+## 8.7 Species Implementation
+
+Species should use shared character systems.
+
+Each character should have:
+
+- Species definition.
+- Character model.
+- Animator controller.
+- Movement configuration.
+- Dialogue profile.
+- Economic preferences.
+- Personality traits.
+- AI behaviour configuration.
+
+Avoid creating completely separate AI systems for every species.
+
+Species differences should mostly be driven by data.
+
+---
+
+# PART 9 — CUSTOMER AI & SOCIAL SYSTEMS
+
+## 9.1 Customer Behaviour
+
+Customers should have daily routines.
+
+A basic customer lifecycle:
+
+1. Spawn in the district.
+2. Travel to a destination.
+3. Browse or wait.
+4. Approach a seller.
+5. Initiate a conversation.
+6. Request a product.
+7. Complete a transaction.
+8. React to the result.
+9. Leave the area.
+
+Some customers should occasionally:
+
+- Cancel an order.
+- Change their minds.
+- Ask for a discount.
+- Request a specific quality.
+- Complain about a product.
+- Refer another customer.
+- Become suspicious.
+
+## 9.2 Customer Preferences
+
+Each customer should have:
+
+- Preferred product categories.
+- Maximum spending amount.
+- Quality expectations.
+- Patience.
+- Suspicion.
+- Relationship value.
+
+The customer system should support personalised buying behaviour.
+
+## 9.3 Reputation
+
+The player should have two reputation layers.
+
+**General reputation**
+
+Represents the player's overall standing in the black market.
+
+**Species reputation**
+
+Represents how individual alien groups perceive the player.
+
+Positive reputation can unlock:
+
+- Better orders.
+- Exclusive customers.
+- Rare ingredients.
+- Discounts.
+- New areas.
+- Special dialogue.
+
+Negative reputation can create:
+
+- Higher prices.
+- Reduced demand.
+- Suspicious customers.
+- Rival interference.
+
+---
+
+# PART 10 — DISTRIBUTION & SALES
+
+## 10.1 Early-Game Sales
+
+Initially, the player must physically visit customers.
+
+They leave the hideout through a vent and enter the plaza.
+
+Customers can be approached directly.
+
+The player can offer available products and negotiate simple prices.
+
+## 10.2 Sales Interaction
+
+A typical sale:
+
+1. Approach the customer.
+2. Start interaction.
+3. View the requested product.
+4. Offer a quantity.
+5. Confirm price.
+6. Complete the exchange.
+7. Receive credits.
+8. Update reputation.
+
+Sales should be fast and satisfying.
+
+Avoid lengthy dialogue for routine transactions.
+
+## 10.3 Order System
+
+Later customers can place orders.
+
+Orders should contain:
+
+- Customer.
+- Product.
+- Quantity.
+- Required quality.
+- Deadline.
+- Payment.
+- Reputation reward.
+- Failure penalty.
+
+## 10.4 Pricing
+
+The player should have control over product pricing.
+
+Prices should be influenced by:
+
+- Base product value.
+- Quality.
+- Customer preference.
+- District demand.
+- Reputation.
+- Scarcity.
+
+The economy should be understandable.
+
+Avoid creating a complicated simulation that is difficult to balance.
+
+---
+
+# PART 11 — GALACTIC SECURITY & STEALTH
+
+## 11.1 Security Types
+
+The initial game should include two security types.
+
+### Patrol Drone
+
+- Follows predefined patrol routes.
+- Scans nearby areas.
+- Investigates suspicious activity.
+- Pursues identified players.
+
+### Federation Inspector
+
+- Walks around commercial districts.
+- Interacts with citizens.
+- Conducts occasional inspections.
+- Responds to illegal activity.
+
+## 11.2 Detection System
+
+Security should detect players based on:
+
+- Distance.
+- Line of sight.
+- Suspicious behaviour.
+- Restricted inventory.
+- Security level.
+- Previous incidents.
+
+Use Unity physics raycasts for line-of-sight checks.
+
+## 11.3 Alert States
+
+Security has four states:
+
+**Unaware**
+
+Normal patrol.
+
+**Suspicious**
+
+Investigating something unusual.
+
+**Searching**
+
+Looking for the player's last known position.
+
+**Pursuing**
+
+Actively chasing the player.
+
+## 11.4 Escape Mechanics
+
+Players can:
+
+- Run.
+- Break line of sight.
+- Enter vents.
+- Hide in maintenance spaces.
+- Use environmental distractions.
+- Access restricted shortcuts.
+
+Vents are the player's primary escape system.
+
+## 11.5 Consequences
+
+Security incidents can cause:
+
+- Confiscation of illegal goods.
+- Monetary fines.
+- Temporary area restrictions.
+- Reputation damage.
+- Increased security presence.
+
+The player should have ways to recover.
+
+Repeated failure should not make the game permanently unwinnable.
+
+---
+
+# PART 12 — ECONOMY & PROGRESSION
+
+## 12.1 Currency
+
+Primary currency: Cosmic Credits (CC).
+
+All purchases, sales, upgrades and business transactions use this currency.
+
+## 12.2 Main Progression Resources
+
+The player progresses through:
+
+- Cosmic Credits.
+- Reputation.
+- Equipment unlocks.
+- Recipe knowledge.
+- Property ownership.
+- Business access.
+
+## 12.3 Upgrade Categories
+
+### Production
+
+- Faster machines.
+- Higher product quality.
+- Better ingredient efficiency.
+- Larger production capacity.
+
+### Storage
+
+- Larger containers.
+- Organised storage.
+- Specialised material storage.
+
+### Security
+
+- Hidden storage.
+- Camera systems.
+- Better escape routes.
+- Improved detection warnings.
+
+### Mobility
+
+- Additional vent routes.
+- Faster movement equipment.
+- Access to new transport systems.
+
+### Business
+
+- Better customer information.
+- New distribution areas.
+- Larger orders.
+- Automated sales.
+
+## 12.4 Economic Balancing
+
+Every product should have a defined production cost and intended selling range.
+
+Starting example values:
+
+| Product | Production cost | Standard sale price |
+|---|---:|---:|
+| Glarb-Juice | 12 CC | 24 CC |
+| Nebula Nectar | 14 CC | 30 CC |
+| Plasma Pop | 18 CC | 38 CC |
+| Chronos-Dust | 32 CC | 70 CC |
+| Void-Paste | 38 CC | 85 CC |
+| Quasar Fizz | 25 CC | 55 CC |
+| Null Tonic | 55 CC | 125 CC |
+| Quantum Jelly | 70 CC | 160 CC |
+| Dream Sludge | 60 CC | 140 CC |
+| Singularity Syrup | 120 CC | 300 CC |
+
+These are initial balancing targets.
+
+The economy must be playtested to prevent one product becoming overwhelmingly profitable.
+
+The player should always have a meaningful next purchase.
+
+---
+
+# PART 13 — THE SPACESHIP ENDGAME
+
+## 13.1 The Junker Ship
+
+The spaceship is the major long-term progression milestone.
+
+It should initially be an old, damaged and barely functional vessel.
+
+The player gradually restores and customises it.
+
+## 13.2 Ship Interior
+
+The ship contains modular areas:
+
+- Cockpit.
+- Sleeping quarters.
+- Production laboratory.
+- Storage room.
+- Packaging facility.
+- Cargo hold.
+- Engineering room.
+- Crew quarters.
+
+## 13.3 Customisation
+
+Players can upgrade:
+
+- Engine.
+- Hull.
+- Storage capacity.
+- Laboratory.
+- Production equipment.
+- Navigation systems.
+- Security systems.
+- Crew facilities.
+
+## 13.4 Travel
+
+For the first commercial version, space travel should be simplified.
+
+Use a location-selection interface and transition to separate district scenes.
+
+The player selects a destination.
+
+A travel sequence plays.
+
+The destination scene loads.
+
+Avoid building a fully simulated universe with seamless planetary travel.
+
+## 13.5 Gravity Manipulation
+
+Gravity zones can become a distinctive spaceship feature.
+
+Examples:
+
+- Zero-gravity production chamber.
+- Artificial gravity laboratory.
+- Reduced-gravity storage.
+- Experimental physics room.
+
+These should initially be scripted environmental effects rather than a complicated global physics simulation.
+
+---
+
+# PART 14 — AUTOMATION & EMPLOYEES
+
+## 14.1 Employee Types
+
+The later game introduces hireable alien workers.
+
+Potential roles:
+
+| Worker | Function |
+|---|---|
+| Blorb Runner | Basic product delivery |
+| Vexling Technician | Machine maintenance |
+| Gromflomite Clerk | Order administration |
+| Mycelian Specialist | Production assistance |
+| Dravak Enforcer | Security and protection |
+
+## 14.2 Employee Attributes
+
+Each employee should have:
+
+- Hiring cost.
+- Wage.
+- Efficiency.
+- Reliability.
+- Specialisation.
+- Morale.
+- Skill progression.
+
+## 14.3 Automation
+
+Automation should be introduced gradually.
+
+The player can eventually automate:
+
+- Ingredient collection.
+- Manufacturing.
+- Packaging.
+- Storage transfers.
+- Sales.
+- Delivery.
+
+Automation should reduce repetitive work without eliminating interesting decisions.
+
+The player should still have reasons to explore, discover recipes and improve their operation.
+
+---
+
+# PART 15 — ART DIRECTION & VISUAL BIBLE
+
+## 15.1 Overall Style
+
+The art direction is:
+
+**Low-Poly Grungy / Stylized 3D.**
+
+The game should use relatively simple geometry with detailed material work, strong lighting and carefully controlled atmosphere.
+
+It must not look unfinished or cheaply low-poly.
+
+The goal is intentional stylisation.
+
+## 15.2 Geometry
+
+Characteristics:
+
+- Angular silhouettes.
+- Simplified character anatomy.
+- Exaggerated proportions.
+- Modular architecture.
+- Limited unnecessary geometry.
+- Readable silhouettes.
+- Chunky environmental props.
+
+Use polygon detail where it matters visually.
+
+Don't waste time modelling tiny objects players will rarely see.
+
+## 15.3 Textures
+
+Textures should communicate wear and use.
+
+Environmental materials include:
+
+- Scratched metal.
+- Dirty concrete.
+- Rust.
+- Grease.
+- Oil.
+- Faded paint.
+- Worn plastic.
+- Industrial grime.
+
+The public plaza should contrast with the maintenance network.
+
+It can use cleaner materials, brighter colours and more polished architecture.
+
+## 15.4 Colour Palette
+
+### Maintenance areas
+
+- Dark grey.
+- Rust brown.
+- Dirty yellow.
+- Desaturated green.
+- Muted orange.
+- Industrial blue.
+
+### Public plaza
+
+- Neon cyan.
+- Purple.
+- Magenta.
+- Warm orange.
+- Deep blue.
+- Metallic silver.
+
+### Alien products
+
+Each product should have a distinctive colour identity.
+
+For example:
+
+- Glarb-Juice: neon green.
+- Chronos-Dust: purple.
+- Void-Paste: black and violet.
+- Nebula Nectar: pink.
+- Quasar Fizz: orange and blue.
+- Quantum Jelly: translucent cyan.
+
+## 15.5 Lighting
+
+Use URP lighting features carefully.
+
+Important elements:
+
+- Baked lighting where practical.
+- Selective realtime lights.
+- Emissive materials.
+- Bloom.
+- Fog.
+- Localised coloured lighting.
+- Flickering light sources.
+- Strong directional contrast.
+
+Avoid filling every environment with bright lights.
+
+Darkness should help create atmosphere.
+
+## 15.6 Character Art
+
+Alien characters should be immediately recognisable.
+
+Prioritise:
+
+- Distinctive silhouettes.
+- Exaggerated heads.
+- Unusual anatomy.
+- Memorable colour palettes.
+- Readable facial expressions.
+- Strong idle animations.
+
+Use shared rigs where practical.
+
+Not every alien needs an entirely bespoke animation system.
+
+## 15.7 Animation
+
+Important animations:
+
+- Walking.
+- Running.
+- Idle.
+- Talking.
+- Buying.
+- Handing over products.
+- Receiving products.
+- Inspecting objects.
+- Reacting to surprise.
+- Suspicious behaviour.
+- Security scanning.
+
+Environmental animation:
+
+- Vent fans.
+- Machinery.
+- Pipes.
+- Moving signs.
+- Alien advertisements.
+- Holographic displays.
+
+## 15.8 UI Style
+
+The interface should resemble a mixture of industrial equipment and futuristic commercial software.
+
+Characteristics:
+
+- Dark translucent panels.
+- Angular containers.
+- Bright accent colours.
+- Simple icons.
+- Compact typography.
+- Clear money indicators.
+- Minimal clutter.
+
+The UI should feel like it belongs in the world.
+
+---
+
+# PART 16 — SOUND DESIGN & MUSIC
+
+## 16.1 Audio Identity
+
+Audio should reinforce the difference between the dirty maintenance world and the busy public world.
+
+### Vent sounds
+
+- Fan hum.
+- Metal vibration.
+- Pipe knocking.
+- Distant footsteps.
+- Electrical buzzing.
+- Steam release.
+
+### Hideout sounds
+
+- Machine operation.
+- Liquid movement.
+- Container placement.
+- Mechanical switches.
+- Packaging sounds.
+- Equipment failure.
+
+### Plaza sounds
+
+- Alien conversations.
+- Market activity.
+- Public announcements.
+- Distant engines.
+- Teleporter effects.
+- Security alarms.
+
+## 16.2 Music
+
+The soundtrack should combine:
+
+- Dark electronic ambience.
+- Industrial synth.
+- Retro-futuristic music.
+- Weird cosmic electronic sounds.
+- Light comedic musical accents.
+
+Different areas should have different musical identities.
+
+The music should not overwhelm environmental audio.
+
+## 16.3 Audio Implementation
+
+Use Unity Audio Mixer groups.
+
+Suggested groups:
+
+- Master.
+- Music.
+- Environment.
+- Player.
+- Machines.
+- Characters.
+- UI.
+- Security.
+
+Expose settings for music, effects and master volume.
+
+---
+
+# PART 17 — USER INTERFACE & UX
+
+## 17.1 Main Menu
+
+The main menu should contain:
+
+- Continue.
+- New Game.
+- Load Game.
+- Settings.
+- Credits.
+- Quit.
+
+The background should show a cinematic view of the Citadel.
+
+## 17.2 HUD
+
+The HUD should display:
+
+- Cosmic Credits.
+- Current interaction prompt.
+- Inventory shortcut.
+- Active objective.
+- Security alert indicator.
+- Relevant status effects.
+
+Avoid excessive permanent HUD elements.
+
+## 17.3 Inventory
+
+The inventory should contain:
+
+- Item icon.
+- Item name.
+- Quantity.
+- Description.
+- Item category.
+
+It should support stacking, moving, storing and dropping.
+
+## 17.4 Crafting Interface
+
+The crafting interface should display:
+
+- Required equipment.
+- Available ingredients.
+- Required quantities.
+- Recipe stages.
+- Product output.
+- Current quality.
+- Production status.
+
+Physical interaction should remain the primary method of crafting.
+
+## 17.5 Accessibility
+
+Include:
+
+- Adjustable mouse sensitivity.
+- Field-of-view setting.
+- Motion-sickness options.
+- Camera shake toggle.
+- Subtitle options.
+- Text scaling.
+- Colour-contrast options.
+- Audio controls.
+- Key rebinding.
+- Hold/toggle accessibility settings where appropriate.
+
+---
+
+# PART 18 — TECHNICAL ARCHITECTURE & UNITY IMPLEMENTATION
+
+## 18.1 Project Foundation
+
+Use:
+
+- Unity 6 LTS.
+- URP.
+- C#.
+- Input System.
+- CharacterController.
+- ScriptableObjects.
+- NavMesh.
+- Unity UI.
+- Git version control.
+
+Pin the production Unity version and package versions.
+
+Avoid unnecessary third-party dependencies.
+
+## 18.2 Project Structure
+
+```text
+Assets/
+    _Project/
+        Art/
+            Characters/
+            Environment/
+            Props/
+            Materials/
+            Textures/
+
+        Audio/
+        Animations/
+
+        Prefabs/
+            Player/
+            Machines/
+            Characters/
+            Security/
+            Environment/
+
+        Scenes/
+            Bootstrap/
+            MainMenu/
+            Hideout/
+            Plaza/
+            Ship/
+            Districts/
+
+        Scripts/
+            Core/
+            Player/
+            Interaction/
+            Inventory/
+            Crafting/
+            Economy/
+            Customers/
+            Security/
+            Progression/
+            World/
+            Saving/
+            UI/
+
+        ScriptableObjects/
+            Items/
+            Recipes/
+            Products/
+            Species/
+            Characters/
+            Upgrades/
+            Districts/
+
+        UI/
+        Settings/
+
+    ThirdParty/
+```
+
+## 18.3 Core Systems
+
+### GameManager
+
+Responsible for:
+
+- Game state.
+- Scene transitions.
+- Initialisation.
+- System coordination.
+
+It should not contain all gameplay logic.
+
+### PlayerController
+
+Responsible for:
+
+- Input.
+- Movement.
+- Camera.
+- Player states.
+
+### InteractionController
+
+Responsible for:
+
+- Raycasts.
+- Interaction prompts.
+- Interactable identification.
+- Interaction execution.
+
+### InventoryManager
+
+Responsible for:
+
+- Adding items.
+- Removing items.
+- Stacking.
+- Storage.
+- Capacity.
+
+### CraftingManager
+
+Responsible for:
+
+- Recipe validation.
+- Ingredient consumption.
+- Production state.
+- Output generation.
+- Quality calculation.
+
+### EconomyManager
+
+Responsible for:
+
+- Currency.
+- Purchases.
+- Sales.
+- Transactions.
+
+### CustomerManager
+
+Responsible for:
+
+- Customer spawning.
+- Orders.
+- Customer preferences.
+- Demand.
+
+### SecurityManager
+
+Responsible for:
+
+- Detection.
+- Alert levels.
+- Security incidents.
+- Pursuit coordination.
+
+### ProgressionManager
+
+Responsible for:
+
+- Unlocks.
+- Upgrades.
+- Reputation.
+- Milestones.
+
+### SaveManager
+
+Responsible for:
+
+- Saving.
+- Loading.
+- Data validation.
+- Save versioning.
+
+## 18.4 Data-Driven Design
+
+Use ScriptableObjects for static definitions.
+
+Examples:
+
+- ItemDefinition.
+- RecipeDefinition.
+- SpeciesDefinition.
+- CustomerDefinition.
+- ProductDefinition.
+- UpgradeDefinition.
+- DistrictDefinition.
+
+Runtime state should be stored separately.
+
+For example, an ItemDefinition defines what a product is, while the player's inventory save data stores how many units they currently own.
+
+## 18.5 Saving Architecture
+
+The save system should preserve:
+
+- Player position.
+- Currency.
+- Inventory.
+- Equipment.
+- Recipes.
+- Upgrades.
+- Reputation.
+- Customer relationships.
+- Property ownership.
+- Production states.
+- Business progression.
+
+Use JSON serialisation initially.
+
+Use stable IDs rather than relying on Unity instance references.
+
+Save files should include a version number to support future updates.
+
+Implement:
+
+- Manual saving.
+- Automatic saving.
+- Save-on-exit where safe.
+- Multiple save slots.
+- Backup saves.
+- Basic corruption handling.
+
+## 18.6 Performance
+
+Target:
+
+- 60 FPS at 1080p on the minimum supported hardware.
+- Stable frame pacing.
+- Reasonable memory usage.
+- Fast loading.
+- Efficient AI updates.
+
+Use:
+
+- Occlusion culling.
+- Baked lighting.
+- Object pooling.
+- LODs where needed.
+- Efficient materials.
+- Limited realtime shadows.
+- AI update throttling.
+- Scene-based loading.
+
+Do not optimise blindly. Profile actual bottlenecks.
+
+## 18.7 Build Configuration
+
+The initial release should support:
+
+- Windows 10/11 64-bit.
+- Keyboard and mouse.
+- Common controller layouts where feasible.
+- 16:9 and ultrawide display support.
+- Configurable graphics settings.
+
+Controller support should be implemented and tested before release rather than advertised as an unsupported feature.
+
+---
+
+# PART 19 — CONTENT & LEVEL DESIGN
+
+## 19.1 Initial Commercial Release Areas
+
+The full commercial release should aim to include the following locations.
+
+### Location 1: Maintenance Network
+
+The starting area.
+
+Contains:
+
+- Starting hideout.
+- Vent network.
+- Maintenance access points.
+- Hidden storage.
+- Basic hazards.
+
+### Location 2: Central Plaza
+
+The first commercial district.
+
+Contains:
+
+- Alien customers.
+- Market stalls.
+- Security patrols.
+- Public transport access.
+- Selling opportunities.
+
+### Location 3: Industrial Sector
+
+Contains:
+
+- Ingredient suppliers.
+- Machinery vendors.
+- Industrial workers.
+- Rare materials.
+- Production opportunities.
+
+### Location 4: Luxury District
+
+Contains:
+
+- Zenthari customers.
+- Premium markets.
+- High-value orders.
+- Expensive upgrades.
+- Stricter security.
+
+### Location 5: Docking Sector
+
+Contains:
+
+- Spaceship purchase.
+- Ship customisation.
+- Cargo operations.
+- Transport services.
+
+### Location 6: Junker Ship
+
+The player's mobile headquarters.
+
+Contains:
+
+- Production equipment.
+- Storage.
+- Crew facilities.
+- Navigation.
+- Upgrades.
+
+The first release does not need every district to be as large as the central plaza.
+
+Some can be compact, focused environments.
+
+## 19.2 World Population
+
+Use a combination of:
+
+- Interactive NPCs.
+- Background NPCs.
+- Ambient crowds.
+- Station workers.
+- Security patrols.
+
+Background NPCs should not require full individual AI.
+
+Use lightweight behaviours and limited interaction.
+
+---
+
+# PART 20 — PROGRESSION & PLAYER EXPERIENCE
+
+## 20.1 Early Game
+
+The player learns:
+
+- Movement.
+- Vent crawling.
+- Basic production.
+- First sales.
+- Security avoidance.
+- Hideout upgrades.
+
+The player should feel poor but capable.
+
+## 20.2 Mid Game
+
+The player gains:
+
+- More products.
+- Better equipment.
+- Additional districts.
+- Larger customers.
+- More advanced recipes.
+- Improved reputation.
+
+The operation begins feeling like a real business.
+
+## 20.3 Late Game
+
+The player gains:
+
+- Spaceship ownership.
+- Automated production.
+- Employees.
+- Larger supply networks.
+- Premium customers.
+- Advanced production equipment.
+- Political connections.
+
+The focus shifts from making every sale manually to managing a growing operation.
+
+## 20.4 Endgame
+
+The player should be able to:
+
+- Operate multiple locations.
+- Maintain a mobile production facility.
+- Manage hired workers.
+- Fulfil major contracts.
+- Manipulate business relationships.
+- Unlock rare products.
+- Pursue optional challenges.
+
+There should be no forced final shutdown of the business.
+
+---
+
+# PART 21 — QUESTS, EVENTS & RANDOM ENCOUNTERS
+
+## 21.1 Quest Types
+
+The game should use short, practical missions.
+
+Examples:
+
+- Deliver a product to a customer.
+- Find a rare ingredient.
+- Repair a machine.
+- Avoid an inspection.
+- Complete a large order.
+- Help an alien supplier.
+- Unlock a new recipe.
+
+## 21.2 Random Events
+
+Random events help the world remain interesting.
+
+Examples:
+
+**Station Inspection**
+
+Security increases temporarily in one district.
+
+**Teleportation Failure**
+
+A public teleporter becomes unavailable.
+
+**Alien Festival**
+
+Customer demand increases for specific products.
+
+**Industrial Accident**
+
+Rare ingredients become available.
+
+**Power Fluctuation**
+
+Some machinery temporarily becomes less efficient.
+
+**VIP Arrival**
+
+A wealthy customer visits the plaza.
+
+Events should be controlled by a system that selects suitable events based on player progression.
+
+Avoid making random events unfair or excessively disruptive.
+
+---
+
+# PART 22 — MARKETING & GAME IDENTITY
+
+## 22.1 Unique Selling Points
+
+The game should be marketed around five memorable ideas:
+
+1. You live in the ventilation system of a massive alien city.
+2. You manufacture absurd fictional alien products.
+3. You physically interact with your equipment and business.
+4. You dodge galactic authorities while running your operation.
+5. You eventually build a criminal enterprise across the stars.
+
+## 22.2 Visual Branding
+
+The branding should use:
+
+- Industrial typography.
+- Neon accents.
+- Grimy sci-fi textures.
+- Alien signage.
+- Ventilation motifs.
+- A humorous commercial identity.
+
+The title should be visually readable at small sizes.
+
+## 22.3 Trailer Concept
+
+The trailer should open with:
+
+A filthy ventilation shaft.
+
+The player crawling through it.
+
+A view through a grate into a beautiful alien plaza.
+
+A product being manufactured.
+
+A customer handing over credits.
+
+A security drone scanning the area.
+
+The player sprinting back into the vents.
+
+A rapid montage of increasingly absurd production equipment, aliens, sales and spaceships.
+
+Final shot:
+
+The player standing inside a huge customised spaceship laboratory.
+
+Title appears:
+
+**VENTING & VENDING**
+
+"Business is booming. Unfortunately, so is the station."
+
+---
+
+# PART 23 — PRODUCTION ROADMAP
+
+A full commercial release requires more than the initial playable prototype.
+
+The following is a realistic planning framework for a solo developer. Actual duration depends heavily on experience, working hours, asset reuse and testing requirements.
+
+## Phase 1: Pre-production
+
+**Estimated duration: 2–4 weeks**
+
+Deliverables:
+
+- Finalised GDD.
+- Technical architecture.
+- Unity project.
+- Git repository.
+- Art reference library.
+- Initial greybox level.
+- Basic asset pipeline.
+- Core gameplay prototype plan.
+
+Completion criteria:
+
+The project is technically organised and the core design is understood.
+
+## Phase 2: Core Prototype
+
+**Estimated duration: 4–8 weeks**
+
+Deliverables:
+
+- First-person controller.
+- Interaction system.
+- Vent crawling.
+- Inventory.
+- Basic crafting.
+- One product.
+- One customer.
+- One sale.
+
+Completion criteria:
+
+The player can complete a basic business loop.
+
+## Phase 3: Vertical Slice
+
+**Estimated duration: 6–10 weeks**
+
+Deliverables:
+
+- Finished hideout environment.
+- Finished initial plaza.
+- Three products.
+- Three customer archetypes.
+- Crafting equipment.
+- Basic security AI.
+- Basic progression.
+- Initial sound design.
+- Polished visual presentation.
+
+Completion criteria:
+
+A short section of the game is representative of the intended final quality.
+
+This is the stage at which the project should be suitable for external playtesting.
+
+## Phase 4: Full Production
+
+**Estimated duration: 12–24 weeks**
+
+Deliverables:
+
+- Complete initial product catalogue.
+- Remaining alien species.
+- Additional districts.
+- Advanced crafting.
+- Customer orders.
+- Reputation.
+- Security progression.
+- Property upgrades.
+- Spaceship.
+- Employee systems.
+- Automation.
+- Story progression.
+- Random events.
+
+Completion criteria:
+
+All planned commercial release systems and content are implemented.
+
+## Phase 5: Alpha
+
+**Estimated duration: 4–6 weeks**
+
+Focus:
+
+- Feature completion.
+- Complete progression.
+- Save and load.
+- Content integration.
+- Economy balancing.
+- Performance profiling.
+
+At alpha, the game should be playable from beginning to end, even if some content remains unpolished.
+
+## Phase 6: Beta
+
+**Estimated duration: 4–8 weeks**
+
+Focus:
+
+- Bug fixing.
+- Usability.
+- Accessibility.
+- Performance.
+- External playtesting.
+- Economy tuning.
+- Controller support.
+- Graphics settings.
+- Stability.
+
+No major new systems should be introduced unless absolutely necessary.
+
+## Phase 7: Release Candidate
+
+**Estimated duration: 2–4 weeks**
+
+Deliverables:
+
+- Final environments.
+- Final audio.
+- Final UI.
+- Marketing assets.
+- Store page.
+- Trailer.
+- Credits.
+- Legal notices.
+- Tested save system.
+- Final production build.
+
+## Phase 8: Launch
+
+Deliverables:
+
+- Final Steam build.
+- Release notes.
+- Launch announcement.
+- Community support.
+- Bug reporting process.
+- Hotfix plan.
+
+**Overall planning estimate: approximately 9–15 months full-time for a carefully scoped commercial version.**
+
+A smaller MVP can be achieved much sooner. The spaceship, automation and additional districts are the main factors increasing production time.
+
+---
+
+# PART 24 — QUALITY ASSURANCE & TESTING
+
+## 24.1 Functional Testing
+
+Every system should have defined test cases.
+
+Player:
+
+- Movement.
+- Jumping.
+- Crouching.
+- Crawling.
+- Collision.
+- Camera transitions.
+
+Inventory:
+
+- Pickup.
+- Drop.
+- Stack.
+- Split.
+- Store.
+- Retrieve.
+- Save and load.
+
+Crafting:
+
+- Valid recipe.
+- Missing ingredient.
+- Incorrect quantity.
+- Machine failure.
+- Product output.
+- Quality calculation.
+
+Economy:
+
+- Purchase.
+- Sale.
+- Refund.
+- Insufficient funds.
+- Price modifiers.
+
+Security:
+
+- Vision detection.
+- Line of sight.
+- Investigation.
+- Pursuit.
+- Escape.
+- Fine and confiscation.
+
+## 24.2 Save Testing
+
+Test:
+
+- Saving during normal play.
+- Loading after scene changes.
+- Saving with inventory.
+- Saving during production.
+- Loading after upgrades.
+- Handling missing or invalid data.
+
+## 24.3 Performance Testing
+
+Test:
+
+- Busy plazas.
+- Multiple NPCs.
+- Multiple machines.
+- Heavy lighting.
+- Large inventory.
+- Long play sessions.
+- Scene transitions.
+
+## 24.4 Playtesting
+
+Recruit people unfamiliar with the project.
+
+Observe:
+
+- Whether they understand vent navigation.
+- Whether crafting feels satisfying.
+- Whether sales are intuitive.
+- Whether they understand security.
+- Whether progression is motivating.
+- Whether they want to continue playing.
+
+Do not rely entirely on developer intuition.
+
+---
+
+# PART 25 — PRODUCTION BUILD & RELEASE REQUIREMENTS
+
+## 25.1 Production Build Configuration
+
+Create separate configurations for:
+
+**Development build**
+
+- Debug logging.
+- Development console.
+- Profiling support.
+- Test tools.
+
+**Release candidate build**
+
+- Production assets.
+- Release settings.
+- Crash diagnostics.
+- No unnecessary debug tools.
+
+**Final production build**
+
+- Correct version number.
+- Correct platform settings.
+- Final graphics configuration.
+- Verified save paths.
+- Tested installation.
+- Tested first launch.
+- Tested update process.
+
+## 25.2 Release Checklist
+
+### Game
+
+- [ ] Complete game progression.
+- [ ] All intended products available.
+- [ ] All core recipes working.
+- [ ] Alien species implemented.
+- [ ] Customer AI functioning.
+- [ ] Security system functioning.
+- [ ] Save and load functioning.
+- [ ] Main menu complete.
+- [ ] Settings complete.
+- [ ] Tutorial complete.
+- [ ] No progression-blocking bugs.
+
+### Presentation
+
+- [ ] Final environments.
+- [ ] Final lighting.
+- [ ] Final materials.
+- [ ] Final animations.
+- [ ] Final sound.
+- [ ] Final music.
+- [ ] UI polished.
+- [ ] Accessibility options tested.
+
+### Technical
+
+- [ ] Windows build tested.
+- [ ] Performance targets met.
+- [ ] Installation tested.
+- [ ] Save system tested.
+- [ ] Controller support verified if advertised.
+- [ ] Crash handling reviewed.
+- [ ] Version information correct.
+
+### Publishing
+
+- [ ] Steam store page.
+- [ ] Capsule artwork.
+- [ ] Screenshots.
+- [ ] Trailer.
+- [ ] Description.
+- [ ] System requirements.
+- [ ] Privacy information where applicable.
+- [ ] Legal notices.
+- [ ] Credits.
+- [ ] Release notes.
+
+---
+
+# PART 26 — POST-LAUNCH CONTENT
+
+The initial commercial release should be designed to support future expansion.
+
+Potential updates:
+
+## Update 1: More Stations
+
+Additional locations, new alien species and new markets.
+
+## Update 2: The Smuggler's Fleet
+
+More spaceship types, ship customisation and improved transport mechanics.
+
+## Update 3: Galactic Politics
+
+More bribery systems, political relationships and government manipulation.
+
+## Update 4: The Employee Expansion
+
+More worker types, advanced automation and business management.
+
+## Update 5: The Experimental Catalogue
+
+Additional fictional products, rare ingredients and advanced machinery.
+
+These are optional future expansions, not launch requirements.
+
+---
+
+# PART 27 — DEVELOPMENT PRIORITIES & SCOPE CONTROL
+
+The most important production decision is maintaining a manageable scope.
+
+The following classification should be treated as authoritative.
+
+## Must Have — Commercial Release
+
+- First-person movement.
+- Vent crawling.
+- Hideout.
+- Alien plaza.
+- Physical interactions.
+- Inventory.
+- Crafting.
+- Product catalogue.
+- Customer AI.
+- Sales and economy.
+- Security and stealth.
+- Progression.
+- Saving.
+- Multiple locations.
+- Basic spaceship ownership.
+- Polished art and audio.
+- Main menu and settings.
+
+## Should Have — Commercial Release if Feasible
+
+- More advanced customer routines.
+- Reputation by species.
+- Additional production equipment.
+- Random events.
+- Employee management.
+- Basic automation.
+- Ship customisation.
+- More detailed story content.
+
+## Could Have — Future Updates
+
+- Full fleet management.
+- Complex political systems.
+- Extensive bribery networks.
+- Multiple large space stations.
+- Advanced procedural events.
+- More extensive automation.
+- Additional ship classes.
+- More elaborate alien relationships.
+
+## Won't Have — Initial Release
+
+- Multiplayer.
+- Fully seamless galaxy exploration.
+- Procedurally generated planets.
+- Full combat systems.
+- Complex spaceship flight simulation.
+- Large-scale real-time economic simulation.
+
+These features can be reconsidered if the game becomes commercially successful.
+
+---
+
+# PART 28 — FINAL CREATIVE DIRECTION
+
+Venting & Vending should never lose sight of its original identity.
+
+It is not simply a sci-fi crafting game.
+
+It is a game about starting with absolutely nothing, exploiting an absurd universe and slowly building something much bigger than yourself.
+
+The player should begin in a disgusting ventilation shaft with a terrible machine and a handful of questionable ingredients.
+
+They should finish with an enormous spaceship, automated factories, strange alien employees, wealthy customers and an operation that would make the Galactic Federation deeply uncomfortable.
+
+The humour comes from the world.
+
+The satisfaction comes from the gameplay.
+
+The progression comes from the business.
+
+The tension comes from the risk.
+
+The identity comes from the contrast between the tiny, filthy maintenance tunnels and the enormous, ridiculous universe surrounding them.
+
+**Venting & Vending should make players feel like they are building an empire in the most hilariously inappropriate way possible.**
+
+---
+
+# APPENDIX A — MASTER CONTENT TARGETS
+
+These are planning targets for the complete initial commercial release, not assets to create during the prototype.
+
+| Content | Target quantity |
+|---|---:|
+| Playable alien species | 6 |
+| Product types | 10–12 |
+| Ingredients | 12–16 |
+| Crafting machines | 5–7 |
+| Customer archetypes | 10–15 |
+| Security types | 3–4 |
+| Main locations | 5–6 |
+| Major vent routes | 8–12 |
+| Hideout upgrade tiers | 5 |
+| Ship upgrade categories | 6–8 |
+| Main story chapters | 6 |
+| Random event types | 10–15 |
+| Main quest objectives | 20–30 |
+| Side activities | 15–20 |
+
+# APPENDIX B — FIRST PRODUCTION BACKLOG
+
+The first tasks to implement in Unity should be:
+
+1. Create and configure the Unity project.
+2. Configure URP and Input System.
+3. Create the first-person controller.
+4. Implement camera movement.
+5. Implement crouching.
+6. Implement crawling.
+7. Create the interaction interface.
+8. Implement raycast interactions.
+9. Create a pickupable object.
+10. Create an inventory.
+11. Create a basic storage container.
+12. Create the first ventilation section.
+13. Implement entering and exiting vents.
+14. Create a basic mixing machine.
+15. Create the first ingredient ScriptableObjects.
+16. Create the first RecipeDefinition.
+17. Implement ingredient consumption.
+18. Implement product generation.
+19. Create a basic customer.
+20. Implement one complete sale.
+21. Add Cosmic Credits.
+22. Add the first upgrade.
+23. Connect the hideout to the alien plaza.
+24. Implement a simple security drone.
+25. Create the first playable build.
+
+**The first production milestone is not a beautiful game. It is a complete, functioning business loop.**
+
+Once that loop is enjoyable, the rest of the game can be built around it.
+
+---
+
+**END OF MASTER GAME DESIGN DOCUMENT**
+
+**Document owner:** Venting & Vending Development  
+**Production principle:** Build small, build modularly, playtest constantly, and only expand systems that make the core game better.
