@@ -37,6 +37,7 @@ Expands **GDD Part 4 (The Vent Network)** and **§19.1 Location 1 (Maintenance N
    - The vertical-planes chart shows links missing from the room index: 10↔11, 02↔P5 and 23↔09.
    - 25 is "found from 11" in the index, but the chart ties it to 02.
    - The index takes precedence.
+10. **Maintenance Underpass (U01), 2026-11-08.** See `Docs/superpowers/specs/2026-11-08-maintenance-underpass-design.md`. A drone-patrolled maintenance sublevel (P3/P4, floor y −3.6) under the gallery, reached by a **crowbar-pried floor grate in 03 The Long Crawl** (`GATE_GRATE_03`, one-way drop). It leads upright to a push-bar exit in the plaza (`GATE_EXIT_U01`, inside only, never saved open), so it is an earned, faster, riskier alternative to 03 → 05. This amends the blueprint: the first patrolled corridor sits **below** the vents rather than in the P1 Security district (21–24), which stays planned. Inside it, being seen is suspicious even empty-handed (trespass), the supply closet is a guaranteed hiding spot, and a catch escorts you out to the plaza. Home is still vents-only.
 
 ---
 

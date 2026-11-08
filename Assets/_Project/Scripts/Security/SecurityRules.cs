@@ -53,6 +53,10 @@ namespace VentsAndVending.Security
             return s;
         }
 
+        /// <summary>Drone flight height in world space: always measured from the floor it patrols (so underground drones stay underground).</summary>
+        public static float FlightHeight(bool pursuing, float floorY, float patrolAltitude, float pursuitAltitude, float waypointOffset) =>
+            floorY + (pursuing ? pursuitAltitude : patrolAltitude + waypointOffset);
+
         /// <summary>A catch in a restricted zone with an exit walks the player out (a one-way area must never trap them).</summary>
         public static bool ShouldEscort(bool inRestrictedZone, bool hasExit) => inRestrictedZone && hasExit;
 

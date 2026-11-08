@@ -69,3 +69,11 @@ reputation (GDD 9.3), customer orders, Federation Inspector, production state in
 - [x] Deal hand-off in the sale panel (agreed price, better quality pays more)
 - [x] Central Plaza refresh: clean panels, lit ceiling with vent grilles, ads, planters, vending machine, kiosk, crowd / music / PA audio
 - [ ] Play-test a full lounge sale (Executive + Socialite) and tune their prices vs product value
+
+## Maintenance Underpass (Docs/superpowers/specs/2026-11-08-maintenance-underpass-design.md)
+
+- [x] Crowbar (found in the stash duct, never respawns; or VentNet Supplies 60 CC → den locker)
+- [x] Crowbar grate in the Long Crawl → one-way drop into U01; patrolled corridor with 8 side doors (hiding closet, sweepable pump + break rooms, locked stores B-01…B-05)
+- [x] Security: trespass suspicion, hiding zones, escort-out on catch, drones patrol relative to a floor height
+- [ ] Fill the locked stores (storerooms, loot, later expansions); humanoid security staff
+- [ ] Play-test underpass patrol timing and the 60 CC price

@@ -196,6 +196,14 @@ namespace VentsAndVending.Tests
         }
 
         [Test]
+        public void FlightHeight_IsRelativeToTheFloor_WhenPatrollingAndPursuing()
+        {
+            Assert.AreEqual(-1.4f, SecurityRules.FlightHeight(false, -3.6f, 2.2f, 2.2f, 0f), 1e-4f);
+            Assert.AreEqual(-1.6f, SecurityRules.FlightHeight(true, -3.6f, 2.2f, 2.0f, 0.5f), 1e-4f, "pursuit ignores waypoint offsets");
+            Assert.AreEqual(3.0f, SecurityRules.FlightHeight(false, 0f, 2.7f, 2.2f, 0.3f), 1e-4f);
+        }
+
+        [Test]
         public void DefaultArgs_MatchOldBehaviour() =>
             Assert.AreEqual(0f, SecurityRules.Suspiciousness(0, false, false));
     }

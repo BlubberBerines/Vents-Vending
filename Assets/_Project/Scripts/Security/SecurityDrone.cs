@@ -297,7 +297,7 @@ namespace VentsAndVending.Security
         {
             Vector3 target;
             float speed;
-            float altitude = _floorY + _altitude;
+            float altitude = SecurityRules.FlightHeight(false, _floorY, _altitude, _pursuitAltitude, 0f);
             bool faceTarget = false;
             float sweep = _scanSweep;
             Transform lookAt = null;
@@ -317,7 +317,7 @@ namespace VentsAndVending.Security
                 case AlertState.Pursuing:
                     target = ClampToZone(Flat(_lastKnown));
                     speed = _pursuitSpeed;
-                    altitude = _pursuitAltitude;
+                    altitude = SecurityRules.FlightHeight(true, _floorY, _altitude, _pursuitAltitude, 0f);
                     faceTarget = true;
                     break;
 
@@ -352,7 +352,7 @@ namespace VentsAndVending.Security
                     var info = point.GetComponent<DronePatrolPoint>();
                     target = Flat(point.position);
                     speed = _patrolSpeed;
-                    altitude = _floorY + _altitude + (info != null ? info.AltitudeOffset : 0f);
+                    altitude = SecurityRules.FlightHeight(false, _floorY, _altitude, _pursuitAltitude, info != null ? info.AltitudeOffset : 0f);
                     arrived = (Flat(transform.position) - target).sqrMagnitude < 0.09f;
                     if (arrived)
                     {
