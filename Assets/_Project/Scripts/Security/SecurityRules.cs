@@ -13,12 +13,15 @@ namespace VentsAndVending.Security
         /// <summary>Suspicion per second at point-blank range for a fully visible, maximally suspicious target.</summary>
         public const float BaseSuspicionRate = 0.7f;
 
+        /// <summary>Being somewhere you plainly shouldn't be (a restricted zone such as the maintenance underpass), empty-handed or not.</summary>
+        public const float TrespassSuspicion = 0.6f;
+
         // ------------------------------------------------------------------ Player profile
 
-        /// <summary>How easy the player is to see: crouching and crawling help; vents hide you completely.</summary>
-        public static float Visibility(PlayerMovementState posture, bool inVent)
+        /// <summary>How easy the player is to see: crouching and crawling help; vents and hiding spots hide you completely.</summary>
+        public static float Visibility(PlayerMovementState posture, bool inVent, bool hidden = false)
         {
-            if (inVent)
+            if (inVent || hidden)
             {
                 return 0f;
             }
@@ -32,7 +35,7 @@ namespace VentsAndVending.Security
         }
 
         /// <summary>How suspicious the player looks: contraband, dealing in view, sprinting.</summary>
-        public static float Suspiciousness(int contrabandUnits, bool dealing, bool sprinting)
+        public static float Suspiciousness(int contrabandUnits, bool dealing, bool sprinting, bool trespassing = false)
         {
             float s = contrabandUnits > 0 ? 0.5f + Math.Min(0.5f, 0.08f * contrabandUnits) : 0f;
             if (dealing)
@@ -42,6 +45,10 @@ namespace VentsAndVending.Security
             if (sprinting)
             {
                 s += 0.25f;
+            }
+            if (trespassing)
+            {
+                s += TrespassSuspicion;
             }
             return s;
         }

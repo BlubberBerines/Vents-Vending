@@ -172,5 +172,23 @@ namespace VentsAndVending.Tests
             alert.Tick(DroneAlert.CatchSeconds * 0.5f, 1f, true, true);
             Assert.AreEqual(0, caught);
         }
+
+        // ---------------------------------------------------------------- Underpass: trespass + hiding
+
+        [Test]
+        public void Hidden_IsInvisibleInAnyPosture() =>
+            Assert.AreEqual(0f, SecurityRules.Visibility(PlayerMovementState.Normal, false, hidden: true));
+
+        [Test]
+        public void Trespassing_EmptyHanded_IsSuspicious() =>
+            Assert.AreEqual(0.6f, SecurityRules.Suspiciousness(0, false, false, trespassing: true), 1e-4f);
+
+        [Test]
+        public void Trespassing_StacksWithContraband() =>
+            Assert.AreEqual(0.5f + 0.08f + 0.6f, SecurityRules.Suspiciousness(1, false, false, trespassing: true), 1e-4f);
+
+        [Test]
+        public void DefaultArgs_MatchOldBehaviour() =>
+            Assert.AreEqual(0f, SecurityRules.Suspiciousness(0, false, false));
     }
 }
