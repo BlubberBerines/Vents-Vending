@@ -43,4 +43,9 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 22. [x] First upgrade (6 `UpgradeDefinition`s, `ProgressionManager` + `UpgradeLedger`, Upgrade Terminal + shop panel; effects: lighting, pockets, locker, mixer window, settle speed)
 23. [x] Connect hideout to the alien plaza (Central Plaza reachable only via vent duct; customers moved to plaza)
 24. [x] Simple security drone (`SecurityDrone` patrol/suspicion/search/pursuit, `SecurityManager` confiscation + fines, HUD alert; 16 tests)
-25. [ ] First playable build
+25. [x] First playable build (Windows Mono, main menu + pause + settings + save/load; `-smoketest` passes)
+
+## Milestone 1 reached — complete, functioning business loop ✅
+
+Next candidates (GDD Phase 3 Vertical Slice): audio pass, packaging machine + second product,
+reputation (GDD 9.3), customer orders, Federation Inspector, production state in saves, art pass on the greybox.

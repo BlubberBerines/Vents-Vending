@@ -56,3 +56,11 @@ Builds/                local build output (git-ignored)
 - Static data lives in ScriptableObjects (`*Definition`); runtime/save state is kept separately, keyed by stable string IDs (GDD §18.4–18.5).
 - Third-party assets only under `Assets/ThirdParty/`.
 - Commit `.meta` files together with their assets, always.
+
+## Building & testing
+
+- **Rebuild scenes:** Unity menu **Vents & Vending → Prototype → Build All Scenes** (regenerates `MainMenu` and `Greybox_Movement`; don't hand-edit them yet).
+- **Windows player:** **Vents & Vending → Build → Windows Player (Mono)** → `Builds/Windows/VentsAndVending.exe` (git-ignored).
+- **Smoke test a build:** `VentsAndVending.exe -batchmode -nographics -smoketest -logFile smoke.log` → look for `SMOKETEST PASS`.
+- **Unit tests:** Window → General → Test Runner → EditMode.
+- **Saves:** `%USERPROFILE%\AppData\LocalLow\VentsAndVending\Vents & Vending\Saves\save_0.json` (+ `.bak`).

@@ -15,6 +15,7 @@ namespace VentsAndVending.Editor
         {
             EnsureFolder(UpgradeFolder);
             List<UpgradeDefinition> catalogue = CreateUpgrades();
+            _upgradeCatalogue = catalogue;
 
             var managerGo = new GameObject("Progression");
             managerGo.AddComponent<ProgressionManager>().SetCatalogue(catalogue);

@@ -58,6 +58,22 @@ namespace VentsAndVending.Player
             {
                 SetCursorLocked(true);
             }
+
+            Core.GameSettings.Changed += ApplySettings;
+            ApplySettings();
+        }
+
+        private void OnDestroy() => Core.GameSettings.Changed -= ApplySettings;
+
+        private void ApplySettings()
+        {
+            _mouseSensitivity = Core.GameSettings.MouseSensitivity;
+            _invertY = Core.GameSettings.InvertY;
+            Camera cam = GetComponentInChildren<Camera>();
+            if (cam != null)
+            {
+                cam.fieldOfView = Core.GameSettings.FieldOfView;
+            }
         }
 
         private void Update()
@@ -84,14 +100,9 @@ namespace VentsAndVending.Player
             _pitchRoot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
         }
 
+        /// <summary>Re-captures the cursor after alt-tab etc. Esc is handled by the pause menu.</summary>
         private static void HandleCursorLock()
         {
-            Keyboard keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-            {
-                SetCursorLocked(false);
-            }
-
             Mouse mouse = Mouse.current;
             if (Cursor.lockState != CursorLockMode.Locked && mouse != null && mouse.leftButton.wasPressedThisFrame)
             {

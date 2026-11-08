@@ -98,12 +98,13 @@ namespace VentsAndVending.Editor
             BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
             BakeNavMesh(level.gameObject);
             BuildSecurity();
+            CreateSaveSystem();
 
             var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
             CreateHud(player.GetComponent<InteractionController>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
-            AddSceneToBuildSettings(ScenePath);
+            SetBuildScenes();
             AssetDatabase.SaveAssets();
             return ScenePath;
         }
@@ -250,7 +251,7 @@ namespace VentsAndVending.Editor
             var look = player.AddComponent<PlayerCamera>();
             player.AddComponent<PlayerMovement>();
             var pockets = player.AddComponent<InventoryComponent>();
-            pockets.Configure("Pockets", 8, VentsAndVending.Progression.UpgradeKeys.PocketsCapacity);
+            pockets.Configure("Pockets", 8, VentsAndVending.Progression.UpgradeKeys.PocketsCapacity, "player.pockets");
             var interaction = player.AddComponent<InteractionController>();
             player.AddComponent<VentsAndVending.Economy.PlayerWallet>();
             player.AddComponent<VentsAndVending.Security.PlayerExposure>();
@@ -284,6 +285,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<UpgradePanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<PauseMenu>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
         }
@@ -557,7 +559,7 @@ namespace VentsAndVending.Editor
             locker.isStatic = false;
             Block("Locker_Trim", g, new Vector3(-2.5f, 1.82f, -16.5f), new Vector3(1.25f, 0.05f, 0.65f), accent);
             var lockerInv = locker.AddComponent<InventoryComponent>();
-            lockerInv.Configure("Storage Locker", 8, VentsAndVending.Progression.UpgradeKeys.LockerCapacity);
+            lockerInv.Configure("Storage Locker", 8, VentsAndVending.Progression.UpgradeKeys.LockerCapacity, "hideout.locker");
             lockerInv.AddStartingItem(_lumina, 4);
             lockerInv.AddStartingItem(_stabiliser, 3);
             locker.AddComponent<StorageContainer>();
@@ -616,7 +618,8 @@ namespace VentsAndVending.Editor
             var required = new (string name, (string path, string group)[] bindings)[]
             {
                 ("Crawl", new[] { ("<Keyboard>/z", "Keyboard&Mouse"), ("<Keyboard>/leftCtrl", "Keyboard&Mouse"), ("<Gamepad>/rightStickPress", "Gamepad") }),
-                ("Inventory", new[] { ("<Keyboard>/tab", "Keyboard&Mouse"), ("<Keyboard>/i", "Keyboard&Mouse"), ("<Gamepad>/select", "Gamepad") })
+                ("Inventory", new[] { ("<Keyboard>/tab", "Keyboard&Mouse"), ("<Keyboard>/i", "Keyboard&Mouse"), ("<Gamepad>/select", "Gamepad") }),
+                ("Pause", new[] { ("<Keyboard>/escape", "Keyboard&Mouse"), ("<Gamepad>/start", "Gamepad") })
             };
 
             InputActionMap existing = asset.FindActionMap("Player", throwIfNotFound: true);

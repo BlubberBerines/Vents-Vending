@@ -26,10 +26,13 @@ namespace VentsAndVending.Player
         private InputAction _interact;
         private InputAction _inventory;
         private InputAction _cancel;
+        private InputAction _pause;
 
         public Vector2 Move { get; private set; }
         public bool InventoryPressed { get; private set; }
         public bool CancelPressed { get; private set; }
+        /// <summary>Esc / gamepad Start.</summary>
+        public bool PausePressed { get; private set; }
 
         /// <summary>Display string of the interact key, e.g. "E".</summary>
         public string InteractBindingLabel { get; private set; } = "E";
@@ -68,6 +71,7 @@ namespace VentsAndVending.Player
             _crawl = _map.FindAction("Crawl", throwIfNotFound: false);
             _inventory = _map.FindAction("Inventory", throwIfNotFound: false);
             _cancel = asset.FindAction("UI/Cancel", throwIfNotFound: false);
+            _pause = _map.FindAction("Pause", throwIfNotFound: false);
             if (_crawl == null || _inventory == null)
             {
                 Debug.LogWarning("[PlayerInputHandler] 'Crawl' or 'Inventory' action missing from the Player map. Run Vents & Vending > Prototype > Build Movement Greybox Scene to add them.", this);
@@ -85,7 +89,13 @@ namespace VentsAndVending.Player
         {
             _map?.Enable();
             _cancel?.actionMap?.Enable();
+            Core.GameSettings.Changed += ApplySettings;
+            ApplySettings();
         }
+
+        private void OnDisable() => Core.GameSettings.Changed -= ApplySettings;
+
+        private void ApplySettings() => _holdStance = Core.GameSettings.HoldToCrouch;
 
         private void Update()
         {
@@ -97,6 +107,9 @@ namespace VentsAndVending.Player
             InteractPressed = _interact.WasPressedThisFrame();
             InventoryPressed = _inventory != null && _inventory.WasPressedThisFrame();
             CancelPressed = _cancel != null && _cancel.WasPressedThisFrame();
+            PausePressed = _pause != null
+                ? _pause.WasPressedThisFrame()
+                : Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
 
             if (_holdStance)
             {

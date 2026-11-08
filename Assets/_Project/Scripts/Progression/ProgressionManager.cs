@@ -64,6 +64,17 @@ namespace VentsAndVending.Progression
 
         private void Start() => ApplyInventoryBonuses();
 
+        /// <summary>Grants upgrades from a save without charging for them.</summary>
+        public void RestoreOwned(IEnumerable<UpgradeDefinition> upgrades)
+        {
+            foreach (UpgradeDefinition upgrade in upgrades)
+            {
+                _ledger.Grant(upgrade);
+            }
+            ApplyInventoryBonuses();
+            Changed?.Invoke();
+        }
+
         /// <summary>Inventories opt in with a capacity upgrade key (e.g. capacity.pockets).</summary>
         private void ApplyInventoryBonuses()
         {

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e65b2383535ff95428d3b650aa65a497, type: 3}
+  m_Name: GameDatabase
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Saving.GameDatabase
+  _items:
+  - {fileID: 11400000, guid: c74f6033e072048448d07efccce0743d, type: 2}
+  - {fileID: 11400000, guid: 021bed5d1ee66f04e8467504956032ce, type: 2}
+  - {fileID: 11400000, guid: d963da7f115e03e4fbc32223172d7e9e, type: 2}
+  - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _upgrades:
+  - {fileID: 11400000, guid: d17d3f8cf7f58824dad665a7b61660e7, type: 2}
+  - {fileID: 11400000, guid: 0a175c2495e322147aaad58969972a2d, type: 2}
+  - {fileID: 11400000, guid: c4fbb19e7b9f7d24f8fac163463288a6, type: 2}
+  - {fileID: 11400000, guid: da811df1c5ca6f3428be1ebf5c1fe40d, type: 2}
+  - {fileID: 11400000, guid: 7307373077a79814dbc4884bbc2e540f, type: 2}
+  - {fileID: 11400000, guid: 9365a52968867854d9d9963668276d8d, type: 2}

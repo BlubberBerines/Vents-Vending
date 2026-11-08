@@ -28,6 +28,13 @@ namespace VentsAndVending.Economy
             Changed?.Invoke(Balance, amount);
         }
 
+        /// <summary>Sets the balance when loading a save (raises Changed with delta 0).</summary>
+        public void Restore(int balance)
+        {
+            Balance = Math.Max(0, balance);
+            Changed?.Invoke(Balance, 0);
+        }
+
         public bool TrySpend(int amount)
         {
             if (amount < 0 || amount > Balance)

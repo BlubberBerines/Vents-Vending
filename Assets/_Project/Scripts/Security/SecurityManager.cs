@@ -82,6 +82,8 @@ namespace VentsAndVending.Security
 
         public void Unregister(SecurityDrone unit) => _units.Remove(unit);
 
+        public void RestoreIncidents(int incidents) => Incidents = Mathf.Max(0, incidents);
+
         /// <summary>Confiscate contraband, fine the player, and raise vigilance.</summary>
         public void HandleCaught(PlayerExposure player)
         {

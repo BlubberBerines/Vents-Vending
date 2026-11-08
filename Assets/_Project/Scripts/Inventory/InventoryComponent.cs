@@ -20,10 +20,13 @@ namespace VentsAndVending.Inventory
         [SerializeField] private List<StartingItem> _startingItems = new List<StartingItem>();
         [Tooltip("Optional upgrade effect key that adds slots (e.g. capacity.pockets).")]
         [SerializeField] private string _capacityUpgradeKey;
+        [Tooltip("Stable ID for save files (e.g. player.pockets). Leave empty to not save this inventory.")]
+        [SerializeField] private string _saveId;
 
         private InventoryModel _inventory;
 
         public string DisplayName => _displayName;
+        public string SaveId => _saveId;
         public string CapacityUpgradeKey => _capacityUpgradeKey;
 
         /// <summary>Applies an extra-slot bonus on top of the base capacity (grow only).</summary>
@@ -57,11 +60,12 @@ namespace VentsAndVending.Inventory
             }
         }
 
-        internal void Configure(string displayName, int capacity, string capacityUpgradeKey = null)
+        internal void Configure(string displayName, int capacity, string capacityUpgradeKey = null, string saveId = null)
         {
             _displayName = displayName;
             _capacity = Mathf.Max(1, capacity);
             _capacityUpgradeKey = capacityUpgradeKey;
+            _saveId = saveId;
             _startingItems.Clear();
         }
 

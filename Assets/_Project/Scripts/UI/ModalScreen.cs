@@ -17,6 +17,9 @@ namespace VentsAndVending.UI
         private int _openedFrame = -1;
 
         public bool IsOpen => _root != null && _root.activeSelf;
+
+        /// <summary>Frame on which any modal closed — so one Esc press doesn't close a panel AND open the pause menu.</summary>
+        public static int LastClosedFrame { get; private set; } = -1;
         protected InteractionController Interactor => _interactor;
 
         protected virtual void Awake()
@@ -56,6 +59,7 @@ namespace VentsAndVending.UI
             }
 
             OnClosing();
+            LastClosedFrame = Time.frameCount;
             _root.SetActive(false);
             _interactor.State.IsInteracting = false;
             PlayerCamera.SetCursorLocked(true);
