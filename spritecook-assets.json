@@ -1,0 +1,11 @@
+{
+  "project": { "name": "Vents & Vending", "id": "d34a1c6f-3b9f-41e0-a830-36bfae28afe4" },
+  "style_anchor": "f09cb59e-9306-4587-92fb-d2bd684f5bf7",
+  "assets": [
+    { "asset_id": "f09cb59e-9306-4587-92fb-d2bd684f5bf7", "sha12": "812fe4af4f2d", "label": "T_PaintedMetal (style anchor)" },
+    { "asset_id": "2ee4b3b6-f50b-4c6d-9d45-dfd8164e3ec8", "sha12": "9b466209b85b", "label": "T_FloorPlate" },
+    { "asset_id": "a97071e6-2128-4f91-830e-88d51021488e", "sha12": "286290f8ea9e", "label": "T_Concrete" },
+    { "asset_id": "2e0b92d5-afcd-4cf7-a33a-e56452475a0c", "sha12": "9e8c9c81f50c", "label": "T_PlazaTile" },
+    { "asset_id": "b47fb19d-42cd-483b-b40d-c99d10fa558a", "sha12": "cd0f08592b71", "label": "T_PlazaPanel" }
+  ]
+}

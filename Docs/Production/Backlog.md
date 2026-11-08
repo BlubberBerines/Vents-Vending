@@ -13,7 +13,7 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 - [x] Unity Personal licence activated
 - [x] Project opened once in the editor and settings committed
 - [ ] (Before first IL2CPP release build) Visual Studio Build Tools with "Desktop development with C++"
-- [ ] Art reference library (`Docs/Reference/ArtReference/`)
+- [x] Art direction defined (`Docs/Design/ArtStyleGuide.md`, look-dev scene, material library)
 - [x] Initial greybox level (`Scenes/Prototype/Greybox_Movement`, built by menu Vents & Vending → Prototype)
 - [ ] Core gameplay prototype plan
 

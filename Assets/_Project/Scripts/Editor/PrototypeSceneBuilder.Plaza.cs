@@ -71,8 +71,11 @@ namespace VentsAndVending.Editor
             ring.AddComponent<Spinner>().Configure(new Vector3(0f, 40f, 20f), 0f, 1f);
             var orb = Part("HoloOrb", holo, new Vector3(0f, 2.3f, 35f), Vector3.one * 0.55f, magenta, PrimitiveType.Sphere);
             orb.AddComponent<Spinner>().Configure(new Vector3(0f, 90f, 0f), 0.15f, 1.5f);
-            CreateSign("Holo_Advert", "GLARB-JUICE\n<size=55%>Now 40% less sentient!</size>", new Vector3(0f, 3.4f, 35f), 180f, 1.4f, new Color(0.5f, 1f, 1f), 4f);
-            CreateSign("Holo_Advert_Back", "GLARB-JUICE\n<size=55%>Now 40% less sentient!</size>", new Vector3(0f, 3.4f, 35f), 0f, 1.4f, new Color(0.5f, 1f, 1f), 4f);
+            // Two-sided advert: a thin dark backing panel separates the front and back text so they never overlap.
+            NoCollider(Block("Holo_AdvertBacking", holo, new Vector3(0f, 3.4f, 35f), new Vector3(3.2f, 0.95f, 0.04f),
+                GetOrCreateMaterial("Holo_Backing", new Color(0.02f, 0.03f, 0.05f), 0.3f, new Color(0.02f, 0.08f, 0.1f))));
+            CreateSign("Holo_Advert_South", "GLARB-JUICE\n<size=55%>Now 40% less sentient!</size>", new Vector3(0f, 3.4f, 34.96f), 0f, 1.4f, new Color(0.5f, 1f, 1f), 3.2f);
+            CreateSign("Holo_Advert_North", "GLARB-JUICE\n<size=55%>Now 40% less sentient!</size>", new Vector3(0f, 3.4f, 35.04f), 180f, 1.4f, new Color(0.5f, 1f, 1f), 3.2f);
 
             // Federation notice (GDD §2.3 humour)
             CreateSign("Federation_Notice",

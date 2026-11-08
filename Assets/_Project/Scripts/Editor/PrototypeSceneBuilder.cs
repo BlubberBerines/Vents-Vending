@@ -708,8 +708,33 @@ namespace VentsAndVending.Editor
             light.shadows = LightShadows.None;
         }
 
+        /// <summary>Greybox surface names → art library materials (Docs/Design/ArtStyleGuide.md). Emissives/characters stay URP Lit.</summary>
+        private static readonly System.Collections.Generic.Dictionary<string, string> LibraryRemap = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "Greybox_Floor", "M_Concrete_Dirty" },
+            { "Greybox_Wall", "M_PaintedMetal_Wall" },
+            { "Greybox_Vent", "M_DuctMetal" },
+            { "Greybox_Accent", "M_HazardPaint" },
+            { "Greybox_Prop", "M_WorkshopOrange" },
+            { "Greybox_Tunnel", "M_GreenPanel" },
+            { "Mix_DarkMetal", "M_DarkMetal" },
+            { "Drone_Body", "M_DarkMetal" },
+            { "Plaza_Floor", "M_PlazaTile" },
+            { "Plaza_Wall", "M_PlazaPanel" },
+            { "Plaza_Silver", "M_BrushedSilver" },
+        };
+
         private static Material GetOrCreateMaterial(string name, Color baseColor, float smoothness, Color? emission = null)
         {
+            if (!emission.HasValue && LibraryRemap.TryGetValue(name, out string libraryName))
+            {
+                Material library = ArtLibrary.Get(libraryName);
+                if (library != null)
+                {
+                    return library;
+                }
+            }
+
             string path = $"{MaterialFolder}/{name}.mat";
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (mat == null)
