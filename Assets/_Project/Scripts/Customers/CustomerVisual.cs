@@ -27,8 +27,15 @@ namespace VentsAndVending.Customers
         [SerializeField] private float _swingAngle = 28f;
         [SerializeField] private float _swingSpeed = 6f;
         [SerializeField] private float _idleSway = 4f;
+        [Tooltip("Per pivot: the knee/elbow joint under it (or empty).")]
+        [SerializeField] private Transform[] _swingJoints = new Transform[0];
+        [Tooltip("Per pivot: max extra bend in degrees. Knees positive (shin folds back), elbows negative (forearm folds forward).")]
+        [SerializeField] private float[] _jointBends = new float[0];
+        [Tooltip("Per pivot: 0 = knee (bends while the leg swings forward), 1 = elbow (bends while the arm swings forward).")]
+        [SerializeField] private int[] _jointModes = new int[0];
 
         private Quaternion[] _swingBase;
+        private Quaternion[] _jointBase;
         [Tooltip("Renderers recoloured per visit (body colour variety).")]
         [SerializeField] private Renderer[] _tintRenderers = new Renderer[0];
 
@@ -43,12 +50,16 @@ namespace VentsAndVending.Customers
 
         public CharacterFace Face => _face;
 
-        internal void ConfigureLimbs(Transform[] pivots, float[] phases, float angle, float speed)
+        internal void ConfigureLimbs(Transform[] pivots, float[] phases, float angle, float speed,
+            Transform[] joints = null, float[] bends = null, int[] modes = null)
         {
             _swingPivots = pivots;
             _swingPhases = phases;
             _swingAngle = angle;
             _swingSpeed = speed;
+            _swingJoints = joints ?? new Transform[0];
+            _jointBends = bends ?? new float[0];
+            _jointModes = modes ?? new int[0];
         }
 
         /// <summary>Recolours the body for this visit. Emission follows the colour faintly (jelly glow).</summary>
@@ -89,6 +100,11 @@ namespace VentsAndVending.Customers
             for (int i = 0; i < _swingPivots.Length; i++)
             {
                 _swingBase[i] = _swingPivots[i] != null ? _swingPivots[i].localRotation : Quaternion.identity;
+            }
+            _jointBase = new Quaternion[_swingJoints.Length];
+            for (int i = 0; i < _swingJoints.Length; i++)
+            {
+                _jointBase[i] = _swingJoints[i] != null ? _swingJoints[i].localRotation : Quaternion.identity;
             }
         }
 
@@ -138,6 +154,20 @@ namespace VentsAndVending.Customers
                 float angle = Mathf.Sin(stride + phase) * _swingAngle * moving
                             + Mathf.Sin((Time.time + _phase) * 1.3f + phase) * _idleSway * (1f - moving);
                 _swingPivots[i].localRotation = _swingBase[i] * Quaternion.Euler(angle, 0f, 0f);
+
+                // Knee/elbow: positive pivot angle = limb swung back, so the limb moves forward while the
+                // angle is falling (cos < 0 for legs). Knees fold during that swing; elbows flex as the arm comes forward.
+                if (i < _swingJoints.Length && _swingJoints[i] != null)
+                {
+                    float bend = i < _jointBends.Length ? _jointBends[i] : 0f;
+                    int mode = i < _jointModes.Length ? _jointModes[i] : 0;
+                    float cycle = mode == 0
+                        ? Mathf.Max(0f, -Mathf.Cos(stride + phase))
+                        : 0.35f + 0.65f * Mathf.Max(0f, -Mathf.Sin(stride + phase));
+                    float rest = mode == 0 ? 0.08f : 0.3f; // a little natural bend when standing
+                    float amount = Mathf.Lerp(rest, cycle, moving);
+                    _swingJoints[i].localRotation = _jointBase[i] * Quaternion.Euler(bend * amount, 0f, 0f);
+                }
             }
 
             for (int i = 0; i < _floaters.Length; i++)
