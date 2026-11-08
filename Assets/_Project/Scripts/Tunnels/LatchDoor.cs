@@ -15,6 +15,7 @@ namespace VentsAndVending.Tunnels
         [Tooltip("Local axis pointing to the side the latch can be opened from.")]
         [SerializeField] private Vector3 _openableSide = Vector3.right;
         [SerializeField] private string _lockedMessage = "Locked. STAFF ONLY — and the latch is on the other side.";
+        [SerializeField] private AudioClip _sound;
 
         private float _yaw;
 
@@ -77,9 +78,11 @@ namespace VentsAndVending.Tunnels
             if (!OnOpenableSide(interactor))
             {
                 interactor.Notify(_lockedMessage);
+                VentsAndVending.World.Sfx.PlayAt(_sound, transform.position, 0.5f, 1.35f);
                 return;
             }
             TunnelManager.Instance.SetSwitch(_gateId, true, false);
+            VentsAndVending.World.Sfx.PlayAt(_sound, transform.position, 1f, 0.9f);
             interactor.Notify("Shortcut opened");
         }
 

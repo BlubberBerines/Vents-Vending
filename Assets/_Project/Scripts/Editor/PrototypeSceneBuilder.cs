@@ -94,6 +94,7 @@ namespace VentsAndVending.Editor
             BuildProgression(level, wallMat, accentMat);
             BuildPlazaDoorAndCustomers(BuildPlaza(level, wallMat, accentMat, ventMat, glowMat), wallMat, accentMat);
             BuildTunnelSlice(level, floorMat, wallMat, ventMat, accentMat, tunnelMat, glowMat);
+            BuildAmbience(level);
             SoftenProps();
             BakeNavMesh(level.gameObject);
             BuildTunnelSystem();

@@ -10,9 +10,11 @@ namespace VentsAndVending.Core
         private const string FovKey = "vv.fieldOfView";
         private const string InvertYKey = "vv.invertY";
         private const string HoldCrouchKey = "vv.holdToCrouch";
+        private const string VolumeKey = "vv.masterVolume";
 
         public const float DefaultSensitivity = 0.12f;
         public const float DefaultFov = 75f;
+        public const float DefaultVolume = 0.8f;
 
         public static event Action Changed;
 
@@ -40,13 +42,31 @@ namespace VentsAndVending.Core
             set => Set(() => PlayerPrefs.SetInt(HoldCrouchKey, value ? 1 : 0));
         }
 
+        /// <summary>Master volume 0–1, applied to the AudioListener.</summary>
+        public static float MasterVolume
+        {
+            get => PlayerPrefs.GetFloat(VolumeKey, DefaultVolume);
+            set => Set(() => PlayerPrefs.SetFloat(VolumeKey, Mathf.Clamp01(Mathf.Round(value * 20f) / 20f)));
+        }
+
         public static void ResetToDefaults() => Set(() =>
         {
+            PlayerPrefs.DeleteKey(VolumeKey);
             PlayerPrefs.DeleteKey(SensitivityKey);
             PlayerPrefs.DeleteKey(FovKey);
             PlayerPrefs.DeleteKey(InvertYKey);
             PlayerPrefs.DeleteKey(HoldCrouchKey);
         });
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ApplyAudio()
+        {
+            AudioListener.volume = MasterVolume;
+            Changed -= ApplyVolume;
+            Changed += ApplyVolume;
+        }
+
+        private static void ApplyVolume() => AudioListener.volume = MasterVolume;
 
         private static void Set(Action write)
         {

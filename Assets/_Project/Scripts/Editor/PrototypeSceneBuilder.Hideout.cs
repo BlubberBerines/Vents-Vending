@@ -391,27 +391,40 @@ namespace VentsAndVending.Editor
         }
 
         /// <summary>A bulb on a cord hanging from <paramref name="anchor"/> (a ceiling point), with its point light.</summary>
-        private static void HangingBulb(Transform parent, Vector3 anchor, float drop, Color color, float range, float intensity, bool shadows)
+        /// <summary>
+        /// A bulb on a cord hanging from <paramref name="anchor"/> (a ceiling point), with its point light. The group
+        /// pivots at the anchor and sways gently (pass 2 idle motion), carrying the light and its shadows with it.
+        /// </summary>
+        private static (Transform group, Light light, Renderer bulb) HangingBulb(Transform parent, Vector3 anchor, float drop, Color color,
+            float range, float intensity, bool shadows, float sway = 2.2f)
         {
             var g = Group("HangingBulb", parent);
+            g.position = anchor;
             Material cord = GetOrCreateMaterial("Prop_Cable", new Color(0.1f, 0.1f, 0.12f), 0.4f);
             Material socket = ArtLibrary.Get("M_DarkMetal");
             Material bulb = GetOrCreateMaterial("Bulb_Warm", new Color(1f, 0.85f, 0.6f), 0.6f, new Color(1f, 0.75f, 0.45f) * 3f);
 
-            Part("Cord", g, anchor + Vector3.down * (drop * 0.5f), new Vector3(0.012f, drop * 0.5f, 0.012f), cord, PrimitiveType.Cylinder);
-            Part("Socket", g, anchor + Vector3.down * (drop + 0.03f), new Vector3(0.05f, 0.03f, 0.05f), socket, PrimitiveType.Cylinder);
-            var b = Part("Bulb", g, anchor + Vector3.down * (drop + 0.1f), new Vector3(0.09f, 0.11f, 0.09f), bulb, PrimitiveType.Sphere);
+            Part("Cord", g, Vector3.down * (drop * 0.5f), new Vector3(0.012f, drop * 0.5f, 0.012f), cord, PrimitiveType.Cylinder);
+            Part("Socket", g, Vector3.down * (drop + 0.03f), new Vector3(0.05f, 0.03f, 0.05f), socket, PrimitiveType.Cylinder);
+            var b = Part("Bulb", g, Vector3.down * (drop + 0.1f), new Vector3(0.09f, 0.11f, 0.09f), bulb, PrimitiveType.Sphere);
             b.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
 
             var light = new GameObject("Bulb Light").AddComponent<Light>();
             light.transform.SetParent(g, false);
-            light.transform.position = anchor + Vector3.down * (drop + 0.1f);
+            light.transform.localPosition = Vector3.down * (drop + 0.1f);
             light.type = LightType.Point;
             light.color = color;
             light.range = range;
             light.intensity = intensity;
             light.shadows = shadows ? LightShadows.Soft : LightShadows.None;
             light.shadowNearPlane = 0.15f;
+
+            if (sway > 0f)
+            {
+                var rng = Rng(anchor);
+                g.gameObject.AddComponent<VentsAndVending.World.Pendulum>().Configure(sway * (0.8f + 0.4f * (float)rng.NextDouble()), 3.2f + (float)rng.NextDouble() * 1.6f);
+            }
+            return (g, light, b.GetComponent<Renderer>());
         }
 
         /// <summary>Additive, double-sided, fading toward the floor. URP Particles/Unlit so it skips depth (no outlines).</summary>

@@ -55,6 +55,8 @@ namespace VentsAndVending.Editor
             { "Housing", 0.035f }, { "Keypad", 0.02f },
             { "Counter", 0.06f }, { "BackPanel", 0.03f }, { "Awning", 0.03f }, { "Goods_Crate", 0.035f }, { "Pedestal", 0.07f },
             { "Crate_A", 0.05f }, { "Crate_B", 0.04f },
+            // Pass 2 clutter
+            { "Rug", 0.005f }, { "PizzaBox", 0.01f }, { "Jacket", 0.045f }, { "Boot", 0.045f }, { "Toolbox", 0.025f }, { "OldBoard", 0.012f },
         };
 
         private static void SoftenProps()

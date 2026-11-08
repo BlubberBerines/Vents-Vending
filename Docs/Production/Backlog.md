@@ -60,4 +60,4 @@ reputation (GDD 9.3), customer orders, Federation Inspector, production state in
 - [x] 16 Power Distribution (breaker wall, `BRK_FAN_04`) + 17 Industrial Fan Room + 04 Fan Junction (`FAN_17` blocks until isolated)
 - [x] 06 Drop Hatch → 07 Plaza Service Hub → 08 Customer Vent over the richer mezzanine customers; staff-door latch (07 → plaza) is the shortcut home
 - [x] Richer customer tier (Gromflomite Executive, Blorb Socialite in the Concourse Lounge) (bigger budgets, higher quality expectations) served only via 08
-- [ ] Pass 2 hideout dressing: clutter, idle motion (fan, drip, swaying bulb), ambient audio
+- [x] Pass 2 hideout dressing: clutter, idle motion (wall fan, drips, swaying + flickering bulbs), procedural placeholder audio, master volume setting

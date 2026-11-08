@@ -33,6 +33,13 @@ namespace VentsAndVending.Editor
             { "Tabletop", new Wonk { Sag = 0.022f, Twist = 1.5f } },
             { "Awning", new Wonk { Sag = 0.07f } },
             { "Pedestal", new Wonk { Taper = 0.06f } },
+            // Pass 2 clutter
+            { "Rug", new Wonk { Twist = 3f, Sag = 0.002f } },
+            { "PizzaBox", new Wonk { Sag = 0.006f, Twist = 2.5f } },
+            { "Jacket", new Wonk { Bulge = 0.14f, Taper = -0.14f, Twist = 6f, Lean = 0.02f } },
+            { "Boot", new Wonk { Taper = 0.25f, Bulge = 0.06f, Twist = 4f } },
+            { "Toolbox", new Wonk { Taper = 0.05f, Twist = 1.5f } },
+            { "OldBoard", new Wonk { Twist = 5f, Lean = 0.03f } },
         };
 
         /// <summary>Props whose colour drifts a little per instance so repeats don't match exactly.</summary>

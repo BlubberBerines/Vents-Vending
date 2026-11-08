@@ -18,6 +18,7 @@ namespace VentsAndVending.Tunnels
         [SerializeField] private Renderer _lamp;
         [SerializeField] private float _leverOnAngle = -35f;
         [SerializeField] private float _leverOffAngle = 35f;
+        [SerializeField] private AudioClip _clunk;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
@@ -57,6 +58,7 @@ namespace VentsAndVending.Tunnels
             if (_jammed)
             {
                 interactor.Notify(_jammedMessage);
+                PlayClunk(0.6f, 0.5f);
                 return;
             }
             if (TunnelManager.Instance == null)
@@ -64,11 +66,15 @@ namespace VentsAndVending.Tunnels
                 return;
             }
 
+            PlayClunk(on: !IsOn);
             bool on = !IsOn;
             TunnelManager.Instance.SetSwitch(_breakerId, on, _startsOn);
             interactor.Notify($"{_breakerId}: {(on ? "<color=#7CFF8A>ON</color>" : "<color=#FFB040>OFF</color>")}  ({_controls})");
             ApplyVisuals();
         }
+
+        private void PlayClunk(float pitch = 1f, float volume = 1f, bool on = true) =>
+            VentsAndVending.World.Sfx.PlayAt(_clunk, transform.position, volume, pitch * (on ? 1.08f : 0.92f));
 
         private void ApplyVisuals()
         {

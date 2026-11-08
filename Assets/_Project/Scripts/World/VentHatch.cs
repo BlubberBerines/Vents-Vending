@@ -12,6 +12,7 @@ namespace VentsAndVending.World
         [SerializeField, Min(0.01f)] private float _duration = 0.35f;
         [SerializeField] private bool _startOpen;
         [SerializeField] private bool _locked;
+        [SerializeField] private AudioClip _sound;
 
         private Quaternion _closed;
         private Quaternion _open;
@@ -58,6 +59,7 @@ namespace VentsAndVending.World
             }
 
             IsOpen = !IsOpen;
+            Sfx.PlayAt(_sound, transform.position, 0.8f, IsOpen ? Random.Range(1.0f, 1.12f) : Random.Range(0.82f, 0.92f));
         }
 
         private void Update()

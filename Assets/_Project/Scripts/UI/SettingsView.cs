@@ -12,11 +12,12 @@ namespace VentsAndVending.UI
         private TextMeshProUGUI _fov;
         private TextMeshProUGUI _invert;
         private TextMeshProUGUI _holdCrouch;
+        private TextMeshProUGUI _volume;
 
         public static SettingsView Create(Transform parent, Vector2 anchor, Vector2 position, Action onBack)
         {
             var bg = UiFactory.Image(parent, "Settings", UiFactory.PanelColor);
-            UiFactory.Place(bg.rectTransform, anchor, new Vector2(0.5f, 0.5f), position, new Vector2(760f, 470f));
+            UiFactory.Place(bg.rectTransform, anchor, new Vector2(0.5f, 0.5f), position, new Vector2(760f, 540f));
             var view = bg.gameObject.AddComponent<SettingsView>();
 
             var title = UiFactory.Text(bg.transform, "Title", "Settings", 32f);
@@ -29,6 +30,8 @@ namespace VentsAndVending.UI
                 () => GameSettings.FieldOfView -= 5f, () => GameSettings.FieldOfView += 5f);
             view._invert = view.Toggle(bg.transform, 2, "Invert Y", () => GameSettings.InvertY = !GameSettings.InvertY);
             view._holdCrouch = view.Toggle(bg.transform, 3, "Hold to crouch / crawl", () => GameSettings.HoldToCrouch = !GameSettings.HoldToCrouch);
+            view._volume = view.Row(bg.transform, 4, "Master volume",
+                () => GameSettings.MasterVolume -= 0.1f, () => GameSettings.MasterVolume += 0.1f);
 
             UiFactory.Button(bg.transform, "Defaults", "Reset to defaults", GameSettings.ResetToDefaults,
                 new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(30f, 24f), new Vector2(260f, 48f));
@@ -48,6 +51,7 @@ namespace VentsAndVending.UI
             _fov.text = $"{GameSettings.FieldOfView:0}°";
             _invert.text = GameSettings.InvertY ? "On" : "Off";
             _holdCrouch.text = GameSettings.HoldToCrouch ? "On" : "Off";
+            _volume.text = $"{GameSettings.MasterVolume * 100f:0}%";
         }
 
         private TextMeshProUGUI Row(Transform parent, int index, string label, Action minus, Action plus)

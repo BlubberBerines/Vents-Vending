@@ -21,6 +21,9 @@ namespace VentsAndVending.Tunnels
         [SerializeField] private Renderer[] _warningLamps = new Renderer[0];
         [SerializeField] private Light _warningLight;
         [SerializeField] private ParticleSystem _suction;
+        [Tooltip("Looping rumble; volume and pitch follow the rotor speed so the wind-down is audible.")]
+        [SerializeField] private AudioSource _hum;
+        [SerializeField] private float _humVolume = 0.9f;
         [SerializeField] private float _maxSpeed = 620f;          // deg/s
         [SerializeField] private float _spinUpAccel = 260f;      // deg/s²
         [SerializeField] private float _windDownDecel = 190f;    // deg/s² — a readable coast (~3 s), then a short creep to rest
@@ -144,6 +147,21 @@ namespace VentsAndVending.Tunnels
             if (_warningLight != null)
             {
                 _warningLight.color = lamp;
+            }
+
+            if (_hum != null)
+            {
+                float k = _speed / _maxSpeed;
+                _hum.volume = _humVolume * Mathf.Clamp01(k * 1.2f);
+                _hum.pitch = 0.35f + 0.65f * k;
+                if (k > 0.01f && !_hum.isPlaying)
+                {
+                    _hum.Play();
+                }
+                else if (k <= 0.01f && _hum.isPlaying)
+                {
+                    _hum.Stop();
+                }
             }
 
             if (_suction != null)
