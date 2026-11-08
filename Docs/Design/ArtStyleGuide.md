@@ -20,7 +20,7 @@ contrast is the game's visual identity (GDD §28).
 | Tinted shade | Shadow tint lilac `(0.8, 0.76, 0.95)`, ambient strength 2.6, scene ambient `(0.24, 0.24, 0.30)` | shader + `ArtLibrary.ApplyToonLook`, scene builders |
 | Highlights | Only glossy/metal surfaces get a small banded highlight; rough paint and concrete stay flat | shader |
 | Rim light | Subtle (0.18) | shader |
-| Ink outlines | Screen-space, colour `#0F0D1A`, 1.4 px p, fade 18–55 m | `OutlineFullscreen.shader`, "Toon Outline" renderer feature |
+| Ink outlines | Screen-space, colour `#0F0D1A`, 1.4 px at 1080p, fade 18–55 m | `OutlineFullscreen.shader`, "Toon Outline" renderer feature |
 | Wear | Crispness 0.75 — grime is a wavy painted band and flat blotches; rust is two flat tones | shader `_WearCrispness` |
 | Textures | Cartoon-style detail maps (flat tones, clean scratches, blobby stains), normal maps at 35 % | `_source/`, `ToonNormalScale` |
 | Colour grade | Saturation +18, contrast +8 | `GlobalVolumeProfile` |
