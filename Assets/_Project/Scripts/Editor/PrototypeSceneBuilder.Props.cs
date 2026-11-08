@@ -21,11 +21,11 @@ namespace VentsAndVending.Editor
             Material silver = ArtLibrary.Get("M_BrushedSilver");
             Material cardboard = ArtLibrary.Get("M_Cardboard");
             Material seam = GetOrCreateMaterial("Prop_Seam", new Color(0.05f, 0.04f, 0.06f), 0.2f);
-            Material tape = GetOrCreateMaterial("Prop_Tape", new Color(0.85f, 0.72f, 0.38f), 0.5f);
-            Material mattress = GetOrCreateMaterial("Prop_Mattress", new Color(0.78f, 0.74f, 0.62f), 0.2f);
+            Material tape = Worn(GetOrCreateMaterial("Prop_Tape", new Color(0.85f, 0.72f, 0.38f), 0.5f), 0.25f, 0.3f);
+            Material mattress = Worn(GetOrCreateMaterial("Prop_Mattress", new Color(0.78f, 0.74f, 0.62f), 0.2f), 0.6f, 0.5f);
             Material stain = GetOrCreateMaterial("Prop_Stain", new Color(0.55f, 0.48f, 0.3f), 0.2f);
-            Material blanket = GetOrCreateMaterial("Prop_Blanket", new Color(0.42f, 0.3f, 0.55f), 0.2f);
-            Material pallet = GetOrCreateMaterial("Prop_Pallet", new Color(0.5f, 0.36f, 0.22f), 0.2f);
+            Material blanket = Worn(GetOrCreateMaterial("Prop_Blanket", new Color(0.42f, 0.3f, 0.55f), 0.2f), 0.3f, 0.3f);
+            Material pallet = Worn(GetOrCreateMaterial("Prop_Pallet", new Color(0.5f, 0.36f, 0.22f), 0.2f), 0.5f, 0.35f, 0.4f);
             Material cable = GetOrCreateMaterial("Prop_Cable", new Color(0.1f, 0.1f, 0.12f), 0.4f);
             Material cableRed = GetOrCreateMaterial("Prop_CableRed", new Color(0.7f, 0.15f, 0.12f), 0.4f);
             Material statusGreen = GetOrCreateMaterial("Prop_StatusGreen", new Color(0.1f, 0.6f, 0.2f), 0.5f, new Color(0.3f, 2f, 0.5f));
@@ -62,11 +62,14 @@ namespace VentsAndVending.Editor
             int rounded = 0;
             foreach (MeshFilter filter in Object.FindObjectsByType<MeshFilter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                if (SoftRadii.TryGetValue(filter.gameObject.name, out float radius) && RoundedMeshFactory.RoundCube(filter.gameObject, radius))
+                string n = filter.gameObject.name;
+                Wonk wonk = WonkMap.TryGetValue(n, out Wonk w) ? InstanceWonk(w, filter.transform.position) : default;
+                if (SoftRadii.TryGetValue(n, out float radius) && RoundedMeshFactory.RoundCube(filter.gameObject, radius, wonk))
                 {
                     rounded++;
                 }
             }
+            JitterTints();
             Debug.Log($"[PrototypeSceneBuilder] Softened {rounded} props.");
         }
 
@@ -88,7 +91,7 @@ namespace VentsAndVending.Editor
                 NoCollider(Block("Foot", g, new Vector3(basePos.x + side * 0.5f, 0.02f, basePos.z + 0.22f), new Vector3(0.08f, 0.04f, 0.08f), feet));
                 NoCollider(Block("Foot", g, new Vector3(basePos.x + side * 0.5f, 0.02f, basePos.z - 0.22f), new Vector3(0.08f, 0.04f, 0.08f), feet));
             }
-            CreateSign("Locker_Sticker", "<color=#FFD24D>TOTALLY NOT</color>\nCONTRABAND", new Vector3(basePos.x + 0.3f, 0.6f, front + 0.01f), 180f, 0.45f, Color.white, 0.5f);
+            CreateSign("Locker_Sticker", "<color=#FFD24D>TOTALLY NOT</color>\nCONTRABAND", new Vector3(basePos.x + 0.3f, 0.6f, front + 0.01f), 180f, 0.45f, Color.white, 0.5f, -7f);
         }
 
         /// <summary>Bench front faces +Z: drawer fronts, handles, an ingredient bottle rack and a warning plate.</summary>
@@ -110,10 +113,17 @@ namespace VentsAndVending.Editor
             for (int i = 0; i < colors.Length; i++)
             {
                 Material glass = GetOrCreateMaterial($"Prop_Bottle_{i}", colors[i] * 0.6f, 0.8f, colors[i] * 0.9f);
-                Part($"Bottle_{i}", g, new Vector3(basePos.x + 0.17f + i * 0.12f, 1.09f, basePos.z - 0.28f), new Vector3(0.07f, 0.07f, 0.07f), glass, PrimitiveType.Cylinder);
+                // Uneven spacing and heights; one bottle leaning on its neighbour
+                float[] xs = { 0.16f, 0.29f, 0.39f, 0.54f };
+                float[] hs = { 0.07f, 0.09f, 0.06f, 0.08f };
+                var bottle = Part($"Bottle_{i}", g, new Vector3(basePos.x + xs[i], 1.015f + hs[i], basePos.z - 0.28f), new Vector3(0.07f, hs[i], 0.07f), glass, PrimitiveType.Cylinder);
+                if (i == 2)
+                {
+                    bottle.transform.rotation = Quaternion.Euler(0f, 0f, -11f);
+                }
             }
 
-            CreateSign("Station_Warning", "<color=#FFD24D>!</color> DO NOT OVERHEAT\n<size=70%>(again)</size>", new Vector3(basePos.x, 0.82f, front + 0.01f), 180f, 0.5f, new Color(1f, 0.85f, 0.4f), 1.2f);
+            CreateSign("Station_Warning", "<color=#FFD24D>!</color> DO NOT OVERHEAT\n<size=70%>(again)</size>", new Vector3(basePos.x, 0.82f, front + 0.01f), 180f, 0.5f, new Color(1f, 0.85f, 0.4f), 1.2f, 2.5f);
         }
 
         /// <summary>Terminal: status lights and a cable run down into the wall.</summary>
@@ -159,30 +169,49 @@ namespace VentsAndVending.Editor
                     Block("Leg", g, basePos + new Vector3(sx * 0.74f, 0.42f, sz * 0.34f), new Vector3(0.06f, 0.84f, 0.06f), frame);
                 }
             }
-            Block("Box_Open", g, basePos + new Vector3(-0.4f, 1.05f, 0f), new Vector3(0.4f, 0.32f, 0.35f), cardboard);
-            NoCollider(Block("Box_Flap", g, basePos + new Vector3(-0.4f, 1.22f, 0.24f), new Vector3(0.4f, 0.02f, 0.18f), cardboard)).transform.localRotation = Quaternion.Euler(-40f, 0f, 0f);
-            Block("Box_Taped", g, basePos + new Vector3(0.25f, 1.0f, -0.1f), new Vector3(0.32f, 0.22f, 0.3f), cardboard);
-            NoCollider(Block("TapeStrip", g, basePos + new Vector3(0.25f, 1.112f, -0.1f), new Vector3(0.06f, 0.004f, 0.3f), tape));
+            // Each box (with its flaps / tape) is its own cluster so it can sit at a careless angle
+            var open = Cluster("Cluster_BoxOpen", g, basePos + new Vector3(-0.4f, 0.89f, 0f));
+            Block("Box_Open", open, basePos + new Vector3(-0.4f, 1.05f, 0f), new Vector3(0.4f, 0.32f, 0.35f), cardboard);
+            NoCollider(Block("Box_Flap", open, basePos + new Vector3(-0.4f, 1.22f, 0.24f), new Vector3(0.4f, 0.02f, 0.18f), cardboard)).transform.localRotation = Quaternion.Euler(-40f, 0f, 0f);
+            NoCollider(Block("Box_FlapBack", open, basePos + new Vector3(-0.4f, 1.25f, -0.2f), new Vector3(0.4f, 0.02f, 0.14f), cardboard)).transform.localRotation = Quaternion.Euler(55f, 0f, 0f);
+            open.rotation = Quaternion.Euler(0f, 9f, 0f);
+
+            var taped = Cluster("Cluster_BoxTaped", g, basePos + new Vector3(0.25f, 0.89f, -0.1f));
+            Block("Box_Taped", taped, basePos + new Vector3(0.25f, 1.0f, -0.1f), new Vector3(0.32f, 0.22f, 0.3f), cardboard);
+            NoCollider(Block("TapeStrip", taped, basePos + new Vector3(0.25f, 1.122f, -0.1f), new Vector3(0.06f, 0.004f, 0.3f), tape));
+            taped.rotation = Quaternion.Euler(0f, -14f, 0f);
+
             var roll = Part("TapeRoll", g, basePos + new Vector3(0.6f, 0.93f, 0.2f), new Vector3(0.12f, 0.03f, 0.12f), tape, PrimitiveType.Cylinder);
-            Block("FlatPacks", g, basePos + new Vector3(0f, 0.08f, 0f), new Vector3(0.9f, 0.16f, 0.6f), cardboard);
-            _ = roll;
+            roll.transform.rotation = Quaternion.Euler(0f, 0f, 7f);
+            var packs = Cluster("Cluster_FlatPacks", g, basePos);
+            Block("FlatPacks", packs, basePos + new Vector3(0f, 0.08f, 0f), new Vector3(0.9f, 0.16f, 0.6f), cardboard);
+            packs.rotation = Quaternion.Euler(0f, 6f, 0f);
         }
 
         private static void BuildCrateStack(Transform parent, Vector3 basePos, Material crate, Material band, Material cardboard)
         {
             var g = Group("CrateStack", parent);
-            Crate(g, basePos + new Vector3(0f, 0.4f, 0f), 0.8f, 8f, crate, band);
-            Crate(g, basePos + new Vector3(0.85f, 0.35f, 0.1f), 0.7f, -12f, crate, band);
-            Crate(g, basePos + new Vector3(0.35f, 1.1f, 0.05f), 0.6f, 25f, crate, band);
-            Block("LooseBox", g, basePos + new Vector3(-0.7f, 0.18f, 0.3f), new Vector3(0.4f, 0.36f, 0.4f), cardboard).transform.rotation = Quaternion.Euler(0f, 30f, 0f);
+            Crate(g, basePos + new Vector3(0f, 0.4f, 0f), 0.8f, new Vector3(0f, 8f, 0f), crate, band);
+            Crate(g, basePos + new Vector3(0.85f, 0.35f, 0.1f), 0.7f, new Vector3(0f, -12f, 1.5f), crate, band);
+            // The top crate rests on two crates of different heights, so it tips toward the shorter one
+            Crate(g, basePos + new Vector3(0.38f, 1.08f, 0.05f), 0.6f, new Vector3(2.5f, 25f, -7.5f), crate, band);
+            Block("LooseBox", g, basePos + new Vector3(-0.7f, 0.18f, 0.3f), new Vector3(0.4f, 0.36f, 0.4f), cardboard).transform.rotation = Quaternion.Euler(0f, 30f, 2f);
+        }
+
+        /// <summary>An empty group at <paramref name="pivot"/>: build children inside it, then rotate the cluster as one.</summary>
+        private static Transform Cluster(string name, Transform parent, Vector3 pivot)
+        {
+            var t = Group(name, parent);
+            t.position = pivot;
+            return t;
         }
 
         /// <summary>Metal crate with hazard bands round the middle and corners.</summary>
-        private static void Crate(Transform parent, Vector3 center, float size, float yaw, Material body, Material band)
+        private static void Crate(Transform parent, Vector3 center, float size, Vector3 euler, Material body, Material band)
         {
             var root = new GameObject("Crate").transform;
             root.SetParent(parent, false);
-            root.SetPositionAndRotation(center, Quaternion.Euler(0f, yaw, 0f));
+            root.SetPositionAndRotation(center, Quaternion.Euler(euler));
             Solid("Body", root, Vector3.zero, Vector3.one * size, body);
             var b1 = Part("Band", root, Vector3.zero, new Vector3(size * 1.02f, size * 0.14f, size * 1.02f), band);
             var b2 = Part("BandV", root, Vector3.zero, new Vector3(size * 0.14f, size * 1.02f, size * 1.02f), band);
@@ -192,25 +221,43 @@ namespace VentsAndVending.Editor
 
         private static void PipeX(Transform parent, float x0, float x1, float y, float z, float radius, Material mat, Material bracket)
         {
-            var p = Part("PipeX", parent, new Vector3((x0 + x1) * 0.5f, y, z), new Vector3(radius * 2f, (x1 - x0) * 0.5f, radius * 2f), mat, PrimitiveType.Cylinder);
-            p.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+            // No bracket material = a cable: let it droop between supports instead of running ruler-straight
             if (bracket == null)
             {
+                SagCable(parent, new Vector3(x0, y, z), new Vector3(x1, y, z), radius, mat);
                 return;
             }
-            for (float x = x0 + 1f; x < x1; x += 3f)
+            var p = Part("PipeX", parent, new Vector3((x0 + x1) * 0.5f, y, z), new Vector3(radius * 2f, (x1 - x0) * 0.5f, radius * 2f), mat, PrimitiveType.Cylinder);
+            p.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+            // Unevenly spaced brackets, the odd one hanging loose
+            var rng = Rng(new Vector3(x0, y, z));
+            for (float x = x0 + 0.5f + (float)rng.NextDouble() * 0.8f; x < x1 - 0.2f; x += 2.2f + (float)rng.NextDouble() * 1.4f)
             {
-                Part("Bracket", parent, new Vector3(x, y, z - radius * 0.2f), new Vector3(0.06f, radius * 2.6f, radius * 2.4f + 0.1f), bracket);
+                var b = Part("Bracket", parent, new Vector3(x, y, z - radius * 0.2f), new Vector3(0.06f, radius * 2.6f, radius * 2.4f + 0.1f), bracket);
+                if (rng.NextDouble() < 0.2)
+                {
+                    b.transform.rotation = Quaternion.Euler(rng.Next(2) == 0 ? 20f : -24f, 0f, 0f);
+                }
             }
         }
 
         private static void PipeZ(Transform parent, float z0, float z1, float y, float x, float radius, Material mat, Material bracket)
         {
+            if (bracket == null)
+            {
+                SagCable(parent, new Vector3(x, y, z0), new Vector3(x, y, z1), radius, mat);
+                return;
+            }
             var p = Part("PipeZ", parent, new Vector3(x, y, (z0 + z1) * 0.5f), new Vector3(radius * 2f, (z1 - z0) * 0.5f, radius * 2f), mat, PrimitiveType.Cylinder);
             p.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            for (float z = z0 + 1f; z < z1; z += 3f)
+            var rng = Rng(new Vector3(x, y, z0));
+            for (float z = z0 + 0.5f + (float)rng.NextDouble() * 0.8f; z < z1 - 0.2f; z += 2.2f + (float)rng.NextDouble() * 1.4f)
             {
-                Part("Bracket", parent, new Vector3(x - radius * 0.2f, y, z), new Vector3(radius * 2.4f + 0.1f, radius * 2.6f, 0.06f), bracket);
+                var b = Part("Bracket", parent, new Vector3(x - radius * 0.2f, y, z), new Vector3(radius * 2.4f + 0.1f, radius * 2.6f, 0.06f), bracket);
+                if (rng.NextDouble() < 0.2)
+                {
+                    b.transform.rotation = Quaternion.Euler(0f, 0f, rng.Next(2) == 0 ? 20f : -24f);
+                }
             }
         }
     }

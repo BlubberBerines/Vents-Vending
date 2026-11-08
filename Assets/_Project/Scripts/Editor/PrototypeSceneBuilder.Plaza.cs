@@ -143,7 +143,7 @@ namespace VentsAndVending.Editor
             NoCollider(Block("Hatch_Frame_Hideout", g, new Vector3(x, h + t + 0.05f, z0 + 0.05f), new Vector3(w + t * 2f + 0.2f, 0.1f, 0.1f), accent));
             NoCollider(Block("Hatch_Frame_Plaza", g, new Vector3(x, h + t + 0.05f, z1 - 0.05f), new Vector3(w + t * 2f + 0.2f, 0.1f, 0.1f), accent));
 
-            CreateSign("Vent_Sign_Hideout", "TO PLAZA →", new Vector3(x, 1.25f, z0 - 0.06f), 0f, 0.7f, new Color(1f, 0.85f, 0.4f), 1.6f);
+            CreateSign("Vent_Sign_Hideout", "TO PLAZA →", new Vector3(x, 1.25f, z0 - 0.06f), 0f, 0.7f, new Color(1f, 0.85f, 0.4f), 1.6f, -3f);
         }
 
         private static GameObject CreateHatch(string name, Transform parent, Vector3 hingePosition, Vector3 openRotation, Material panelMat, Material grilleMat)
@@ -242,10 +242,10 @@ namespace VentsAndVending.Editor
         // ------------------------------------------------------------------ Helpers
 
         /// <summary>World-space text, kept outside "Level" so the NavMesh bake never scans its mesh. TMP faces -Z: yaw 0 reads when looking +Z.</summary>
-        private static void CreateSign(string name, string text, Vector3 position, float yaw, float fontSize, Color color, float width)
+        private static void CreateSign(string name, string text, Vector3 position, float yaw, float fontSize, Color color, float width, float roll = 0f)
         {
             var go = new GameObject(name);
-            go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+            go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, roll));
             var tmp = go.AddComponent<TextMeshPro>();
             tmp.text = text;
             tmp.fontSize = fontSize;

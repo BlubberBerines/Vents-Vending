@@ -50,6 +50,7 @@ namespace VentsAndVending.Editor
             BuildGallery(Group("ServiceGallery", root), floor, panel, vent, accent, dark, cable, cableRed);
             BuildStashDuct(Group("StashDuct", root), floor, vent, accent, glow);
             BuildPlazaWall(Group("PlazaWall", root), floor, wall);
+            BuildHideoutImperfections(root);
             BuildHideoutVolume(root);
         }
 

@@ -38,9 +38,9 @@ Material:
     - _BumpScale: 0
     - _EdgeWear: 0
     - _EdgeWidth: 0.04
-    - _GrimeAmount: 0
+    - _GrimeAmount: 0.25
     - _GrimeHeight: 1.2
-    - _GrimePatches: 0
+    - _GrimePatches: 0.3
     - _GrimeScale: 0.8
     - _Metallic: 0
     - _PanelSize: 1.5
