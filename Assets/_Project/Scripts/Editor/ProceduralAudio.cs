@@ -35,7 +35,57 @@ namespace VentsAndVending.Editor
         public static AudioClip PlazaCrowd => Get(AmbienceFolder, "amb_plaza_crowd", 10f, true, CrowdSynth);
         public static AudioClip PlazaMusic => Get(AmbienceFolder, "amb_plaza_music", 8f, true, MusicSynth);
 
+        public static AudioClip DroneHum => Get(AmbienceFolder, "amb_drone_hum", 2f, true, DroneHumSynth);
+        public static AudioClip DroneChirp => Get(SfxFolder, "sfx_drone_chirp", 0.45f, false, DroneChirpSynth);
+        public static AudioClip DroneAlarm => Get(SfxFolder, "sfx_drone_alarm", 0.9f, false, DroneAlarmSynth);
+
         // ------------------------------------------------------------------ Synths (buffer, rng)
+
+        /// <summary>Four little rotors: a whiny tone with a fast flutter, plus airy noise.</summary>
+        private static void DroneHumSynth(float[] b, System.Random r)
+        {
+            float lp = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                lp += 0.2f * (White(r) - lp);
+                float flutter = 0.7f + 0.3f * Mathf.Sin(2f * Mathf.PI * 36f * t);
+                float whine = Mathf.Sin(2f * Mathf.PI * 230f * t) * 0.5f + Mathf.Sin(2f * Mathf.PI * 460f * t) * 0.25f
+                              + Mathf.Sin(2f * Mathf.PI * 690f * t + 0.4f) * 0.12f;
+                b[i] = (whine * 0.6f + lp * 0.8f) * flutter;
+            }
+        }
+
+        /// <summary>"Huh?" — two rising beeps.</summary>
+        private static void DroneChirpSynth(float[] b, System.Random r)
+        {
+            float phase = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                float u = t < 0.18f ? t / 0.18f : (t - 0.22f) / 0.18f;
+                bool on = t < 0.18f || (t > 0.22f && t < 0.4f);
+                float f = Mathf.Lerp(t < 0.2f ? 820f : 1000f, t < 0.2f ? 1180f : 1500f, Mathf.Clamp01(u));
+                phase += 2f * Mathf.PI * f / Rate;
+                float env = on ? Mathf.Clamp01(u * 20f) * Mathf.Clamp01((1f - u) * 12f) : 0f;
+                b[i] = (Mathf.Sin(phase) + 0.25f * Mathf.Sin(phase * 2f)) * env;
+            }
+        }
+
+        /// <summary>Two-tone pursuit alarm.</summary>
+        private static void DroneAlarmSynth(float[] b, System.Random r)
+        {
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                float f = t < 0.42f ? 880f : 660f;
+                float local = t < 0.42f ? t : t - 0.45f;
+                bool on = t < 0.42f || (t > 0.45f && t < 0.87f);
+                float env = on ? Mathf.Clamp01(local / 0.01f) * Mathf.Clamp01((0.42f - local) / 0.03f) : 0f;
+                float square = Mathf.Sign(Mathf.Sin(2f * Mathf.PI * f * t)) * 0.35f + Mathf.Sin(2f * Mathf.PI * f * t) * 0.65f;
+                b[i] = square * env;
+            }
+        }
 
         /// <summary>Burner pager: two quick rising chirps.</summary>
         private static void MessageSynth(float[] b, System.Random r)

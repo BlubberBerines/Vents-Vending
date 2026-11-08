@@ -174,27 +174,107 @@ namespace VentsAndVending.Editor
 
         // ------------------------------------------------------------------ Security
 
+        /// <summary>Patrol stop: where (XZ), how long, how wide a sweep, what to look at (XZ), altitude offset.</summary>
+        private readonly struct Stop
+        {
+            public readonly Vector2 At;
+            public readonly float Wait;
+            public readonly float Sweep;
+            public readonly Vector2? Look;
+
+            public Stop(float x, float z, float wait, float sweep, float lookX = float.NaN, float lookZ = float.NaN)
+            {
+                At = new Vector2(x, z);
+                Wait = wait;
+                Sweep = sweep;
+                Look = float.IsNaN(lookX) ? (Vector2?)null : new Vector2(lookX, lookZ);
+            }
+        }
+
         private static void BuildSecurity()
         {
             new GameObject("Security").AddComponent<SecurityManager>();
 
-            var bodyMat = GetOrCreateMaterial("Drone_Body", new Color(0.12f, 0.13f, 0.16f), 0.8f);
-            var trimMat = GetOrCreateMaterial("Drone_Trim", new Color(0.8f, 0.82f, 0.86f), 0.9f);
-            var eyeMat = GetOrCreateMaterial("Drone_Eye", new Color(0.1f, 0.5f, 0.6f), 0.9f, new Color(0.2f, 1.5f, 2f));
+            // Plaza drone: a learnable loop that "checks places" (C corner, over B, the stalls, the door),
+            // plus rare detours — including a peek behind Glorp-Mart, so even spot A isn't perfectly safe.
+            BuildDrone("Security Drone", 2.7f,
+                new[]
+                {
+                    new Stop(-9f, 31f, 1.2f, 70f, -12.6f, 23.2f),
+                    new Stop(0f, 33.6f, 2.0f, 120f, 0f, 25f),
+                    new Stop(9.5f, 31f, 1.0f, 50f, 13f, 26f),
+                    new Stop(10.2f, 41f, 1.5f, 60f, 13.5f, 36f),
+                    new Stop(4f, 45.5f, 1.0f, 60f, 0f, 50f),
+                    new Stop(-6f, 44.8f, 1.4f, 80f, -6f, 38f),
+                    new Stop(-10f, 38f, 1.2f, 60f, -13.5f, 36f),
+                },
+                new (int from, Stop[] points, float chance)[]
+                {
+                    (6, new[] { new Stop(-14.9f, 32.6f, 2.0f, 30f, -15f, 37f) }, 0.15f),
+                    (0, new[] { new Stop(-11.6f, 25.6f, 1.6f, 60f, -12.6f, 23.2f) }, 0.25f),
+                    (4, new[] { new Stop(0f, 48.4f, 1.4f, 70f, 0f, 40f) }, 0.2f),
+                },
+                new Bounds(new Vector3(0f, 0f, 35.5f), new Vector3(31f, 10f, 29f)), false);
 
-            var patrol = new Transform[4];
-            Vector2[] corners = { new Vector2(-10f, 32f), new Vector2(10f, 32f), new Vector2(10f, 46f), new Vector2(-10f, 46f) };
-            var patrolRoot = new GameObject("Drone Patrol Route").transform;
-            for (int i = 0; i < corners.Length; i++)
+            // Lounge drone (GDD §19.1 Location 4 "stricter security"): richer customers come with a closer eye.
+            BuildDrone("Lounge Drone", 2.6f,
+                new[]
+                {
+                    new Stop(19f, 37.2f, 1.4f, 70f, 20f, 37.6f),
+                    new Stop(25.2f, 37.5f, 1.2f, 60f, 26.5f, 40f),
+                    new Stop(25f, 43.2f, 1.2f, 70f, 22f, 41f),
+                    new Stop(19f, 43.2f, 1.4f, 70f, 18.2f, 41f),
+                },
+                new (int from, Stop[] points, float chance)[]
+                {
+                    (0, new[] { new Stop(20f, 35.9f, 1.6f, 40f, 20f, 34.6f) }, 0.3f),
+                },
+                new Bounds(new Vector3(21.75f, 0f, 39.9f), new Vector3(9.5f, 10f, 9.2f)), true);
+        }
+
+        private static Transform PatrolPoint(Transform parent, string name, Stop s, float altitude)
+        {
+            var p = new GameObject(name).transform;
+            p.SetParent(parent, false);
+            p.position = new Vector3(s.At.x, altitude, s.At.y);
+            Transform look = null;
+            if (s.Look.HasValue)
             {
-                var p = new GameObject($"Patrol {i + 1}").transform;
-                p.SetParent(patrolRoot, false);
-                p.position = new Vector3(corners[i].x, 2.7f, corners[i].y);
-                patrol[i] = p;
+                look = new GameObject("LookAt").transform;
+                look.SetParent(p, false);
+                look.position = new Vector3(s.Look.Value.x, 1f, s.Look.Value.y);
+            }
+            p.gameObject.AddComponent<DronePatrolPoint>().Configure(s.Wait, s.Sweep, look);
+            return p;
+        }
+
+        private static void BuildDrone(string name, float altitude, Stop[] main, (int from, Stop[] points, float chance)[] detours, Bounds zone, bool gold)
+        {
+            var routeRoot = new GameObject($"{name} Route").transform;
+            var patrol = new Transform[main.Length];
+            for (int i = 0; i < main.Length; i++)
+            {
+                patrol[i] = PatrolPoint(routeRoot, $"Patrol {i + 1}", main[i], altitude);
+            }
+            var detourRoutes = new SecurityDrone.DetourRoute[detours.Length];
+            for (int d = 0; d < detours.Length; d++)
+            {
+                var pts = new Transform[detours[d].points.Length];
+                for (int i = 0; i < pts.Length; i++)
+                {
+                    pts[i] = PatrolPoint(routeRoot, $"Detour {d + 1}.{i + 1}", detours[d].points[i], altitude);
+                }
+                detourRoutes[d] = new SecurityDrone.DetourRoute { FromMain = detours[d].from, Points = pts, Chance = detours[d].chance };
             }
 
-            var root = new GameObject("Security Drone");
-            root.transform.position = new Vector3(corners[0].x, 2.7f, corners[0].y);
+            var bodyMat = GetOrCreateMaterial("Drone_Body", new Color(0.12f, 0.13f, 0.16f), 0.8f);
+            var trimMat = gold
+                ? GetOrCreateMaterial("Drone_TrimGold", new Color(0.85f, 0.66f, 0.25f), 0.9f)
+                : GetOrCreateMaterial("Drone_Trim", new Color(0.8f, 0.82f, 0.86f), 0.9f);
+            var eyeMat = GetOrCreateMaterial("Drone_Eye", new Color(0.1f, 0.5f, 0.6f), 0.9f, new Color(0.2f, 1.5f, 2f));
+
+            var root = new GameObject(name);
+            root.transform.position = patrol[0].position;
             root.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
             var hover = Group("Hover", root.transform);
 
@@ -233,14 +313,27 @@ namespace VentsAndVending.Editor
             spot.color = new Color(0.15f, 0.85f, 1f);
             spot.shadows = LightShadows.None;
 
+            // Rotor whine (pitch follows speed) + a voice for chirps and the pursuit alarm
+            var hum = root.AddComponent<AudioSource>();
+            ConfigureSource(hum, ProceduralAudio.DroneHum, 0.32f, 2f, 16f);
+            var voice = new GameObject("Voice").AddComponent<AudioSource>();
+            voice.transform.SetParent(root.transform, false);
+            ConfigureSource(voice, null, 1f, 3f, 26f);
+            voice.loop = false;
+            voice.playOnAwake = false;
+
             var drone = root.AddComponent<SecurityDrone>();
-            drone.SetPatrol(patrol);
+            drone.SetPatrol(patrol, detourRoutes, zone);
             var so = new SerializedObject(drone);
             so.FindProperty("_eye").objectReferenceValue = eye.transform;
             so.FindProperty("_eyeRenderer").objectReferenceValue = eye.GetComponent<Renderer>();
             so.FindProperty("_spotlight").objectReferenceValue = spot;
             so.FindProperty("_hoverRoot").objectReferenceValue = hover;
             SetList(so.FindProperty("_rotors"), rotors);
+            so.FindProperty("_hum").objectReferenceValue = hum;
+            so.FindProperty("_voice").objectReferenceValue = voice;
+            so.FindProperty("_chirp").objectReferenceValue = ProceduralAudio.DroneChirp;
+            so.FindProperty("_alarm").objectReferenceValue = ProceduralAudio.DroneAlarm;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
