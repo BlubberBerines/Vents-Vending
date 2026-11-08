@@ -41,6 +41,6 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 20. [x] One complete sale (`SalePanel`: pick quality, set price, haggle via `SaleNegotiation`)
 21. [x] Cosmic Credits (`Wallet` + `PlayerWallet`, HUD counter; start 20 CC)
 22. [x] First upgrade (6 `UpgradeDefinition`s, `ProgressionManager` + `UpgradeLedger`, Upgrade Terminal + shop panel; effects: lighting, pockets, locker, mixer window, settle speed)
-23. [ ] Connect hideout to the alien plaza
+23. [x] Connect hideout to the alien plaza (Central Plaza reachable only via vent duct; customers moved to plaza)
 24. [x] Simple security drone (`SecurityDrone` patrol/suspicion/search/pursuit, `SecurityManager` confiscation + fines, HUD alert; 16 tests)
 25. [ ] First playable build
