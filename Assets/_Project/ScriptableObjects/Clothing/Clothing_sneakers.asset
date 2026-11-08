@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d87fe84622c691f4ca14570f4bb69935, type: 3}
+  m_Name: Clothing_sneakers
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Player.Appearance.ClothingDefinition
+  _id: sneakers
+  _displayName: Glow Sneakers
+  _description: They light up. Terrible for sneaking.
+  _slot: 5
+  _styleId: sneakers
+  _primary: {r: 0.95, g: 0.95, b: 0.97, a: 1}
+  _secondary: {r: 1, g: 0.3, b: 0.85, a: 1}
+  _price: 60
+  _ownedFromStart: 0
+  _bareArms: 0

@@ -8,7 +8,7 @@ namespace VentsAndVending.Saving
     /// <summary>Pure capture/restore and JSON (de)serialisation with validation. No file IO here.</summary>
     public static class SaveCodec
     {
-        public const int CurrentVersion = 3; // v2 adds Tunnels, v3 adds Orders (older saves load with empty state)
+        public const int CurrentVersion = 4; // v2 Tunnels, v3 Orders, v4 Appearance (older saves load with empty state)
 
         public static List<StackSave> CaptureInventory(InventoryModel inventory)
         {
@@ -100,6 +100,9 @@ namespace VentsAndVending.Saving
             data.Tunnels.Switches ??= new List<VentsAndVending.Tunnels.SwitchSave>();
             data.Orders ??= new VentsAndVending.Orders.OrderBoardSave();
             data.Orders.Orders ??= new List<VentsAndVending.Orders.CustomerOrder>();
+            data.Appearance ??= new VentsAndVending.Player.Appearance.AppearanceSave();
+            data.Appearance.Owned ??= new List<string>();
+            data.Appearance.Equipped ??= new List<VentsAndVending.Player.Appearance.EquippedSave>();
             data.Version = CurrentVersion; // migrated in memory
             data.Credits = Math.Max(0, data.Credits);
             return true;

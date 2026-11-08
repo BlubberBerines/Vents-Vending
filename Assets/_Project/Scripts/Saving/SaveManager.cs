@@ -133,6 +133,12 @@ namespace VentsAndVending.Saving
                 data.Orders = VentsAndVending.Orders.OrderManager.Instance.Capture();
             }
 
+            var body = FindAnyObjectByType<VentsAndVending.Player.Appearance.PlayerBody>();
+            if (body != null)
+            {
+                data.Appearance = body.Capture();
+            }
+
             if (ProgressionManager.Instance != null)
             {
                 foreach (UpgradeDefinition upgrade in ProgressionManager.Instance.Ledger.Owned)
@@ -233,6 +239,12 @@ namespace VentsAndVending.Saving
             if (VentsAndVending.Orders.OrderManager.Instance != null)
             {
                 VentsAndVending.Orders.OrderManager.Instance.Restore(data.Orders);
+            }
+
+            var playerBody = FindAnyObjectByType<VentsAndVending.Player.Appearance.PlayerBody>();
+            if (playerBody != null)
+            {
+                playerBody.Restore(data.Appearance);
             }
 
             var interactor = FindAnyObjectByType<InteractionController>();

@@ -179,6 +179,7 @@ namespace VentsAndVending.Editor
             SetReference(crouch, "_cameraRoot", cameraRoot);
             SetReference(look, "_pitchRoot", cameraRoot);
             SetReference(interaction, "_camera", cam);
+            BuildPlayerBody(player.transform);
             return player;
         }
 
@@ -191,6 +192,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<UpgradePanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<VentNetPanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<WardrobePanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<PauseMenu>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));

@@ -21,6 +21,8 @@ namespace VentsAndVending.Saving
         public VentsAndVending.Tunnels.TunnelSave Tunnels = new VentsAndVending.Tunnels.TunnelSave();
         /// <summary>v3: VentNet inbox, accepted deals and trust.</summary>
         public VentsAndVending.Orders.OrderBoardSave Orders = new VentsAndVending.Orders.OrderBoardSave();
+        /// <summary>v4: what the player owns, wears and their skin colour.</summary>
+        public VentsAndVending.Player.Appearance.AppearanceSave Appearance = new VentsAndVending.Player.Appearance.AppearanceSave();
     }
 
     [Serializable]

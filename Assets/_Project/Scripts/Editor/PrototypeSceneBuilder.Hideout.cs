@@ -48,6 +48,7 @@ namespace VentsAndVending.Editor
 
             BuildChamber(Group("Chamber", root), floor, wall, vent, accent, dark, cable, cableRed);
             BuildVentNetDesk(root);
+            BuildWardrobeMirror(root);
             BuildExitDuct(Group("ExitDuct", root), floor, vent, accent, glow);
             BuildGallery(Group("ServiceGallery", root), floor, panel, vent, accent, dark, cable, cableRed);
             BuildStashDuct(Group("StashDuct", root), floor, vent, accent, glow);
