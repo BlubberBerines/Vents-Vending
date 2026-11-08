@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd5b2996b442ec4c9135cfacb8783ed, type: 3}
+  m_Name: Customer_Gromflomite
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Customers.CustomerDefinition
+  _id: gromflomite
+  _speciesName: Gromflomite
+  _names:
+  - Clerk Zix
+  - Sub-Inspector Vrell
+  - Auditor Kkt
+  - Deputy Registrar Plom
+  _prefab: {fileID: 1094076098666393098, guid: 8cb2f1ec393e9c3439247170d874bacf, type: 3}
+  _wants:
+  - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _quantityRange: {x: 1, y: 1}
+  _priceToleranceRange: {x: 0.05, y: 0.2}
+  _minimumQuality: 1
+  _likesPoorQuality: 0
+  _haggleAttempts: 2
+  _patience: 40
+  _lines:
+    Greeting:
+    - Citizen. I require {qty} unit(s) of {product}. Off the record.
+    - This interaction is not occurring. {product}, please.
+    - Please remain stationary while I purchase {product}.
+    Accept:
+    - Acceptable. I will not be requesting a receipt. This time.
+    - Transaction filed under 'nothing happened'.
+    - Adequate. Efficient. Mildly illegal.
+    TooExpensive:
+    - '{price} violates subsection 12-F of my personal budget. {counter}.'
+    - Form 88-C permits a maximum of {counter}.
+    - Unacceptable. I am authorised for {counter}.
+    QualityRejected:
+    - This fails the minimum-standards inspection.
+    - Substandard. I have a form for this.
+    WalkAway:
+    - I am filing this interaction under 'regrettable'.
+    - Your vendor licence has been mentally revoked.
+    Impatient:
+    - My lunch break has concluded. Good day.
+    - Waiting exceeds regulation 4-D. Departing.

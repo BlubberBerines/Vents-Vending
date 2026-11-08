@@ -13,6 +13,10 @@ namespace VentsAndVending.UI
         [SerializeField] private InteractionController _interactor;
         [SerializeField] private float _toastSeconds = 2.2f;
 
+        private Economy.PlayerWallet _wallet;
+        private TextMeshProUGUI _credits;
+        private TextMeshProUGUI _creditsDelta;
+        private float _deltaTimer;
         private Image _crosshair;
         private TextMeshProUGUI _prompt;
         private TextMeshProUGUI _toast;
@@ -42,6 +46,53 @@ namespace VentsAndVending.UI
 
             _hint = UiFactory.Text(root, "Hint", "[ Tab ] Inventory", 20f, TextAlignmentOptions.Right, UiFactory.MutedText);
             UiFactory.Place(_hint.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-32f, 24f), new Vector2(400f, 30f));
+
+            // Cosmic Credits (GDD §17.2: clear money indicator)
+            var creditsBg = UiFactory.Image(root, "CreditsPanel", UiFactory.PanelColor);
+            UiFactory.Place(creditsBg.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-28f, -28f), new Vector2(220f, 56f));
+            creditsBg.raycastTarget = false;
+            _credits = UiFactory.Text(creditsBg.transform, "Credits", string.Empty, 30f, TextAlignmentOptions.Right);
+            UiFactory.Stretch(_credits.rectTransform, 12f);
+            _credits.fontStyle = FontStyles.Bold;
+            _creditsDelta = UiFactory.Text(root, "CreditsDelta", string.Empty, 24f, TextAlignmentOptions.Right, UiFactory.Accent);
+            UiFactory.Place(_creditsDelta.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-40f, -90f), new Vector2(220f, 32f));
+
+            if (_interactor != null)
+            {
+                _wallet = _interactor.GetComponent<Economy.PlayerWallet>();
+            }
+        }
+
+        private void Start()
+        {
+            if (_wallet != null)
+            {
+                _wallet.Wallet.Changed += OnCreditsChanged;
+                OnCreditsChanged(_wallet.Wallet.Balance, 0);
+            }
+            else
+            {
+                _credits.transform.parent.gameObject.SetActive(false);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_wallet != null)
+            {
+                _wallet.Wallet.Changed -= OnCreditsChanged;
+            }
+        }
+
+        private void OnCreditsChanged(int balance, int delta)
+        {
+            _credits.text = $"{balance} <color=#19E5FF><size=70%>CC</size></color>";
+            if (delta != 0)
+            {
+                _creditsDelta.text = delta > 0 ? $"+{delta} CC" : $"{delta} CC";
+                _creditsDelta.color = delta > 0 ? UiFactory.Accent : new Color(1f, 0.45f, 0.4f);
+                _deltaTimer = 2.5f;
+            }
         }
 
         private void OnEnable()
@@ -73,6 +124,12 @@ namespace VentsAndVending.UI
 
             string prompt = busy ? null : _interactor.CurrentPrompt;
             _prompt.text = string.IsNullOrEmpty(prompt) ? string.Empty : $"<color=#19E5FF>[ {_interactor.InteractKeyLabel} ]</color>  {prompt}";
+
+            if (_deltaTimer > 0f)
+            {
+                _deltaTimer -= Time.unscaledDeltaTime;
+                _creditsDelta.alpha = Mathf.Clamp01(_deltaTimer / 0.5f);
+            }
 
             if (_toastTimer > 0f)
             {

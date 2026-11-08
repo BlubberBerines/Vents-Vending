@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd5b2996b442ec4c9135cfacb8783ed, type: 3}
+  m_Name: Customer_Blorb
+  m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Customers.CustomerDefinition
+  _id: blorb
+  _speciesName: Blorb
+  _names:
+  - Glorbo
+  - Squishkin
+  - Blibble
+  - Wubbsy
+  - Jellbert
+  - Gloopa
+  _prefab: {fileID: 1043555187315682355, guid: 089255b4daf31ea45b7a25353cc68dce, type: 3}
+  _wants:
+  - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
+  _quantityRange: {x: 1, y: 2}
+  _priceToleranceRange: {x: 0.15, y: 0.4}
+  _minimumQuality: 1
+  _likesPoorQuality: 0
+  _haggleAttempts: 2
+  _patience: 50
+  _lines:
+    Greeting:
+    - Heyyy friend! Got any {product}?
+    - Ooh, are you the vent person? I need {product}!
+    - "Hi! I'm {name}! I forgot why I'm here. Oh right \u2014 {product}!"
+    Accept:
+    - Glorp! Pleasure doing business!
+    - Ooh it's so shiny! Byeee!
+    - My wobble approves!
+    TooExpensive:
+    - Whoa whoa, {price}?! How about {counter}?
+    - My wobble says no. {counter} maybe?
+    - That's like, a lot of credits. {counter}?
+    QualityRejected:
+    - "Ew, it looks all\u2026 flat. Got better stuff?"
+    - That one's sad-looking. Something nicer?
+    WalkAway:
+    - Forget it, I'll go wobble somewhere else.
+    - "Rude! \u2026Bye!"
+    Impatient:
+    - I forgot what I was waiting for. Bye!
+    - Oooh, a shiny thing over there!

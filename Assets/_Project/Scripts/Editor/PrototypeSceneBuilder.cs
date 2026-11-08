@@ -19,7 +19,7 @@ namespace VentsAndVending.Editor
     /// Builds the movement greybox scene: open floor, jump steps, a ramp, a crouch tunnel and an L-shaped vent duct.
     /// Re-running it regenerates the scene from scratch.
     /// </summary>
-    public static class PrototypeSceneBuilder
+    public static partial class PrototypeSceneBuilder
     {
         public const string ScenePath = "Assets/_Project/Scenes/Prototype/Greybox_Movement.unity";
         private const string MaterialFolder = "Assets/_Project/Art/Materials/Greybox";
@@ -94,6 +94,8 @@ namespace VentsAndVending.Editor
             BuildVentDuct(level, ventMat, accentMat, glowMat);
             BuildInteractables(level, propMat, accentMat, ventMat);
             BuildMixingStation(level, wallMat, accentMat);
+            BuildPlazaDoorAndCustomers(level, wallMat, accentMat);
+            BakeNavMesh(level.gameObject);
 
             var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
             CreateHud(player.GetComponent<InteractionController>());
@@ -244,6 +246,7 @@ namespace VentsAndVending.Editor
             var pockets = player.AddComponent<InventoryComponent>();
             pockets.Configure("Pockets", 8);
             var interaction = player.AddComponent<InteractionController>();
+            player.AddComponent<VentsAndVending.Economy.PlayerWallet>();
 
             var cameraRoot = new GameObject("CameraRoot").transform;
             cameraRoot.SetParent(player.transform, false);
@@ -272,6 +275,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<HudController>(), "_interactor", interactor);
             SetReference(hud.AddComponent<InventoryScreen>(), "_interactor", interactor);
             SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
         }

@@ -37,9 +37,9 @@ Source: GDD Appendix B. Current phase: **Phase 1 — Pre-production** → Phase 
 16. [x] First RecipeDefinition (`Recipe_GlarbJuice`: Glarb Extract → Lumina Gel → Stabiliser Gel)
 17. [x] Ingredient consumption (loaded from pockets; Empty vessel returns them)
 18. [x] Product generation (`ProductDefinition` Glarb-Juice, 4 quality tiers from mix timing + order; 27 EditMode tests)
-19. [ ] Basic customer
-20. [ ] One complete sale
-21. [ ] Cosmic Credits
+19. [x] Basic customer (`CustomerDefinition` data, NavMesh `Customer` lifecycle, Blorb + Gromflomite, `CustomerSpawner`, speech bubbles)
+20. [x] One complete sale (`SalePanel`: pick quality, set price, haggle via `SaleNegotiation`)
+21. [x] Cosmic Credits (`Wallet` + `PlayerWallet`, HUD counter; start 20 CC)
 22. [ ] First upgrade
 23. [ ] Connect hideout to the alien plaza
 24. [ ] Simple security drone
