@@ -45,34 +45,16 @@ namespace VentsAndVending.Editor
             spawn.position = new Vector3(0f, 0f, z - 1.4f);
             spawn.rotation = Quaternion.Euler(0f, 180f, 0f);
 
-            var spotMat = GetOrCreateMaterial("Plaza_TradeSpot", new Color(0.05f, 0.25f, 0.3f), 0.3f, new Color(0.1f, 0.9f, 1f) * 0.6f);
-            var spotPositions = new[] { new Vector3(-6f, 0f, 38f), new Vector3(6.5f, 0f, 41f), new Vector3(-1f, 0f, 45.5f) };
-            var spots = new Transform[spotPositions.Length];
-            for (int i = 0; i < spots.Length; i++)
-            {
-                var spot = new GameObject($"Trade Spot {i + 1}").transform;
-                spot.SetParent(g, false);
-                spot.position = spotPositions[i];
-                var decal = Block("Marker", spot, spot.position + new Vector3(0f, 0.005f, 0f), new Vector3(1.1f, 0.01f, 1.1f), spotMat);
-                Object.DestroyImmediate(decal.GetComponent<Collider>());
-                decal.isStatic = false;
-                spots[i] = spot;
-            }
-
             CustomerDefinition blorb = CreateBlorbDefinition();
             CustomerDefinition gromflomite = CreateGromflomiteDefinition();
             _blorbDefinition = blorb;
             _gromflomiteDefinition = gromflomite;
 
-            var spawnerGo = new GameObject("Customer Spawner");
-            spawnerGo.transform.SetParent(g, false);
-            var spawner = spawnerGo.AddComponent<CustomerSpawner>();
-            var so = new SerializedObject(spawner);
-            SetList(so.FindProperty("_definitions"), blorb, gromflomite);
-            so.FindProperty("_spawnPoint").objectReferenceValue = spawn;
-            so.FindProperty("_exitPoint").objectReferenceValue = spawn;
-            SetList(so.FindProperty("_meetingPoints"), spots);
-            so.ApplyModifiedPropertiesWithoutUndo();
+            // Plaza customers come by appointment: VentNet orders bring them through this door to the A/B/C meet spots
+            // (built by BuildPlazaRefresh). The Concourse Lounge keeps its own walk-in spawner.
+            var managerGo = new GameObject("VentNet Orders");
+            managerGo.AddComponent<VentsAndVending.Orders.OrderManager>()
+                .Configure(new[] { blorb, gromflomite }, _meetSpots, spawn, spawn, ProceduralAudio.Message);
         }
 
         private static void BakeNavMesh(GameObject level)

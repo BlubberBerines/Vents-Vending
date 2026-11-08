@@ -30,6 +30,11 @@ namespace VentsAndVending.UI
         private TextMeshProUGUI _price;
         private TextMeshProUGUI _total;
         private Button _offerButton;
+        private TextMeshProUGUI _offerLabel;
+        private TextMeshProUGUI _declineLabel;
+        private TextMeshProUGUI _hint;
+        private readonly List<GameObject> _priceControls = new List<GameObject>();
+        private Orders.CustomerOrder _order;
 
         private void OnEnable() => Customer.TradeRequested += OnTradeRequested;
 
@@ -51,6 +56,21 @@ namespace VentsAndVending.UI
             _selectedQuality = BestSellableQuality();
             _unitPrice = _selectedQuality.HasValue ? customer.FairUnitPrice(_selectedQuality.Value) : customer.FairUnitPrice(ItemQuality.Standard);
 
+            _order = customer.Order;
+            bool deal = _order != null;
+            foreach (GameObject control in _priceControls)
+            {
+                control.SetActive(!deal);
+            }
+            _offerLabel.text = deal ? "Hand over" : "Make offer";
+            _declineLabel.text = deal ? "Not yet" : "Walk away";
+            _hint.text = deal
+                ? "VentNet deal: the price is agreed · better quality than asked pays more   ·   [ Esc ] Step back (they keep waiting until the window closes)"
+                : "Pick a quality · set your price · higher markups risk a walk-out   ·   [ Esc ] Step back (they'll keep waiting)";
+            if (deal && _selectedQuality.HasValue)
+            {
+                _unitPrice = Orders.OrderManager.Instance != null ? Orders.OrderManager.Instance.UnitPayout(_order, _selectedQuality.Value) : _unitPrice;
+            }
             _title.text = $"{customer.DisplayName} <color=#9AA3AD><size=70%>the {customer.Definition.SpeciesName}</size></color>";
             _reply.text = $"<i>“{customer.Line(customer.Definition.Lines.Greeting)}”</i>";
             Refresh();
@@ -105,7 +125,14 @@ namespace VentsAndVending.UI
             var product = _customer.WantedProduct;
             int qty = _customer.WantedQuantity;
             int fair = _customer.FairUnitPrice(_selectedQuality ?? ItemQuality.Standard);
-            _request.text = $"Wants <b>{product.DisplayName} x{qty}</b>   <color=#9AA3AD>· fair price ~{fair} CC each · offers left: {_negotiation.AttemptsLeft}</color>";
+            if (_order != null)
+            {
+                _request.text = $"Deal {_order.Id}: <b>{product.DisplayName} x{qty}</b>, {_order.MinimumQuality} or better   <color=#9AA3AD>· agreed {UnitPayoutFor(_order.MinimumQuality)} CC each at {_order.MinimumQuality}</color>";
+            }
+            else
+            {
+                _request.text = $"Wants <b>{product.DisplayName} x{qty}</b>   <color=#9AA3AD>· fair price ~{fair} CC each · offers left: {_negotiation.AttemptsLeft}</color>";
+            }
 
             // Stock rows per quality
             ClearChildren(_stockList);
@@ -141,13 +168,18 @@ namespace VentsAndVending.UI
             _total.text = enough
                 ? $"Total: <b>{_unitPrice * qty} CC</b>  <color=#9AA3AD>for {qty} × {_selectedQuality}</color>"
                 : $"<color=#FF8060>You need {qty} of one quality to sell</color>";
+            if (_order != null && enough && !_negotiation.AcceptsQuality(_selectedQuality.Value))
+            {
+                _total.text = $"<color=#FF8060>They asked for {_order.MinimumQuality} or better</color>";
+                enough = false;
+            }
             _offerButton.interactable = enough && !_negotiation.IsClosed;
         }
 
         private void Select(ItemQuality quality)
         {
             _selectedQuality = quality;
-            _unitPrice = _customer.FairUnitPrice(quality);
+            _unitPrice = _order != null ? UnitPayoutFor(quality) : _customer.FairUnitPrice(quality);
             Refresh();
         }
 
@@ -172,6 +204,11 @@ namespace VentsAndVending.UI
 
             ItemQuality quality = _selectedQuality.Value;
             var lines = _customer.Definition.Lines;
+            if (_order != null)
+            {
+                HandOver(quality, lines);
+                return;
+            }
             OfferResult result = _negotiation.Offer(_unitPrice, quality, _customer.FairUnitPrice(quality));
 
             switch (result.Outcome)
@@ -210,8 +247,40 @@ namespace VentsAndVending.UI
             }
         }
 
+        private int UnitPayoutFor(ItemQuality quality) =>
+            Orders.OrderManager.Instance != null ? Orders.OrderManager.Instance.UnitPayout(_order, quality) : _customer.FairUnitPrice(quality);
+
+        /// <summary>VentNet deal: no haggling, pay what was agreed for the quality delivered.</summary>
+        private void HandOver(ItemQuality quality, CustomerDefinition.DialogueLines lines)
+        {
+            if (!_negotiation.AcceptsQuality(quality) || Interactor.Inventory.Model.Count(_customer.WantedProduct, quality) < _customer.WantedQuantity)
+            {
+                _customer.ShowAnnoyed();
+                _reply.text = $"<i>“{_customer.Line(lines.QualityRejected)}”</i>";
+                return;
+            }
+
+            int unit = UnitPayoutFor(quality);
+            int total = unit * _customer.WantedQuantity;
+            Interactor.Inventory.Model.Remove(_customer.WantedProduct, _customer.WantedQuantity, quality);
+            if (_wallet != null)
+            {
+                _wallet.Wallet.Add(total);
+            }
+            _resolved = true;
+            Orders.OrderManager.Instance?.CompleteHandoff(_order, total);
+            _customer.EndTrade(TradeOutcome.Sold, _customer.Line(lines.Accept, unit));
+            Interactor.Notify($"Deal done: {_customer.WantedQuantity} × {_customer.WantedProduct.DisplayName} for <color=#19E5FF>+{total} CC</color>  <color=#9AA3AD>(trust +{Orders.OrderRules.TrustForCompleting})</color>");
+            Close();
+        }
+
         private void Decline()
         {
+            if (_order != null)
+            {
+                Close(); // step back; they keep waiting until the window closes
+                return;
+            }
             if (_customer != null)
             {
                 _resolved = true;
@@ -254,25 +323,29 @@ namespace VentsAndVending.UI
             UiFactory.Place(_price.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -230f), new Vector2(420f, 64f));
             _price.fontStyle = FontStyles.Bold;
 
+            _priceControls.Clear();
+            _priceControls.Add(priceLabel.gameObject);
+            _priceControls.Add(_price.gameObject);
             float bx = -30f;
-            UiFactory.Button(panel.transform, "Plus5", "+5", () => AdjustPrice(5), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx, -306f), new Vector2(96f, 44f));
-            UiFactory.Button(panel.transform, "Plus1", "+1", () => AdjustPrice(1), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 108f, -306f), new Vector2(96f, 44f));
-            UiFactory.Button(panel.transform, "Minus1", "-1", () => AdjustPrice(-1), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 216f, -306f), new Vector2(96f, 44f));
-            UiFactory.Button(panel.transform, "Minus5", "-5", () => AdjustPrice(-5), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 324f, -306f), new Vector2(96f, 44f));
+            _priceControls.Add(UiFactory.Button(panel.transform, "Plus5", "+5", () => AdjustPrice(5), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx, -306f), new Vector2(96f, 44f)).gameObject);
+            _priceControls.Add(UiFactory.Button(panel.transform, "Plus1", "+1", () => AdjustPrice(1), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 108f, -306f), new Vector2(96f, 44f)).gameObject);
+            _priceControls.Add(UiFactory.Button(panel.transform, "Minus1", "-1", () => AdjustPrice(-1), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 216f, -306f), new Vector2(96f, 44f)).gameObject);
+            _priceControls.Add(UiFactory.Button(panel.transform, "Minus5", "-5", () => AdjustPrice(-5), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 324f, -306f), new Vector2(96f, 44f)).gameObject);
 
-            UiFactory.Button(panel.transform, "Fair", "Fair", () => SetMarkup(0f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 288f, -362f), new Vector2(132f, 40f));
-            UiFactory.Button(panel.transform, "Markup20", "+20%", () => SetMarkup(0.2f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 144f, -362f), new Vector2(132f, 40f));
-            UiFactory.Button(panel.transform, "Markup40", "+40%", () => SetMarkup(0.4f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx, -362f), new Vector2(132f, 40f));
+            _priceControls.Add(UiFactory.Button(panel.transform, "Fair", "Fair", () => SetMarkup(0f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 288f, -362f), new Vector2(132f, 40f)).gameObject);
+            _priceControls.Add(UiFactory.Button(panel.transform, "Markup20", "+20%", () => SetMarkup(0.2f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx - 144f, -362f), new Vector2(132f, 40f)).gameObject);
+            _priceControls.Add(UiFactory.Button(panel.transform, "Markup40", "+40%", () => SetMarkup(0.4f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(bx, -362f), new Vector2(132f, 40f)).gameObject);
 
             _total = UiFactory.Text(panel.transform, "Total", string.Empty, 22f, TextAlignmentOptions.Center);
             UiFactory.Place(_total.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -420f), new Vector2(420f, 34f));
 
             _offerButton = UiFactory.Button(panel.transform, "OfferButton", "Make offer", MakeOffer,
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-30f, 70f), new Vector2(420f, 60f));
-            UiFactory.Button(panel.transform, "DeclineButton", "Walk away", Decline,
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(30f, 70f), new Vector2(240f, 48f));
+            _offerLabel = _offerButton.GetComponentInChildren<TextMeshProUGUI>();
+            _declineLabel = UiFactory.Button(panel.transform, "DeclineButton", "Walk away", Decline,
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(30f, 70f), new Vector2(240f, 48f)).GetComponentInChildren<TextMeshProUGUI>();
 
-            TextMeshProUGUI hint = UiFactory.Text(panel.transform, "Hint",
+            TextMeshProUGUI hint = _hint = UiFactory.Text(panel.transform, "Hint",
                 "Pick a quality · set your price · higher markups risk a walk-out   ·   [ Esc ] Step back (they'll keep waiting)",
                 18f, TextAlignmentOptions.Center, UiFactory.MutedText);
             UiFactory.Place(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(1000f, 30f));

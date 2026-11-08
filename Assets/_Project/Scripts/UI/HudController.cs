@@ -25,6 +25,8 @@ namespace VentsAndVending.UI
         private TextMeshProUGUI _toast;
         private TextMeshProUGUI _hint;
         private float _toastTimer;
+        private TextMeshProUGUI _orders;
+        private float _ordersRefresh;
 
         private void Awake()
         {
@@ -49,6 +51,10 @@ namespace VentsAndVending.UI
 
             _hint = UiFactory.Text(root, "Hint", "[ Tab ] Inventory", 20f, TextAlignmentOptions.Right, UiFactory.MutedText);
             UiFactory.Place(_hint.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-32f, 24f), new Vector2(400f, 30f));
+
+            // VentNet deals tracker (top-left): booked meetings and unread messages
+            _orders = UiFactory.Text(root, "Orders", string.Empty, 21f, TextAlignmentOptions.TopLeft);
+            UiFactory.Place(_orders.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -24f), new Vector2(640f, 200f));
 
             // Cosmic Credits (GDD §17.2: clear money indicator)
             var creditsBg = UiFactory.Image(root, "CreditsPanel", UiFactory.PanelColor);
@@ -191,6 +197,7 @@ namespace VentsAndVending.UI
             _prompt.text = string.IsNullOrEmpty(prompt) ? string.Empty : $"<color=#19E5FF>[ {_interactor.InteractKeyLabel} ]</color>  {prompt}";
 
             UpdateSecurityAlert();
+            UpdateOrders(busy);
 
             if (_deltaTimer > 0f)
             {
@@ -203,6 +210,43 @@ namespace VentsAndVending.UI
                 _toastTimer -= Time.unscaledDeltaTime;
                 _toast.alpha = Mathf.Clamp01(_toastTimer / 0.4f);
             }
+        }
+
+        private void UpdateOrders(bool busy)
+        {
+            _ordersRefresh -= Time.unscaledDeltaTime;
+            if (_ordersRefresh > 0f)
+            {
+                return;
+            }
+            _ordersRefresh = 0.25f;
+
+            var manager = Orders.OrderManager.Instance;
+            if (manager == null || busy)
+            {
+                _orders.text = string.Empty;
+                return;
+            }
+
+            var board = manager.Board;
+            var sb = new System.Text.StringBuilder();
+            foreach (Orders.CustomerOrder o in board.Orders)
+            {
+                if (!o.IsActive)
+                {
+                    continue;
+                }
+                var product = manager.FindProduct(o.ProductId);
+                string when = o.Status == Orders.OrderStatus.Waiting
+                    ? $"<color=#19E5FF>waiting · {Orders.OrderRules.Clock(o.WindowClosesAt - board.Clock)}</color>"
+                    : $"<color=#9AA3AD>arrives in {Orders.OrderRules.Clock(o.WindowOpensAt - board.Clock)}</color>";
+                sb.Append($"<b>Spot {o.SpotId}</b>  {o.CustomerName} · {o.Quantity}× {(product != null ? product.DisplayName : o.ProductId)} {o.MinimumQuality}+  {when}").Append('\n');
+            }
+            if (board.OfferCount > 0)
+            {
+                sb.Append($"<color=#FFD24D>[!] {board.OfferCount} new VentNet message{(board.OfferCount == 1 ? "" : "s")}</color> <color=#9AA3AD><size=85%>(PC in the den)</size></color>");
+            }
+            _orders.text = sb.ToString();
         }
 
         private void ShowToast(string message)

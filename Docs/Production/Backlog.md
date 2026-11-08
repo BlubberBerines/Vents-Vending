@@ -61,3 +61,11 @@ reputation (GDD 9.3), customer orders, Federation Inspector, production state in
 - [x] 06 Drop Hatch → 07 Plaza Service Hub → 08 Customer Vent over the richer mezzanine customers; staff-door latch (07 → plaza) is the shortcut home
 - [x] Richer customer tier (Gromflomite Executive, Blorb Socialite in the Concourse Lounge) (bigger budgets, higher quality expectations) served only via 08
 - [x] Pass 2 hideout dressing: clutter, idle motion (wall fan, drips, swaying + flickering bulbs), procedural placeholder audio, master volume setting
+
+## Orders and plaza (Docs/Design/VentNet.md)
+
+- [x] VentNet: customer messages on a den PC, accept/decline, meeting windows, trust; save v3
+- [x] Three meet spots (A low / B high / C medium risk) with floor tags and booked beacons; HUD deal tracker
+- [x] Deal hand-off in the sale panel (agreed price, better quality pays more)
+- [x] Central Plaza refresh: clean panels, lit ceiling with vent grilles, ads, planters, vending machine, kiosk, crowd / music / PA audio
+- [ ] Play-test a full lounge sale (Executive + Socialite) and tune their prices vs product value

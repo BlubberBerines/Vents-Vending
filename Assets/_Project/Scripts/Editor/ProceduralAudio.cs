@@ -30,7 +30,150 @@ namespace VentsAndVending.Editor
         public static AudioClip Clunk => Get(SfxFolder, "sfx_clunk", 0.45f, false, ClunkSynth);
         public static AudioClip FlickerBuzz => Get(SfxFolder, "sfx_flicker_buzz", 0.6f, false, FlickerSynth);
 
+        public static AudioClip Message => Get(SfxFolder, "sfx_ventnet_message", 0.35f, false, MessageSynth);
+        public static AudioClip PaChime => Get(SfxFolder, "sfx_pa_chime", 1.8f, false, ChimeSynth);
+        public static AudioClip PlazaCrowd => Get(AmbienceFolder, "amb_plaza_crowd", 10f, true, CrowdSynth);
+        public static AudioClip PlazaMusic => Get(AmbienceFolder, "amb_plaza_music", 8f, true, MusicSynth);
+
         // ------------------------------------------------------------------ Synths (buffer, rng)
+
+        /// <summary>Burner pager: two quick rising chirps.</summary>
+        private static void MessageSynth(float[] b, System.Random r)
+        {
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                float s = 0f;
+                if (t < 0.08f)
+                {
+                    s = Beep(t, 1320f) * Mathf.Clamp01(t / 0.004f) * Mathf.Clamp01((0.08f - t) / 0.01f);
+                }
+                else if (t > 0.12f && t < 0.2f)
+                {
+                    float u = t - 0.12f;
+                    s = Beep(u, 1760f) * Mathf.Clamp01(u / 0.004f) * Mathf.Clamp01((0.08f - u) / 0.01f);
+                }
+                b[i] = s;
+            }
+        }
+
+        private static float Beep(float t, float f) => Mathf.Sin(2f * Mathf.PI * f * t) + 0.3f * Mathf.Sin(2f * Mathf.PI * 3f * f * t);
+
+        /// <summary>Station PA "ding-dong" (two bell tones).</summary>
+        private static void ChimeSynth(float[] b, System.Random r)
+        {
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                b[i] = Bell(t, 659.3f) + (t > 0.55f ? Bell(t - 0.55f, 523.3f) : 0f);
+            }
+        }
+
+        private static float Bell(float t, float f)
+        {
+            float attack = Mathf.Clamp01(t / 0.003f);
+            return attack * (Mathf.Sin(2f * Mathf.PI * f * t) * Mathf.Exp(-t / 0.7f)
+                             + 0.4f * Mathf.Sin(2f * Mathf.PI * f * 2.76f * t) * Mathf.Exp(-t / 0.3f)
+                             + 0.2f * Mathf.Sin(2f * Mathf.PI * f * 5.4f * t) * Mathf.Exp(-t / 0.12f));
+        }
+
+        /// <summary>
+        /// Muffled crowd walla: ten "voices", each a buzzy source pushed through two formant resonators and chopped
+        /// into syllables with pauses, then low-passed as if heard through a wall.
+        /// </summary>
+        private static void CrowdSynth(float[] b, System.Random r)
+        {
+            const int voices = 10;
+            var f0 = new float[voices];
+            var gain = new float[voices];
+            var sylStart = new float[voices];
+            var sylLen = new float[voices];
+            var silent = new bool[voices];
+            var w1 = new float[voices];
+            var w2 = new float[voices];
+            var y = new float[voices, 4]; // two resonators × two states
+            var phase = new float[voices];
+            for (int v = 0; v < voices; v++)
+            {
+                f0[v] = 95f + (float)r.NextDouble() * 140f;
+                gain[v] = 0.4f + (float)r.NextDouble() * 0.6f;
+                sylStart[v] = -(float)r.NextDouble();
+                sylLen[v] = 0.01f;
+            }
+
+            const float rad = 0.985f;
+            float lp = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                float mix = 0f;
+                for (int v = 0; v < voices; v++)
+                {
+                    if (t - sylStart[v] >= sylLen[v])
+                    {
+                        sylStart[v] = t;
+                        silent[v] = r.NextDouble() < 0.22;
+                        sylLen[v] = silent[v] ? 0.2f + (float)r.NextDouble() * 0.5f : 0.08f + (float)r.NextDouble() * 0.16f;
+                        w1[v] = 2f * Mathf.PI * (300f + (float)r.NextDouble() * 500f) / Rate;
+                        w2[v] = 2f * Mathf.PI * (900f + (float)r.NextDouble() * 1400f) / Rate;
+                    }
+                    if (silent[v])
+                    {
+                        continue;
+                    }
+                    phase[v] += f0[v] / Rate;
+                    phase[v] -= Mathf.Floor(phase[v]);
+                    float excitation = (2f * phase[v] - 1f) * 0.6f + White(r) * 0.35f;
+                    float r1 = (1f - rad) * excitation + 2f * rad * Mathf.Cos(w1[v]) * y[v, 0] - rad * rad * y[v, 1];
+                    y[v, 1] = y[v, 0];
+                    y[v, 0] = r1;
+                    float r2 = (1f - rad) * excitation + 2f * rad * Mathf.Cos(w2[v]) * y[v, 2] - rad * rad * y[v, 3];
+                    y[v, 3] = y[v, 2];
+                    y[v, 2] = r2;
+                    float env = Mathf.Sin(Mathf.PI * Mathf.Clamp01((t - sylStart[v]) / sylLen[v]));
+                    mix += (r1 + r2 * 0.6f) * env * gain[v];
+                }
+                lp += 0.18f * (mix - lp);
+                b[i] = lp;
+            }
+        }
+
+        /// <summary>Lounge-y loop bleeding out of a stall: Am7–Fmaj7–Cmaj7–G6 pads, a soft bass and hats, 120 bpm, 4 bars.</summary>
+        private static void MusicSynth(float[] b, System.Random r)
+        {
+            int[][] chords = { new[] { 57, 60, 64, 67 }, new[] { 53, 57, 60, 64 }, new[] { 48, 52, 55, 59 }, new[] { 55, 59, 62, 64 } };
+            int[] bass = { 45, 41, 36, 43 };
+            const float bar = 2f, beat = 0.5f;
+            float hp = 0f, lp = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)Rate;
+                int bi = Mathf.Min(3, (int)(t / bar));
+                float tb = t - bi * bar;
+                float padEnv = 0.5f - 0.5f * Mathf.Cos(2f * Mathf.PI * tb / bar);
+                float pad = 0f;
+                foreach (int n in chords[bi])
+                {
+                    float f = Midi(n);
+                    pad += Mathf.Sin(2f * Mathf.PI * f * t) + 0.25f * Mathf.Sin(2f * Mathf.PI * 2f * f * t + 0.5f);
+                }
+                pad *= padEnv * 0.18f;
+
+                float tBeat = tb % (2f * beat); // bass on beats 1 and 3
+                float bassNote = Mathf.Sin(2f * Mathf.PI * Midi(bass[bi]) * t) * Mathf.Exp(-tBeat / 0.35f) * 0.5f;
+
+                float tOff = (t + beat * 0.5f) % beat; // hats on the off-beats
+                float w = White(r);
+                hp += 0.3f * (w - hp);
+                float hat = (w - hp) * Mathf.Exp(-tOff / 0.02f) * 0.12f;
+
+                float mix = pad + bassNote + hat;
+                lp += 0.22f * (mix - lp); // heard from across the plaza
+                b[i] = lp;
+            }
+        }
+
+        private static float Midi(int note) => 440f * Mathf.Pow(2f, (note - 69) / 12f);
 
         private static void RoomHumSynth(float[] b, System.Random r)
         {

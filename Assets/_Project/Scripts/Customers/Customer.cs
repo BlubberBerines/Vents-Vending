@@ -51,6 +51,8 @@ namespace VentsAndVending.Customers
         public int WantedQuantity { get; private set; }
         public float PriceTolerance { get; private set; }
         public CustomerState State { get; private set; } = CustomerState.Arriving;
+        /// <summary>Set when this visit is a VentNet deal (GDD §10.3): agreed product, quantity, quality and price.</summary>
+        public Orders.CustomerOrder Order { get; private set; }
         /// <summary>0–1, how much patience is left while waiting.</summary>
         public float PatienceFraction => _definition != null ? Mathf.Clamp01(_patienceLeft / _definition.Patience) : 0f;
 
@@ -85,13 +87,42 @@ namespace VentsAndVending.Customers
             SetBubble(string.Empty);
         }
 
+        /// <summary>
+        /// Starts a visit for an accepted VentNet deal: the agreed name, product and quantity, walking to the meet spot.
+        /// The customer waits until the order manager says the window has closed (no patience timer of their own).
+        /// </summary>
+        public void BeginOrder(CustomerDefinition definition, Orders.CustomerOrder order, ProductDefinition product, Transform meetingPoint, Transform exitPoint)
+        {
+            Begin(definition, meetingPoint, exitPoint);
+            Order = order;
+            DisplayName = order.CustomerName;
+            WantedProduct = product;
+            WantedQuantity = order.Quantity;
+            PriceTolerance = order.Markup;
+        }
+
+        /// <summary>The deal window closed or was cancelled: storm off.</summary>
+        public void GiveUp()
+        {
+            if (State == CustomerState.Leaving)
+            {
+                return;
+            }
+            ShowAnnoyed();
+            Leave(Line(_definition.Lines.Impatient));
+        }
+
         // ------------------------------------------------------------------ IInteractable
 
         public string GetPrompt(InteractionController interactor)
         {
-            return State == CustomerState.Waiting && WantedProduct != null
-                ? $"Talk to {DisplayName} <color=#9AA3AD>({_definition.SpeciesName} · wants {WantedProduct.DisplayName} x{WantedQuantity})</color>"
-                : null;
+            if (State != CustomerState.Waiting || WantedProduct == null)
+            {
+                return null;
+            }
+            return Order != null
+                ? $"Meet {DisplayName} <color=#9AA3AD>(VentNet deal · {WantedProduct.DisplayName} x{WantedQuantity}, {Order.MinimumQuality}+)</color>"
+                : $"Talk to {DisplayName} <color=#9AA3AD>({_definition.SpeciesName} · wants {WantedProduct.DisplayName} x{WantedQuantity})</color>";
         }
 
         public void Interact(InteractionController interactor)
@@ -177,8 +208,8 @@ namespace VentsAndVending.Customers
                     if (Reached())
                     {
                         State = CustomerState.Waiting;
-                        _patienceLeft = _definition.Patience;
-                        SetBubble(WantedProduct != null ? $"{WantedProduct.DisplayName} x{WantedQuantity}?" : "…");
+                        _patienceLeft = Order != null ? float.PositiveInfinity : _definition.Patience;
+                        SetBubble(Order != null ? "Psst. Got my order?" : WantedProduct != null ? $"{WantedProduct.DisplayName} x{WantedQuantity}?" : "…");
                     }
                     break;
 

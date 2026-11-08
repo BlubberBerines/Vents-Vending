@@ -21,7 +21,7 @@ namespace VentsAndVending.Editor
         private static Transform BuildPlaza(Transform level, Material hideoutWall, Material accent, Material vent, Material glow)
         {
             var floorMat = GetOrCreateMaterial("Plaza_Floor", new Color(0.22f, 0.23f, 0.28f), 0.65f);
-            var wallMat = GetOrCreateMaterial("Plaza_Wall", new Color(0.17f, 0.14f, 0.28f), 0.45f);
+            var wallMat = PlazaWallClean; // clean pale panels: the public side the vents hide behind (TunnelNetwork.md §4B)
             var cyan = GetOrCreateMaterial("Plaza_NeonCyan", new Color(0.02f, 0.2f, 0.25f), 0.6f, new Color(0.2f, 1.6f, 2f));
             var magenta = GetOrCreateMaterial("Plaza_NeonMagenta", new Color(0.25f, 0.02f, 0.2f), 0.6f, new Color(2f, 0.2f, 1.5f));
             var orange = GetOrCreateMaterial("Plaza_NeonOrange", new Color(0.3f, 0.12f, 0.02f), 0.6f, new Color(2f, 0.8f, 0.15f));
@@ -95,6 +95,7 @@ namespace VentsAndVending.Editor
             CreatePointLight("Plaza Fill", new Vector3(0f, 5.5f, 37f), new Color(0.85f, 0.88f, 1f), 22f, 3.5f, plaza);
 
             BuildPlazaVent(level, vent, accent, glow);
+            BuildPlazaRefresh(plaza);
             return plaza;
         }
 

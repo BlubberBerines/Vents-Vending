@@ -19,6 +19,8 @@ namespace VentsAndVending.Saving
         public List<InventorySave> Inventories = new List<InventorySave>();
         /// <summary>v2: discovered tunnel rooms and infrastructure switches (breakers, latches).</summary>
         public VentsAndVending.Tunnels.TunnelSave Tunnels = new VentsAndVending.Tunnels.TunnelSave();
+        /// <summary>v3: VentNet inbox, accepted deals and trust.</summary>
+        public VentsAndVending.Orders.OrderBoardSave Orders = new VentsAndVending.Orders.OrderBoardSave();
     }
 
     [Serializable]

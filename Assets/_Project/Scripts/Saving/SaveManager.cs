@@ -128,6 +128,11 @@ namespace VentsAndVending.Saving
                 data.Tunnels = TunnelManager.Instance.Capture();
             }
 
+            if (VentsAndVending.Orders.OrderManager.Instance != null)
+            {
+                data.Orders = VentsAndVending.Orders.OrderManager.Instance.Capture();
+            }
+
             if (ProgressionManager.Instance != null)
             {
                 foreach (UpgradeDefinition upgrade in ProgressionManager.Instance.Ledger.Owned)
@@ -223,6 +228,11 @@ namespace VentsAndVending.Saving
             if (TunnelManager.Instance != null)
             {
                 TunnelManager.Instance.Restore(data.Tunnels);
+            }
+
+            if (VentsAndVending.Orders.OrderManager.Instance != null)
+            {
+                VentsAndVending.Orders.OrderManager.Instance.Restore(data.Orders);
             }
 
             var interactor = FindAnyObjectByType<InteractionController>();

@@ -190,6 +190,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<UpgradePanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<VentNetPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<PauseMenu>(), "_interactor", interactor);
 
             new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));

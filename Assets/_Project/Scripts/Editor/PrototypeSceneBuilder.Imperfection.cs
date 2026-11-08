@@ -157,7 +157,7 @@ namespace VentsAndVending.Editor
             Material crack = GetOrCreateMaterial("Prop_Seam", new Color(0.05f, 0.04f, 0.06f), 0.2f);
             Material tape = Worn(GetOrCreateMaterial("Prop_DuctTape", new Color(0.62f, 0.63f, 0.66f), 0.45f), 0.3f, 0.3f);
 
-            PatchPlate(g, new Vector3(3.2f, 1.15f, -17.4f), Vector3.left, new Vector2(0.5f, 0.42f), 6f, plate, rivet);
+            PatchPlate(g, new Vector3(3.2f, 1.85f, -16.15f), Vector3.left, new Vector2(0.5f, 0.42f), 6f, plate, rivet);
             PatchPlate(g, new Vector3(1.05f, 1.35f, -14.5f), Vector3.back, new Vector2(0.38f, 0.3f), -9f, plate, rivet);
             PatchPlate(g, new Vector3(-0.6f, 1.2f, -2.0f), Vector3.right, new Vector2(0.45f, 0.6f), 4f, plate, rivet);
             PatchPlate(g, new Vector3(-6.8f, 1.0f, 6.5f), Vector3.left, new Vector2(0.55f, 0.35f), -5f, plate, rivet);

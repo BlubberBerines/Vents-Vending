@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -46,6 +47,7 @@ namespace VentsAndVending.Editor
             Material cableRed = GetOrCreateMaterial("Prop_CableRed", new Color(0.7f, 0.15f, 0.12f), 0.4f);
 
             BuildChamber(Group("Chamber", root), floor, wall, vent, accent, dark, cable, cableRed);
+            BuildVentNetDesk(root);
             BuildExitDuct(Group("ExitDuct", root), floor, vent, accent, glow);
             BuildGallery(Group("ServiceGallery", root), floor, panel, vent, accent, dark, cable, cableRed);
             BuildStashDuct(Group("StashDuct", root), floor, vent, accent, glow);
@@ -101,6 +103,58 @@ namespace VentsAndVending.Editor
             // Light: one bare bulb on a cord, a dim amber glow in the bed nook. (Mixer lamp + terminal glow come with those.)
             HangingBulb(g, new Vector3(0.9f, c, -17.6f), 0.45f, new Color(1f, 0.74f, 0.45f), 6.5f, 2.4f, true);
             HangingBulb(g, new Vector3(-4.0f, 1.4f, -18.1f), 0.12f, new Color(1f, 0.55f, 0.3f), 3.2f, 1.5f, false);
+        }
+
+        // ------------------------------------------------------------------ The den PC (VentNet)
+
+        /// <summary>
+        /// An old beige CRT on a battered desk against the chamber's east wall: the VentNet terminal where customer
+        /// messages arrive (the hideout's answer to a phone). Parts are children of the terminal so aiming at any of
+        /// them uses it.
+        /// </summary>
+        private static void BuildVentNetDesk(Transform parent)
+        {
+            Material dark = ArtLibrary.Get("M_DarkMetal");
+            Material top = Worn(GetOrCreateMaterial("Prop_DeskTop", new Color(0.45f, 0.32f, 0.2f), 0.3f), 0.5f, 0.4f, 0.5f);
+            Material crt = Worn(GetOrCreateMaterial("Prop_CRT", new Color(0.76f, 0.72f, 0.6f), 0.35f), 0.45f, 0.4f, 0.3f);
+            Material screen = GetOrCreateMaterial("Screen_VentNet", new Color(0.02f, 0.08f, 0.04f), 0.8f, new Color(0.06f, 0.35f, 0.14f));
+            Material keys = GetOrCreateMaterial("Prop_Keyboard", new Color(0.22f, 0.21f, 0.2f), 0.3f);
+
+            var root = new GameObject("VentNet PC");
+            root.transform.SetParent(parent, false);
+            root.transform.position = new Vector3(2.9f, 0f, -17.3f);
+            var col = root.AddComponent<BoxCollider>();
+            col.center = new Vector3(-0.05f, 0.75f, 0f);
+            col.size = new Vector3(0.75f, 1.5f, 1.3f);
+            Transform t = root.transform;
+
+            Box("DeskTop", t, new Vector3(2.55f, 0.74f, -17.95f), new Vector3(3.2f, 0.79f, -16.65f), top);
+            foreach (var (x, z) in new[] { (2.6f, -17.9f), (2.6f, -16.7f), (3.15f, -17.9f), (3.15f, -16.7f) })
+            {
+                NoCollider(Box("DeskLeg", t, new Vector3(x - 0.025f, 0f, z - 0.025f), new Vector3(x + 0.025f, 0.74f, z + 0.025f), dark));
+            }
+            var body = NoCollider(Block("CRT", t, new Vector3(2.99f, 1.0f, -17.3f), new Vector3(0.42f, 0.4f, 0.44f), crt));
+            body.transform.rotation = Quaternion.Euler(0f, -4f, 0f);
+            NoCollider(Block("CRTBack", t, new Vector3(3.12f, 0.98f, -17.3f), new Vector3(0.18f, 0.3f, 0.32f), crt));
+            NoCollider(Block("Screen", t, new Vector3(2.775f, 1.02f, -17.3f), new Vector3(0.015f, 0.29f, 0.35f), screen)).transform.rotation = Quaternion.Euler(0f, -4f, 0f);
+            NoCollider(Block("Keyboard", t, new Vector3(2.7f, 0.805f, -17.25f), new Vector3(0.17f, 0.025f, 0.42f), keys)).transform.rotation = Quaternion.Euler(0f, 7f, 0f);
+            NoCollider(Block("CRTStickyNote", t, new Vector3(2.77f, 1.2f, -17.1f), new Vector3(0.004f, 0.06f, 0.06f),
+                GetOrCreateMaterial("Prop_StickyNote", new Color(1f, 0.9f, 0.35f), 0.2f))).transform.rotation = Quaternion.Euler(8f, -4f, 0f);
+            CylinderBetween("PCCable", t, new Vector3(3.15f, 0.85f, -17.45f), new Vector3(3.18f, 0.02f, -17.6f), 0.012f, GetOrCreateMaterial("Prop_Cable", new Color(0.1f, 0.1f, 0.12f), 0.4f));
+            Block("Stool", parent, new Vector3(2.15f, 0.22f, -17.25f), new Vector3(0.4f, 0.44f, 0.4f), ArtLibrary.Get("M_GreenPanel")).transform.rotation = Quaternion.Euler(0f, 14f, 0f);
+
+            // Screen text and its glow (text outside Level so the NavMesh bake never reads it)
+            var text = new GameObject("VentNet Screen Text");
+            text.transform.SetPositionAndRotation(new Vector3(2.765f, 1.02f, -17.3f), Quaternion.Euler(0f, 86f, 0f));
+            var tmp = text.AddComponent<TextMeshPro>();
+            tmp.fontSize = 0.55f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = new Color(0.55f, 1f, 0.65f);
+            tmp.rectTransform.sizeDelta = new Vector2(0.32f, 0.26f);
+            tmp.text = "<b>VENTNET</b>";
+            CreatePointLight("VentNet Screen Glow", new Vector3(2.55f, 1.05f, -17.3f), new Color(0.35f, 1f, 0.5f), 1.8f, 0.7f, t);
+
+            root.AddComponent<VentsAndVending.Orders.VentNetTerminal>().Configure(tmp);
         }
 
         // ------------------------------------------------------------------ Exit duct (GDD §5.1 "one basic ventilation exit")
