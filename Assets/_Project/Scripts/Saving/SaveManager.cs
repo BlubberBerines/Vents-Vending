@@ -224,9 +224,16 @@ namespace VentsAndVending.Saving
                 }
 
                 var movement = interactor.GetComponent<PlayerMovement>();
-                if (movement != null)
+                var saved = new Vector3(data.Player.X, data.Player.Y, data.Player.Z);
+                // Saves from an older level layout may point into the void: keep the scene spawn if there's no floor there.
+                bool onFloor = Physics.Raycast(saved + Vector3.up * 0.5f, Vector3.down, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                if (movement != null && onFloor)
                 {
-                    movement.Teleport(new Vector3(data.Player.X, data.Player.Y, data.Player.Z), Quaternion.Euler(0f, data.Player.Yaw, 0f));
+                    movement.Teleport(saved, Quaternion.Euler(0f, data.Player.Yaw, 0f));
+                }
+                else if (movement != null)
+                {
+                    Debug.LogWarning($"[SaveManager] Saved position {saved} has no floor under it (old layout?) — using the spawn point.");
                 }
             }
 

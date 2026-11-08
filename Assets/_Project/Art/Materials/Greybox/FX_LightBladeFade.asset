@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!28 &2800000
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FX_LightBladeFade
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 4
+  m_Width: 4
+  m_Height: 64
+  m_CompleteImageSize: 1024
+  m_MipsStripped: 0
+  m_TextureFormat: 4
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_IsPreProcessed: 0
+  m_IgnoreMipmapLimit: 1
+  m_MipmapLimitGroupName: 
+  m_StreamingMipmaps: 0
+  m_StreamingMipmapsPriority: 0
+  m_VTOnly: 0
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_LightmapFormat: 0
+  m_ColorSpace: 1
+  m_PlatformBlob: 
+  image data: 1024
+  _typelessdata: ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff01ffffff02ffffff02ffffff02ffffff02ffffff03ffffff03ffffff03ffffff03ffffff04ffffff04ffffff04ffffff04ffffff04ffffff04ffffff04ffffff04ffffff05ffffff05ffffff05ffffff05ffffff07ffffff07ffffff07ffffff07ffffff08ffffff08ffffff08ffffff08ffffff09ffffff09ffffff09ffffff09ffffff0bffffff0bffffff0bffffff0bffffff0dffffff0dffffff0dffffff0dffffff0effffff0effffff0effffff0effffff10ffffff10ffffff10ffffff10ffffff12ffffff12ffffff12ffffff12ffffff14ffffff14ffffff14ffffff14ffffff17ffffff17ffffff17ffffff17ffffff19ffffff19ffffff19ffffff19ffffff1cffffff1cffffff1cffffff1cffffff1fffffff1fffffff1fffffff1fffffff21ffffff21ffffff21ffffff21ffffff24ffffff24ffffff24ffffff24ffffff28ffffff28ffffff28ffffff28ffffff2bffffff2bffffff2bffffff2bffffff2effffff2effffff2effffff2effffff32ffffff32ffffff32ffffff32ffffff36ffffff36ffffff36ffffff36ffffff39ffffff39ffffff39ffffff39ffffff3dffffff3dffffff3dffffff3dffffff42ffffff42ffffff42ffffff42ffffff46ffffff46ffffff46ffffff46ffffff4affffff4affffff4affffff4affffff4fffffff4fffffff4fffffff4fffffff54ffffff54ffffff54ffffff54ffffff59ffffff59ffffff59ffffff59ffffff5effffff5effffff5effffff5effffff63ffffff63ffffff63ffffff63ffffff69ffffff69ffffff69ffffff69ffffff6effffff6effffff6effffff6effffff74ffffff74ffffff74ffffff74ffffff7affffff7affffff7affffff7affffff80ffffff80ffffff80ffffff80ffffff86ffffff86ffffff86ffffff86ffffff8cffffff8cffffff8cffffff8cffffff93ffffff93ffffff93ffffff93ffffff99ffffff99ffffff99ffffff99ffffffa0ffffffa0ffffffa0ffffffa0ffffffa7ffffffa7ffffffa7ffffffa7ffffffaeffffffaeffffffaeffffffaeffffffb6ffffffb6ffffffb6ffffffb6ffffffbdffffffbdffffffbdffffffbdffffffc5ffffffc5ffffffc5ffffffc5ffffffcdffffffcdffffffcdffffffcdffffffd5ffffffd5ffffffd5ffffffd5ffffffddffffffddffffffddffffffddffffffe5ffffffe5ffffffe5ffffffe5ffffffeeffffffeeffffffeeffffffeefffffff6fffffff6fffffff6fffffff6ffffffffffffffffffffffffffffffff
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 

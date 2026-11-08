@@ -31,13 +31,12 @@ namespace VentsAndVending.Editor
             Material statusGreen = GetOrCreateMaterial("Prop_StatusGreen", new Color(0.1f, 0.6f, 0.2f), 0.5f, new Color(0.3f, 2f, 0.5f));
             Material statusAmber = GetOrCreateMaterial("Prop_StatusAmber", new Color(0.6f, 0.4f, 0.1f), 0.5f, new Color(2f, 1.2f, 0.2f));
 
-            DressLocker(g, new Vector3(-2.5f, 0f, -16.5f), seam, silver, dark);
-            DressMixingStation(g, new Vector3(1.6f, 0f, -16.6f), seam, silver, dark);
-            DressTerminal(g, new Vector3(-0.4f, 0f, -19.55f), cable, statusGreen, statusAmber);
-            BuildSleepingCorner(g, new Vector3(-7.2f, 0f, -18.6f), pallet, mattress, stain, blanket);
-            BuildPackagingTable(g, new Vector3(5.6f, 0f, -17.8f), dark, cardboard, tape, silver);
-            BuildCrateStack(g, new Vector3(-5f, 0f, -16f), green, hazard, cardboard);
-            BuildWallRuns(g, duct, dark, cable, cableRed, hazard);
+            DressLocker(g, LockerPos, seam, silver, dark);
+            DressMixingStation(g, MixerPos, seam, silver, dark);
+            DressTerminal(g, TerminalPos, cable, statusGreen, statusAmber);
+            BuildSleepingCorner(g, BedPos, pallet, mattress, stain, blanket);
+            BuildPackagingTable(g, PackTablePos, dark, cardboard, tape, silver);
+            BuildCrateStack(g, CratePos, green, hazard, cardboard);
         }
 
         /// <summary>
@@ -189,26 +188,6 @@ namespace VentsAndVending.Editor
             var b2 = Part("BandV", root, Vector3.zero, new Vector3(size * 0.14f, size * 1.02f, size * 1.02f), band);
             _ = b1;
             _ = b2;
-        }
-
-        /// <summary>Pipes, brackets and cable bundles along the hideout's south and west walls.</summary>
-        private static void BuildWallRuns(Transform parent, Material pipe, Material bracket, Material cable, Material cableRed, Material hazard)
-        {
-            var g = Group("WallRuns", parent);
-
-            // South wall (inner face z = -20): two pipes and a cable bundle
-            PipeX(g, -19.5f, 19.5f, 3.3f, -19.75f, 0.12f, pipe, bracket);
-            PipeX(g, -19.5f, 19.5f, 2.95f, -19.8f, 0.08f, pipe, bracket);
-            PipeX(g, -19.5f, 19.5f, 2.6f, -19.86f, 0.035f, cable, null);
-            PipeX(g, -19.5f, 19.5f, 2.55f, -19.86f, 0.03f, cableRed, null);
-            // Valve wheel on the big pipe near the workshop
-            var valve = Part("ValveWheel", g, new Vector3(2.8f, 3.3f, -19.55f), new Vector3(0.35f, 0.03f, 0.35f), hazard, PrimitiveType.Cylinder);
-            valve.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-
-            // West wall (inner face x = -20): a vertical drop and a horizontal run
-            PipeZ(g, -19.5f, 15f, 3.1f, -19.75f, 0.1f, pipe, bracket);
-            var drop = Part("PipeDrop", g, new Vector3(-19.75f, 1.55f, -12f), new Vector3(0.2f, 1.55f, 0.2f), pipe, PrimitiveType.Cylinder);
-            _ = drop;
         }
 
         private static void PipeX(Transform parent, float x0, float x1, float y, float z, float radius, Material mat, Material bracket)

@@ -16,7 +16,7 @@ using VentsAndVending.World;
 namespace VentsAndVending.Editor
 {
     /// <summary>
-    /// Builds the movement greybox scene: open floor, jump steps, a ramp, a crouch tunnel and an L-shaped vent duct.
+    /// Builds the game scene: the hideout and its service gallery (Hideout.cs), the plaza (Plaza.cs) and all systems.
     /// Re-running it regenerates the scene from scratch.
     /// </summary>
     public static partial class PrototypeSceneBuilder
@@ -87,11 +87,7 @@ namespace VentsAndVending.Editor
             BuildLighting();
 
             var level = new GameObject("Level").transform;
-            BuildRoom(level, floorMat, wallMat);
-            BuildJumpSteps(level, propMat, accentMat);
-            BuildRamp(level, accentMat);
-            BuildCrouchTunnel(level, tunnelMat, accentMat);
-            BuildVentDuct(level, ventMat, accentMat, glowMat);
+            BuildHideout(level, floorMat, wallMat, ventMat, accentMat, tunnelMat, glowMat);
             BuildInteractables(level, propMat, accentMat, ventMat);
             BuildMixingStation(level, wallMat, accentMat);
             BuildProps(level);
@@ -102,7 +98,7 @@ namespace VentsAndVending.Editor
             BuildSecurity();
             CreateSaveSystem();
 
-            var player = CreatePlayer(new Vector3(0f, 0f, -14f), Quaternion.identity);
+            var player = CreatePlayer(PlayerSpawn, Quaternion.Euler(0f, PlayerSpawnYaw, 0f));
             CreateHud(player.GetComponent<InteractionController>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -131,102 +127,6 @@ namespace VentsAndVending.Editor
             sun.shadows = LightShadows.Soft;
             sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
 
-            CreatePointLight("Neon Cyan", new Vector3(-12f, 3.2f, 8f), new Color(0.1f, 0.9f, 1f), 8f, 3f);
-            CreatePointLight("Neon Magenta", new Vector3(0f, 3.2f, 12f), new Color(1f, 0.15f, 0.8f), 8f, 3f);
-            CreatePointLight("Work Lamp", new Vector3(4f, 3f, -8f), new Color(1f, 0.8f, 0.5f), 7f, 2f);
-        }
-
-        private static void BuildRoom(Transform parent, Material floor, Material wall)
-        {
-            var room = Group("Room", parent);
-            Block("Floor", room, new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f), floor);
-            // North wall is shared with the plaza and has an opening for the plaza vent duct (x = PlazaVentX, 1.1 m wide).
-            float gapL = PlazaVentX - 0.55f, gapR = PlazaVentX + 0.55f;
-            Block("Wall_N_West", room, new Vector3((-20.5f + gapL) * 0.5f, 2f, 20.25f), new Vector3(gapL + 20.5f, 4f, 0.5f), wall);
-            Block("Wall_N_East", room, new Vector3((gapR + 20.5f) * 0.5f, 2f, 20.25f), new Vector3(20.5f - gapR, 4f, 0.5f), wall);
-            Block("Wall_N_Lintel", room, new Vector3(PlazaVentX, 2.475f, 20.25f), new Vector3(1.1f, 3.05f, 0.5f), wall);
-            Block("Wall_S", room, new Vector3(0f, 2f, -20.25f), new Vector3(41f, 4f, 0.5f), wall);
-            Block("Wall_E", room, new Vector3(20.25f, 2f, 0f), new Vector3(0.5f, 4f, 40f), wall);
-            Block("Wall_W", room, new Vector3(-20.25f, 2f, 0f), new Vector3(0.5f, 4f, 40f), wall);
-        }
-
-        /// <summary>Steps rising 0.4 m each — taller than the step offset, so they need jumping.</summary>
-        private static void BuildJumpSteps(Transform parent, Material prop, Material accent)
-        {
-            var g = Group("JumpSteps", parent);
-            for (int i = 0; i < 4; i++)
-            {
-                float h = 0.4f * (i + 1);
-                Block($"Step_{i + 1}", g, new Vector3(-12f, h * 0.5f, -10f + i * 1.5f), new Vector3(2f, h, 1.5f), i % 2 == 0 ? prop : accent);
-            }
-
-            Block("Crate_A", g, new Vector3(-8f, 0.5f, -12f), Vector3.one, prop);
-            Block("Crate_B", g, new Vector3(-7f, 0.35f, -12.5f), Vector3.one * 0.7f, accent);
-        }
-
-        private static void BuildRamp(Transform parent, Material mat)
-        {
-            var g = Group("Ramp", parent);
-            var ramp = Block("Ramp_20deg", g, new Vector3(-5f, 1.1f, -2f), new Vector3(3f, 0.2f, 7f), mat);
-            ramp.transform.rotation = Quaternion.Euler(-20f, 0f, 0f);
-            Block("Ramp_Top", g, new Vector3(-5f, 1.1f, 2.5f), new Vector3(3f, 2.2f, 2f), mat);
-        }
-
-        /// <summary>1.3 m clearance: too low to stand (1.8 m), fine to crouch (1.2 m).</summary>
-        private static void BuildCrouchTunnel(Transform parent, Material mat, Material accent)
-        {
-            var g = Group("CrouchTunnel", parent);
-            const float x = 4f, z0 = -6f, len = 6f, w = 1.6f, h = 1.3f, t = 0.2f;
-            float zc = z0 + len * 0.5f;
-            Block("Wall_L", g, new Vector3(x - w * 0.5f - t * 0.5f, h * 0.5f, zc), new Vector3(t, h, len), mat);
-            Block("Wall_R", g, new Vector3(x + w * 0.5f + t * 0.5f, h * 0.5f, zc), new Vector3(t, h, len), mat);
-            Block("Roof", g, new Vector3(x, h + t * 0.5f, zc), new Vector3(w + t * 2f, t, len), mat);
-            Block("Frame", g, new Vector3(x, h + t + 0.05f, z0 + 0.1f), new Vector3(w + t * 2f, 0.1f, 0.2f), accent);
-        }
-
-        /// <summary>
-        /// L-shaped duct, 0.9 m wide and 0.85 m tall: only crawlable (0.7 m). Vent triggers force crawling and
-        /// reach 0.6 m outside each opening so the player drops into a crawl as they enter.
-        /// </summary>
-        private static void BuildVentDuct(Transform parent, Material vent, Material accent, Material glow)
-        {
-            var g = Group("VentDuct", parent);
-            const float x = 12f, zStart = -6f, zTurn = 4f, xEnd = 18f;
-            const float w = 0.9f, h = 0.85f, t = 0.1f, half = w * 0.5f;
-
-            // Segment 1 — along +Z
-            float seg1End = zTurn + half + t;
-            float seg1Len = seg1End - zStart;
-            Block("Seg1_Wall_L", g, new Vector3(x - half - t * 0.5f, h * 0.5f, zStart + seg1Len * 0.5f), new Vector3(t, h, seg1Len), vent);
-            float rightLen = (zTurn - half) - zStart;
-            Block("Seg1_Wall_R", g, new Vector3(x + half + t * 0.5f, h * 0.5f, zStart + rightLen * 0.5f), new Vector3(t, h, rightLen), vent);
-            Block("Seg1_Roof", g, new Vector3(x, h + t * 0.5f, zStart + seg1Len * 0.5f), new Vector3(w + t * 2f, t, seg1Len), vent);
-            Block("Seg1_EndCap", g, new Vector3(x, h * 0.5f, zTurn + half + t * 0.5f), new Vector3(w + t * 2f, h, t), vent);
-
-            // Segment 2 — along +X
-            float seg2Start = x + half;
-            float seg2Len = xEnd - seg2Start;
-            Block("Seg2_Wall_Back", g, new Vector3(seg2Start + t + (seg2Len - t) * 0.5f, h * 0.5f, zTurn + half + t * 0.5f), new Vector3(seg2Len - t, h, t), vent);
-            Block("Seg2_Wall_Front", g, new Vector3(seg2Start + seg2Len * 0.5f, h * 0.5f, zTurn - half - t * 0.5f), new Vector3(seg2Len, h, t), vent);
-            Block("Seg2_Roof", g, new Vector3(seg2Start + seg2Len * 0.5f, h + t * 0.5f, zTurn), new Vector3(seg2Len, t, w + t * 2f), vent);
-
-            // Hatch frames at both openings
-            Block("Hatch_Entry", g, new Vector3(x, h + t + 0.05f, zStart + 0.05f), new Vector3(w + t * 2f + 0.2f, 0.1f, 0.1f), accent);
-            Block("Hatch_Exit", g, new Vector3(xEnd - 0.05f, h + t + 0.05f, zTurn), new Vector3(0.1f, 0.1f, w + t * 2f + 0.2f), accent);
-
-            // Maintenance light strips + a dim warm light inside
-            for (int i = 0; i < 3; i++)
-            {
-                var strip = Block($"LightStrip_{i}", g, new Vector3(x, h - 0.01f, zStart + 2f + i * 3.5f), new Vector3(0.3f, 0.02f, 0.6f), glow);
-                Object.DestroyImmediate(strip.GetComponent<Collider>());
-            }
-            CreatePointLight("Vent Light A", new Vector3(x, 0.7f, -1f), new Color(1f, 0.7f, 0.35f), 3f, 1.2f, g);
-            CreatePointLight("Vent Light B", new Vector3(15f, 0.7f, zTurn), new Color(1f, 0.7f, 0.35f), 3f, 1.2f, g);
-
-            // Vent zones (triggers)
-            const float lip = 0.6f;
-            VentTrigger("VentZone_Seg1", g, new Vector3(x, h * 0.5f, (zStart - lip + zTurn + half) * 0.5f), new Vector3(w, h, (zTurn + half) - (zStart - lip)), "duct_a");
-            VentTrigger("VentZone_Seg2", g, new Vector3((seg2Start + xEnd + lip) * 0.5f, h * 0.5f, zTurn), new Vector3((xEnd + lip) - seg2Start, h, w), "duct_a");
         }
 
         // ------------------------------------------------------------------ Player
@@ -355,7 +255,7 @@ namespace VentsAndVending.Editor
 
             var root = new GameObject("Mixing Station");
             root.transform.SetParent(parent, false);
-            root.transform.position = new Vector3(1.6f, 0f, -16.6f);
+            root.transform.position = MixerPos;
             var collider = root.AddComponent<BoxCollider>();
             collider.center = new Vector3(0f, 0.8f, 0f);
             collider.size = new Vector3(1.45f, 1.6f, 0.75f);
@@ -550,45 +450,6 @@ namespace VentsAndVending.Editor
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
             return prefab;
-        }
-
-        private static void BuildInteractables(Transform parent, Material prop, Material accent, Material vent)
-        {
-            var g = Group("Interactables", parent);
-
-            // Storage locker by the spawn, pre-stocked
-            var locker = Block("Storage Locker", g, new Vector3(-2.5f, 0.9f, -16.5f), new Vector3(1.2f, 1.8f, 0.6f), prop);
-            locker.isStatic = false;
-            Block("Locker_Trim", g, new Vector3(-2.5f, 1.82f, -16.5f), new Vector3(1.25f, 0.05f, 0.65f), accent);
-            var lockerInv = locker.AddComponent<InventoryComponent>();
-            lockerInv.Configure("Storage Locker", 8, VentsAndVending.Progression.UpgradeKeys.LockerCapacity, "hideout.locker");
-            lockerInv.AddStartingItem(_lumina, 4);
-            lockerInv.AddStartingItem(_stabiliser, 3);
-            locker.AddComponent<StorageContainer>();
-
-            // Loose ingredients near the spawn
-            PlacePickup(_glarb, 2, new Vector3(-8f, 1.02f, -12f), g);   // on Crate_A
-            PlacePickup(_lumina, 1, new Vector3(1.5f, 0.02f, -11.5f), g);
-            PlacePickup(_stabiliser, 1, new Vector3(2.0f, 0.02f, -11.2f), g);
-
-            // Hidden stash at the bend of the vent duct (reward for crawling in)
-            PlacePickup(_glarb, 5, new Vector3(12.05f, 0.02f, 3.85f), g);
-            PlacePickup(_stabiliser, 2, new Vector3(12.25f, 0.02f, 4.1f), g);
-
-            // Hinged hatch over the vent entrance (duct: x=12, z=-6, 0.9 x 0.85 m)
-            var hatch = new GameObject("Vent Hatch");
-            hatch.transform.SetParent(g, false);
-            hatch.transform.position = new Vector3(12f, 0.85f, -6.04f);
-            var pivot = new GameObject("Pivot").transform;
-            pivot.SetParent(hatch.transform, false);
-            var panel = Block("Panel", pivot, Vector3.zero, new Vector3(0.94f, 0.85f, 0.04f), vent);
-            panel.isStatic = false;
-            panel.transform.localPosition = new Vector3(0f, -0.425f, 0f);
-            var grille = Block("Grille", pivot, Vector3.zero, new Vector3(0.6f, 0.3f, 0.02f), accent);
-            grille.isStatic = false;
-            grille.transform.localPosition = new Vector3(0f, -0.45f, -0.025f);
-            Object.DestroyImmediate(grille.GetComponent<Collider>());
-            SetReference(hatch.AddComponent<VentHatch>(), "_pivot", pivot);
         }
 
         private static void PlacePickup(ItemDefinition item, int count, Vector3 position, Transform parent)

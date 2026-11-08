@@ -146,7 +146,7 @@ namespace VentsAndVending.Editor
             CreateSign("Vent_Sign_Hideout", "TO PLAZA →", new Vector3(x, 1.25f, z0 - 0.06f), 0f, 0.7f, new Color(1f, 0.85f, 0.4f), 1.6f);
         }
 
-        private static void CreateHatch(string name, Transform parent, Vector3 hingePosition, Vector3 openRotation, Material panelMat, Material grilleMat)
+        private static GameObject CreateHatch(string name, Transform parent, Vector3 hingePosition, Vector3 openRotation, Material panelMat, Material grilleMat)
         {
             var hatch = new GameObject(name);
             hatch.transform.SetParent(parent, false);
@@ -164,6 +164,7 @@ namespace VentsAndVending.Editor
             so.FindProperty("_pivot").objectReferenceValue = pivot;
             so.FindProperty("_openRotation").vector3Value = openRotation;
             so.ApplyModifiedPropertiesWithoutUndo();
+            return hatch;
         }
 
         // ------------------------------------------------------------------ Security

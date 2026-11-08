@@ -70,7 +70,7 @@ namespace VentsAndVending.Editor
             var screenMat = GetOrCreateMaterial("Terminal_Screen", new Color(0.01f, 0.05f, 0.03f), 0.2f, new Color(0.02f, 0.14f, 0.07f));
 
             var root = new GameObject("Upgrade Terminal");
-            root.transform.position = new Vector3(-0.4f, 0f, -19.55f);
+            root.transform.position = TerminalPos;
             var col = root.AddComponent<BoxCollider>();
             col.center = new Vector3(0f, 0.9f, 0f);
             col.size = new Vector3(0.9f, 1.8f, 0.45f);
@@ -105,12 +105,14 @@ namespace VentsAndVending.Editor
 
             var holder = Group("Upgrade_Lighting", level);
             var lamps = Group("WorkshopLamps", holder);
-            foreach (float x in new[] { -2.5f, 1.6f })
+            // Strip lamps hung just under the chamber ceiling over the workbench wall
+            foreach (float x in new[] { LockerPos.x, MixerPos.x })
             {
-                var bar = Part("LampBar", lamps, new Vector3(x, 3.4f, -16.6f), new Vector3(1.4f, 0.06f, 0.18f), barMat);
-                bar.transform.position = new Vector3(x, 3.4f, -16.6f);
-                Part("LampMount", lamps, new Vector3(x, 3.75f, -16.6f), new Vector3(0.04f, 0.65f, 0.04f), accent).transform.position = new Vector3(x, 3.72f, -16.6f);
-                CreatePointLight("Work Light", new Vector3(x, 3.2f, -16.4f), new Color(1f, 0.85f, 0.6f), 10f, 4.5f, lamps);
+                const float z = -18.7f, y = ChamberCeiling - 0.22f;
+                Part("LampBar", lamps, new Vector3(x, y, z), new Vector3(1.2f, 0.06f, 0.16f), barMat);
+                Part("LampMount", lamps, new Vector3(x - 0.45f, y + 0.11f, z), new Vector3(0.03f, 0.16f, 0.03f), accent);
+                Part("LampMount", lamps, new Vector3(x + 0.45f, y + 0.11f, z), new Vector3(0.03f, 0.16f, 0.03f), accent);
+                CreatePointLight("Work Light", new Vector3(x, y - 0.2f, z + 0.3f), new Color(1f, 0.85f, 0.6f), 6.5f, 3f, lamps);
             }
             lamps.gameObject.SetActive(false);
 
