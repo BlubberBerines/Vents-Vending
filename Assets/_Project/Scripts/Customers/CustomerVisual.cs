@@ -17,11 +17,46 @@ namespace VentsAndVending.Customers
         [SerializeField] private float _floatRadius = 0.6f;
         [SerializeField] private float _floatHeight = 1.05f;
         [SerializeField] private float _floatSpeed = 1.6f;
+        [SerializeField] private CharacterFace _face;
+        [Tooltip("Renderers recoloured per visit (body colour variety).")]
+        [SerializeField] private Renderer[] _tintRenderers = new Renderer[0];
+
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
 
         private NavMeshAgent _agent;
         private Vector3 _bodyOrigin;
         private float _hopTimer;
+        private float _shakeTimer;
         private float _phase;
+
+        public CharacterFace Face => _face;
+
+        /// <summary>Recolours the body for this visit. Emission follows the colour faintly (jelly glow).</summary>
+        public void ApplyTint(Color color, float glow)
+        {
+            var block = new MaterialPropertyBlock();
+            foreach (Renderer r in _tintRenderers)
+            {
+                if (r == null)
+                {
+                    continue;
+                }
+                r.GetPropertyBlock(block);
+                block.SetColor(BaseColorId, color);
+                block.SetColor(EmissionColorId, color * glow);
+                r.SetPropertyBlock(block);
+            }
+        }
+
+        public void PlayAnnoyed()
+        {
+            _shakeTimer = 0.5f;
+            if (_face != null)
+            {
+                _face.SetMood(CharacterMood.Annoyed, 3f);
+            }
+        }
 
         private void Awake()
         {
@@ -33,7 +68,14 @@ namespace VentsAndVending.Customers
             _phase = Random.value * 10f;
         }
 
-        public void PlayHappy() => _hopTimer = 0.9f;
+        public void PlayHappy()
+        {
+            _hopTimer = 0.9f;
+            if (_face != null)
+            {
+                _face.SetMood(CharacterMood.Happy, 3f);
+            }
+        }
 
         private void LateUpdate()
         {
@@ -51,7 +93,13 @@ namespace VentsAndVending.Customers
                     _hopTimer -= Time.deltaTime;
                     hop = Mathf.Abs(Mathf.Sin(_hopTimer * Mathf.PI * 3f)) * 0.3f;
                 }
-                _body.localPosition = _bodyOrigin + Vector3.up * (Mathf.Abs(Mathf.Sin(t)) * _bobHeight * moving + hop);
+                Vector3 shake = Vector3.zero;
+                if (_shakeTimer > 0f)
+                {
+                    _shakeTimer -= Time.deltaTime;
+                    shake = new Vector3(Mathf.Sin(Time.time * 60f) * 0.04f * (_shakeTimer / 0.5f), 0f, 0f);
+                }
+                _body.localPosition = _bodyOrigin + shake + Vector3.up * (Mathf.Abs(Mathf.Sin(t)) * _bobHeight * moving + hop);
             }
 
             for (int i = 0; i < _floaters.Length; i++)

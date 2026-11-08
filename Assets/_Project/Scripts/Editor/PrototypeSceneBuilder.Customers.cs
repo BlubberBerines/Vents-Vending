@@ -103,14 +103,29 @@ namespace VentsAndVending.Editor
 
             return GetOrCreateCustomer("Customer_Blorb", "blorb", "Blorb",
                 new[] { "Glorbo", "Squishkin", "Blibble", "Wubbsy", "Jellbert", "Gloopa" },
-                prefab, new Vector2Int(1, 2), new Vector2(0.15f, 0.4f), ItemQuality.Standard, false, 2, 50f, lines);
+                prefab, new Vector2Int(1, 2), new Vector2(0.15f, 0.4f), ItemQuality.Standard, false, 2, 50f, lines,
+                new[]
+                {
+                    new Color(0.9f, 0.36f, 0.88f),  // bubblegum pink
+                    new Color(0.2f, 0.78f, 0.75f),  // teal
+                    new Color(0.55f, 0.85f, 0.25f), // lime
+                    new Color(1f, 0.55f, 0.2f),     // tangerine
+                    new Color(0.62f, 0.5f, 1f)      // lilac
+                }, 0.14f);
         }
 
+        /// <summary>
+        /// Blorb (GDD §8.2): big glossy jelly, three expressive eyes, blush, open mouth, stubby feet, orbiting floaters.
+        /// </summary>
         private static GameObject BuildBlorbPrefab()
         {
-            var bodyMat = GetOrCreateMaterial("Char_Blorb", new Color(0.85f, 0.35f, 0.9f), 0.85f, new Color(0.25f, 0.05f, 0.3f));
-            var eyeMat = GetOrCreateMaterial("Char_EyeWhite", new Color(0.95f, 0.95f, 0.9f), 0.9f);
-            var pupilMat = GetOrCreateMaterial("Char_Pupil", new Color(0.02f, 0.02f, 0.03f), 0.95f);
+            var bodyMat = GetOrCreateMaterial("Char_Blorb", new Color(0.85f, 0.35f, 0.9f), 0.85f, new Color(0.12f, 0.03f, 0.14f));
+            var eyeMat = GetOrCreateMaterial("Char_EyeWhite", new Color(0.97f, 0.96f, 0.92f), 0.6f);
+            var pupilMat = GetOrCreateMaterial("Char_Pupil", new Color(0.03f, 0.02f, 0.05f), 0.9f);
+            var shineMat = GetOrCreateMaterial("Char_Shine", Color.white, 0.2f, new Color(1.2f, 1.2f, 1.2f));
+            var mouthMat = GetOrCreateMaterial("Char_Mouth", new Color(0.22f, 0.04f, 0.1f), 0.3f);
+            var tongueMat = GetOrCreateMaterial("Char_Tongue", new Color(1f, 0.42f, 0.55f), 0.5f);
+            var blushMat = GetOrCreateMaterial("Char_Blush", new Color(1f, 0.45f, 0.6f), 0.3f, new Color(0.25f, 0.05f, 0.1f));
             var floaterMat = GetOrCreateMaterial("Char_BlorbFloater", new Color(0.9f, 0.6f, 1f), 0.8f, new Color(0.6f, 0.2f, 0.8f));
 
             var root = new GameObject("Customer_Blorb");
@@ -121,17 +136,32 @@ namespace VentsAndVending.Editor
             col.height = 1.2f;
 
             var body = Group("Body", root.transform);
-            Part("Jelly", body, new Vector3(0f, 0.5f, 0f), new Vector3(1.0f, 0.95f, 1.0f), bodyMat, PrimitiveType.Sphere);
-            Eye(body, new Vector3(-0.2f, 0.72f, 0.4f), 0.22f, eyeMat, pupilMat);
-            Eye(body, new Vector3(0.2f, 0.72f, 0.4f), 0.22f, eyeMat, pupilMat);
-            Eye(body, new Vector3(0f, 0.92f, 0.34f), 0.17f, eyeMat, pupilMat);
-            Part("Mouth", body, new Vector3(0f, 0.43f, 0.47f), new Vector3(0.3f, 0.07f, 0.08f), pupilMat, PrimitiveType.Sphere);
+            var jelly = Part("Jelly", body, new Vector3(0f, 0.52f, 0f), new Vector3(1.0f, 0.95f, 1.0f), bodyMat, PrimitiveType.Sphere);
+            var footL = Part("Foot_L", body, new Vector3(-0.22f, 0.07f, 0.12f), new Vector3(0.28f, 0.14f, 0.34f), bodyMat, PrimitiveType.Sphere);
+            var footR = Part("Foot_R", body, new Vector3(0.22f, 0.07f, 0.12f), new Vector3(0.28f, 0.14f, 0.34f), bodyMat, PrimitiveType.Sphere);
+            Part("Shine", body, new Vector3(-0.22f, 0.86f, 0.3f), new Vector3(0.14f, 0.09f, 0.05f), shineMat, PrimitiveType.Sphere)
+                .transform.localRotation = Quaternion.Euler(0f, 0f, 35f);
+
+            var eyes = new[]
+            {
+                FaceEye(body, new Vector3(-0.2f, 0.74f, 0.41f), 0.24f, eyeMat, pupilMat, shineMat),
+                FaceEye(body, new Vector3(0.2f, 0.74f, 0.41f), 0.24f, eyeMat, pupilMat, shineMat),
+                FaceEye(body, new Vector3(0f, 0.95f, 0.34f), 0.18f, eyeMat, pupilMat, shineMat),
+            };
+            Part("Blush_L", body, new Vector3(-0.33f, 0.55f, 0.36f), new Vector3(0.12f, 0.06f, 0.04f), blushMat, PrimitiveType.Sphere);
+            Part("Blush_R", body, new Vector3(0.33f, 0.55f, 0.36f), new Vector3(0.12f, 0.06f, 0.04f), blushMat, PrimitiveType.Sphere);
+
+            var mouth = Group("Mouth", body);
+            mouth.localPosition = new Vector3(0f, 0.44f, 0.46f);
+            Part("MouthHole", mouth, Vector3.zero, new Vector3(0.26f, 0.09f, 0.08f), mouthMat, PrimitiveType.Sphere);
+            Part("Tongue", mouth, new Vector3(0f, -0.022f, 0.012f), new Vector3(0.12f, 0.04f, 0.07f), tongueMat, PrimitiveType.Sphere);
 
             var f1 = Part("Floater_1", root.transform, new Vector3(0.6f, 1.05f, 0f), Vector3.one * 0.14f, floaterMat, PrimitiveType.Sphere).transform;
             var f2 = Part("Floater_2", root.transform, new Vector3(-0.6f, 1.05f, 0f), Vector3.one * 0.12f, floaterMat, PrimitiveType.Sphere).transform;
 
             return FinishCustomerPrefab(root, body, new[] { f1, f2 }, bubbleHeight: 1.65f, bobSpeed: 7f, squash: 0.08f,
-                $"{CharacterPrefabFolder}/Customer_Blorb.prefab");
+                $"{CharacterPrefabFolder}/Customer_Blorb.prefab", eyes, mouth,
+                new[] { jelly.GetComponent<Renderer>(), footL.GetComponent<Renderer>(), footR.GetComponent<Renderer>() });
         }
 
         // ------------------------------------------------------------------ Gromflomite (GDD §8.1)
@@ -151,15 +181,33 @@ namespace VentsAndVending.Editor
 
             return GetOrCreateCustomer("Customer_Gromflomite", "gromflomite", "Gromflomite",
                 new[] { "Clerk Zix", "Sub-Inspector Vrell", "Auditor Kkt", "Deputy Registrar Plom" },
-                prefab, new Vector2Int(1, 1), new Vector2(0.05f, 0.2f), ItemQuality.Standard, false, 2, 40f, lines);
+                prefab, new Vector2Int(1, 1), new Vector2(0.05f, 0.2f), ItemQuality.Standard, false, 2, 40f, lines,
+                new[]
+                {
+                    new Color(0.2f, 0.25f, 0.42f),  // regulation navy
+                    new Color(0.45f, 0.16f, 0.2f),  // maroon
+                    new Color(0.3f, 0.34f, 0.3f),   // civil-service grey-green
+                    new Color(0.36f, 0.24f, 0.46f)  // senior-clerk plum
+                }, 0f);
         }
 
+        /// <summary>
+        /// Gromflomite (GDD §8.1): insectoid bureaucrat — big compound eyes, mandibles, collar and tie, oversized badge,
+        /// a clipboard for the receipts it will absolutely request, and a slight forward hunch.
+        /// </summary>
         private static GameObject BuildGromflomitePrefab()
         {
-            var suitMat = GetOrCreateMaterial("Char_GromSuit", new Color(0.18f, 0.22f, 0.32f), 0.4f);
-            var skinMat = GetOrCreateMaterial("Char_GromSkin", new Color(0.4f, 0.55f, 0.25f), 0.5f);
-            var eyeMat = GetOrCreateMaterial("Char_GromEye", new Color(0.25f, 0.02f, 0.05f), 0.95f, new Color(0.5f, 0.05f, 0.08f));
-            var badgeMat = GetOrCreateMaterial("Char_Badge", new Color(0.9f, 0.75f, 0.2f), 0.7f, new Color(0.6f, 0.45f, 0.05f));
+            var suitMat = GetOrCreateMaterial("Char_GromSuit", new Color(0.2f, 0.25f, 0.42f), 0.4f);
+            var skinMat = GetOrCreateMaterial("Char_GromSkin", new Color(0.45f, 0.62f, 0.27f), 0.5f);
+            var eyeMat = GetOrCreateMaterial("Char_GromEye", new Color(0.75f, 0.12f, 0.16f), 0.9f, new Color(0.18f, 0.02f, 0.03f));
+            var pupilMat = GetOrCreateMaterial("Char_Pupil", new Color(0.03f, 0.02f, 0.05f), 0.9f);
+            var shineMat = GetOrCreateMaterial("Char_Shine", Color.white, 0.2f, new Color(1.2f, 1.2f, 1.2f));
+            var mouthMat = GetOrCreateMaterial("Char_Mouth", new Color(0.22f, 0.04f, 0.1f), 0.3f);
+            var badgeMat = GetOrCreateMaterial("Char_Badge", new Color(0.95f, 0.78f, 0.2f), 0.7f, new Color(0.4f, 0.3f, 0.03f));
+            var shirtMat = GetOrCreateMaterial("Char_Shirt", new Color(0.92f, 0.92f, 0.88f), 0.3f);
+            var tieMat = GetOrCreateMaterial("Char_Tie", new Color(0.85f, 0.15f, 0.18f), 0.4f);
+            var boardMat = GetOrCreateMaterial("Char_Clipboard", new Color(0.55f, 0.36f, 0.2f), 0.3f);
+            var paperMat = GetOrCreateMaterial("Char_Paper", new Color(0.96f, 0.95f, 0.88f), 0.2f);
 
             var root = new GameObject("Customer_Gromflomite");
             ConfigureAgent(root, radius: 0.35f, height: 1.9f, speed: 1.9f);
@@ -169,23 +217,49 @@ namespace VentsAndVending.Editor
             col.height = 1.9f;
 
             var body = Group("Body", root.transform);
-            Part("Legs_L", body, new Vector3(-0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
-            Part("Legs_R", body, new Vector3(0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
-            Part("Torso", body, new Vector3(0f, 1.05f, 0f), new Vector3(0.45f, 0.4f, 0.32f), suitMat, PrimitiveType.Capsule);
-            Part("Arm_L", body, new Vector3(-0.3f, 1.0f, 0.02f), new Vector3(0.06f, 0.55f, 0.06f), skinMat);
-            Part("Arm_R", body, new Vector3(0.3f, 1.0f, 0.02f), new Vector3(0.06f, 0.55f, 0.06f), skinMat);
-            Part("Neck", body, new Vector3(0f, 1.45f, 0f), new Vector3(0.07f, 0.12f, 0.07f), skinMat);
-            Part("Head", body, new Vector3(0f, 1.62f, 0.02f), new Vector3(0.36f, 0.3f, 0.34f), skinMat, PrimitiveType.Sphere);
-            Part("CompoundEye_L", body, new Vector3(-0.13f, 1.66f, 0.13f), new Vector3(0.18f, 0.22f, 0.14f), eyeMat, PrimitiveType.Sphere);
-            Part("CompoundEye_R", body, new Vector3(0.13f, 1.66f, 0.13f), new Vector3(0.18f, 0.22f, 0.14f), eyeMat, PrimitiveType.Sphere);
-            var antL = Part("Antenna_L", body, new Vector3(-0.08f, 1.88f, 0.02f), new Vector3(0.015f, 0.2f, 0.015f), skinMat);
-            antL.transform.localRotation = Quaternion.Euler(0f, 0f, 20f);
-            var antR = Part("Antenna_R", body, new Vector3(0.08f, 1.88f, 0.02f), new Vector3(0.015f, 0.2f, 0.015f), skinMat);
-            antR.transform.localRotation = Quaternion.Euler(0f, 0f, -20f);
-            Part("OversizedBadge", body, new Vector3(0.11f, 1.12f, 0.17f), new Vector3(0.16f, 0.2f, 0.02f), badgeMat);
+            var legL = Part("Leg_L", body, new Vector3(-0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
+            var legR = Part("Leg_R", body, new Vector3(0.1f, 0.35f, 0f), new Vector3(0.08f, 0.7f, 0.08f), suitMat);
+            Part("Shoe_L", body, new Vector3(-0.1f, 0.03f, 0.05f), new Vector3(0.11f, 0.06f, 0.2f), pupilMat, PrimitiveType.Sphere);
+            Part("Shoe_R", body, new Vector3(0.1f, 0.03f, 0.05f), new Vector3(0.11f, 0.06f, 0.2f), pupilMat, PrimitiveType.Sphere);
+            var torso = Part("Torso", body, new Vector3(0f, 1.05f, 0f), new Vector3(0.45f, 0.4f, 0.32f), suitMat, PrimitiveType.Capsule);
+            Part("ShirtFront", body, new Vector3(0f, 1.22f, 0.13f), new Vector3(0.14f, 0.18f, 0.05f), shirtMat);
+            Part("Tie", body, new Vector3(0f, 1.12f, 0.16f), new Vector3(0.05f, 0.24f, 0.02f), tieMat);
+            Part("TieKnot", body, new Vector3(0f, 1.26f, 0.165f), new Vector3(0.06f, 0.05f, 0.03f), tieMat);
+            Part("OversizedBadge", body, new Vector3(0.14f, 1.1f, 0.165f), new Vector3(0.14f, 0.18f, 0.02f), badgeMat);
 
-            return FinishCustomerPrefab(root, body, new Transform[0], bubbleHeight: 2.2f, bobSpeed: 9f, squash: 0.015f,
-                $"{CharacterPrefabFolder}/Customer_Gromflomite.prefab");
+            Part("Arm_L", body, new Vector3(-0.29f, 1.0f, 0.05f), new Vector3(0.06f, 0.5f, 0.06f), suitMat).transform.localRotation = Quaternion.Euler(-25f, 0f, 6f);
+            Part("Arm_R", body, new Vector3(0.29f, 1.02f, 0f), new Vector3(0.06f, 0.5f, 0.06f), suitMat).transform.localRotation = Quaternion.Euler(0f, 0f, -6f);
+            Part("Hand_L", body, new Vector3(-0.31f, 0.8f, 0.17f), Vector3.one * 0.08f, skinMat, PrimitiveType.Sphere);
+            Part("Hand_R", body, new Vector3(0.31f, 0.78f, 0f), Vector3.one * 0.08f, skinMat, PrimitiveType.Sphere);
+            var board = Part("Clipboard", body, new Vector3(-0.27f, 0.86f, 0.24f), new Vector3(0.22f, 0.3f, 0.02f), boardMat);
+            board.transform.localRotation = Quaternion.Euler(-55f, 15f, 0f);
+            var paper = Part("Paper", board.transform, new Vector3(0f, -0.05f, 0.6f), new Vector3(0.85f, 0.75f, 0.5f), paperMat);
+            paper.transform.localRotation = Quaternion.identity;
+
+            // Head group leans forward: the hunch of someone who has stamped forms for 300 rotations
+            var head = Group("Head", body);
+            head.localPosition = new Vector3(0f, 1.45f, 0.02f);
+            head.localRotation = Quaternion.Euler(10f, 0f, 0f);
+            Part("Neck", head, new Vector3(0f, 0.02f, 0f), new Vector3(0.07f, 0.12f, 0.07f), skinMat);
+            Part("Skull", head, new Vector3(0f, 0.18f, 0.02f), new Vector3(0.36f, 0.3f, 0.34f), skinMat, PrimitiveType.Sphere);
+            var eyes = new[]
+            {
+                FaceEye(head, new Vector3(-0.13f, 0.22f, 0.13f), 0.21f, eyeMat, pupilMat, shineMat),
+                FaceEye(head, new Vector3(0.13f, 0.22f, 0.13f), 0.21f, eyeMat, pupilMat, shineMat),
+            };
+            Part("Mandible_L", head, new Vector3(-0.05f, 0.06f, 0.16f), new Vector3(0.025f, 0.08f, 0.025f), pupilMat).transform.localRotation = Quaternion.Euler(0f, 0f, -25f);
+            Part("Mandible_R", head, new Vector3(0.05f, 0.06f, 0.16f), new Vector3(0.025f, 0.08f, 0.025f), pupilMat).transform.localRotation = Quaternion.Euler(0f, 0f, 25f);
+            var mouth = Group("Mouth", head);
+            mouth.localPosition = new Vector3(0f, 0.09f, 0.17f);
+            Part("MouthLine", mouth, Vector3.zero, new Vector3(0.07f, 0.018f, 0.02f), mouthMat, PrimitiveType.Sphere);
+            Part("Antenna_L", head, new Vector3(-0.08f, 0.42f, 0.02f), new Vector3(0.015f, 0.2f, 0.015f), skinMat).transform.localRotation = Quaternion.Euler(0f, 0f, 20f);
+            Part("Antenna_R", head, new Vector3(0.08f, 0.42f, 0.02f), new Vector3(0.015f, 0.2f, 0.015f), skinMat).transform.localRotation = Quaternion.Euler(0f, 0f, -20f);
+            Part("AntennaTip_L", head, new Vector3(-0.115f, 0.52f, 0.02f), Vector3.one * 0.04f, badgeMat, PrimitiveType.Sphere);
+            Part("AntennaTip_R", head, new Vector3(0.115f, 0.52f, 0.02f), Vector3.one * 0.04f, badgeMat, PrimitiveType.Sphere);
+
+            return FinishCustomerPrefab(root, body, new Transform[0], bubbleHeight: 2.25f, bobSpeed: 9f, squash: 0.015f,
+                $"{CharacterPrefabFolder}/Customer_Gromflomite.prefab", eyes, mouth,
+                new[] { torso.GetComponent<Renderer>(), legL.GetComponent<Renderer>(), legR.GetComponent<Renderer>() });
         }
 
         // ------------------------------------------------------------------ Shared
@@ -202,15 +276,25 @@ namespace VentsAndVending.Editor
             agent.autoBraking = true;
         }
 
-        private static void Eye(Transform parent, Vector3 position, float size, Material white, Material pupil)
+        /// <summary>Eye rig: unscaled root (blinks), white ball, sliding pupil with a cartoon catchlight.</summary>
+        private static CharacterFace.Eye FaceEye(Transform parent, Vector3 position, float size, Material white, Material pupil, Material shine)
         {
-            Part("Eye", parent, position, Vector3.one * size, white, PrimitiveType.Sphere);
-            Part("Pupil", parent, position + new Vector3(0f, 0f, size * 0.38f), Vector3.one * size * 0.45f, pupil, PrimitiveType.Sphere);
+            var root = Group("Eye", parent);
+            root.localPosition = position;
+            Part("Ball", root, Vector3.zero, Vector3.one * size, white, PrimitiveType.Sphere);
+            var pupilRoot = Group("Pupil", root);
+            pupilRoot.localPosition = new Vector3(0f, 0f, size * 0.4f);
+            Part("Iris", pupilRoot, Vector3.zero, new Vector3(size * 0.46f, size * 0.46f, size * 0.2f), pupil, PrimitiveType.Sphere);
+            Part("Catchlight", pupilRoot, new Vector3(size * 0.09f, size * 0.09f, size * 0.07f), Vector3.one * size * 0.14f, shine, PrimitiveType.Sphere);
+            return new CharacterFace.Eye { Root = root, Pupil = pupilRoot, Range = size * 0.17f };
         }
 
         private static GameObject FinishCustomerPrefab(GameObject root, Transform body, Transform[] floaters, float bubbleHeight,
-            float bobSpeed, float squash, string path)
+            float bobSpeed, float squash, string path, CharacterFace.Eye[] eyes = null, Transform mouth = null, Renderer[] tint = null)
         {
+            var face = root.AddComponent<CharacterFace>();
+            face.Configure(eyes ?? new CharacterFace.Eye[0], mouth);
+
             var bubbleGo = new GameObject("SpeechBubble");
             bubbleGo.transform.SetParent(root.transform, false);
             bubbleGo.transform.localPosition = new Vector3(0f, bubbleHeight, 0f);
@@ -229,6 +313,8 @@ namespace VentsAndVending.Editor
             vso.FindProperty("_bobSpeed").floatValue = bobSpeed;
             vso.FindProperty("_squash").floatValue = squash;
             SetList(vso.FindProperty("_floaters"), floaters);
+            vso.FindProperty("_face").objectReferenceValue = face;
+            SetList(vso.FindProperty("_tintRenderers"), tint ?? new Renderer[0]);
             vso.ApplyModifiedPropertiesWithoutUndo();
 
             var customer = root.AddComponent<Customer>();
@@ -244,7 +330,7 @@ namespace VentsAndVending.Editor
 
         private static CustomerDefinition GetOrCreateCustomer(string assetName, string id, string species, string[] names, GameObject prefab,
             Vector2Int quantity, Vector2 tolerance, ItemQuality minQuality, bool likesPoor, int attempts, float patience,
-            CustomerDefinition.DialogueLines lines)
+            CustomerDefinition.DialogueLines lines, Color[] bodyColors = null, float bodyGlow = 0.12f)
         {
             string path = $"{CustomerDefinitionFolder}/{assetName}.asset";
             var def = AssetDatabase.LoadAssetAtPath<CustomerDefinition>(path);
@@ -254,7 +340,8 @@ namespace VentsAndVending.Editor
                 AssetDatabase.CreateAsset(def, path);
             }
 
-            def.Configure(id, species, names, prefab, new[] { _glarbJuice }, quantity, tolerance, minQuality, likesPoor, attempts, patience, lines);
+            def.Configure(id, species, names, prefab, new[] { _glarbJuice }, quantity, tolerance, minQuality, likesPoor, attempts, patience, lines,
+                bodyColors, bodyGlow);
             EditorUtility.SetDirty(def);
             return def;
         }

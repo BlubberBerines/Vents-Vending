@@ -198,7 +198,15 @@ namespace VentsAndVending.Editor
                 rotors[i] = Part($"Rotor_{i}", hover, armPos, new Vector3(0.3f, 0.008f, 0.06f), trimMat).transform;
             }
 
-            var eye = Part("Eye", hover, new Vector3(0f, -0.05f, 0.26f), Vector3.one * 0.2f, eyeMat, PrimitiveType.Sphere);
+            var eye = Part("Eye", hover, new Vector3(0f, -0.13f, 0.24f), Vector3.one * 0.2f, eyeMat, PrimitiveType.Sphere);
+
+            // Character details: a lens ring, a permanently disapproving V-brow and a Federation stripe
+            var badgeMat = GetOrCreateMaterial("Char_Badge", new Color(0.95f, 0.78f, 0.2f), 0.7f, new Color(0.4f, 0.3f, 0.03f));
+            Part("LensRing", hover, new Vector3(0f, -0.13f, 0.25f), new Vector3(0.25f, 0.015f, 0.25f), trimMat, PrimitiveType.Cylinder)
+                .transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Part("Brow_L", hover, new Vector3(-0.075f, -0.035f, 0.285f), new Vector3(0.14f, 0.035f, 0.05f), bodyMat).transform.localRotation = Quaternion.Euler(0f, 0f, -20f);
+            Part("Brow_R", hover, new Vector3(0.075f, -0.035f, 0.285f), new Vector3(0.14f, 0.035f, 0.05f), bodyMat).transform.localRotation = Quaternion.Euler(0f, 0f, 20f);
+            Part("FederationStripe", hover, new Vector3(0f, 0.04f, 0f), new Vector3(0.615f, 0.05f, 0.615f), badgeMat, PrimitiveType.Sphere);
             var spotGo = new GameObject("Spotlight");
             spotGo.transform.SetParent(eye.transform, false);
             spotGo.transform.localRotation = Quaternion.Euler(32f, 0f, 0f);

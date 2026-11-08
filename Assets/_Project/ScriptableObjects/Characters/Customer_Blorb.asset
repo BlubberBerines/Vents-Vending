@@ -30,6 +30,13 @@ MonoBehaviour:
   _likesPoorQuality: 0
   _haggleAttempts: 2
   _patience: 50
+  _bodyColors:
+  - {r: 0.9, g: 0.36, b: 0.88, a: 1}
+  - {r: 0.2, g: 0.78, b: 0.75, a: 1}
+  - {r: 0.55, g: 0.85, b: 0.25, a: 1}
+  - {r: 1, g: 0.55, b: 0.2, a: 1}
+  - {r: 0.62, g: 0.5, b: 1, a: 1}
+  _bodyGlow: 0.14
   _lines:
     Greeting:
     - Heyyy friend! Got any {product}?

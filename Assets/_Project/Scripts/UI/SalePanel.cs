@@ -189,12 +189,14 @@ namespace VentsAndVending.UI
                     break;
 
                 case OfferOutcome.TooExpensive:
+                    _customer.ShowAnnoyed();
                     _reply.text = $"<i>“{_customer.Line(lines.TooExpensive, _unitPrice, result.CounterOffer)}”</i>";
                     _unitPrice = result.CounterOffer;
                     Refresh();
                     break;
 
                 case OfferOutcome.QualityRejected:
+                    _customer.ShowAnnoyed();
                     _reply.text = $"<i>“{_customer.Line(lines.QualityRejected, _unitPrice)}”</i>";
                     Refresh();
                     break;

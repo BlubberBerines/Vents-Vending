@@ -43,8 +43,16 @@ namespace VentsAndVending.Customers
         [Tooltip("Seconds they'll wait at the meeting point before giving up.")]
         [SerializeField, Min(5f)] private float _patience = 45f;
 
+        [Header("Look")]
+        [Tooltip("One is picked per visit for the tinted body parts (variety in the crowd).")]
+        [SerializeField] private Color[] _bodyColors = Array.Empty<Color>();
+        [SerializeField, Range(0f, 1f)] private float _bodyGlow = 0.12f;
+
         [Header("Dialogue")]
         [SerializeField] private DialogueLines _lines;
+
+        public Color[] BodyColors => _bodyColors;
+        public float BodyGlow => _bodyGlow;
 
         public string Id => _id;
         public string SpeciesName => _speciesName;
@@ -66,8 +74,10 @@ namespace VentsAndVending.Customers
 
         internal void Configure(string id, string speciesName, string[] names, GameObject prefab, IEnumerable<ProductDefinition> wants,
             Vector2Int quantityRange, Vector2 toleranceRange, ItemQuality minimumQuality, bool likesPoorQuality,
-            int haggleAttempts, float patience, DialogueLines lines)
+            int haggleAttempts, float patience, DialogueLines lines, Color[] bodyColors = null, float bodyGlow = 0.12f)
         {
+            _bodyColors = bodyColors ?? Array.Empty<Color>();
+            _bodyGlow = bodyGlow;
             _id = id;
             _speciesName = speciesName;
             _names = names;

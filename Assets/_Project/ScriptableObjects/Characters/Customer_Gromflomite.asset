@@ -28,6 +28,12 @@ MonoBehaviour:
   _likesPoorQuality: 0
   _haggleAttempts: 2
   _patience: 40
+  _bodyColors:
+  - {r: 0.2, g: 0.25, b: 0.42, a: 1}
+  - {r: 0.45, g: 0.16, b: 0.2, a: 1}
+  - {r: 0.3, g: 0.34, b: 0.3, a: 1}
+  - {r: 0.36, g: 0.24, b: 0.46, a: 1}
+  _bodyGlow: 0
   _lines:
     Greeting:
     - Citizen. I require {qty} unit(s) of {product}. Off the record.

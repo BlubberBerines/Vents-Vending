@@ -69,6 +69,10 @@ namespace VentsAndVending.Customers
             WantedProduct = definition.Wants.Count > 0 ? definition.Wants[UnityEngine.Random.Range(0, definition.Wants.Count)] : null;
             WantedQuantity = UnityEngine.Random.Range(definition.QuantityRange.x, definition.QuantityRange.y + 1);
             PriceTolerance = UnityEngine.Random.Range(definition.PriceToleranceRange.x, definition.PriceToleranceRange.y);
+            if (_visual != null && definition.BodyColors != null && definition.BodyColors.Length > 0)
+            {
+                _visual.ApplyTint(definition.BodyColors[UnityEngine.Random.Range(0, definition.BodyColors.Length)], definition.BodyGlow);
+            }
 
             if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             {
@@ -140,6 +144,7 @@ namespace VentsAndVending.Customers
                     State = CustomerState.Leaving;
                     break;
                 case TradeOutcome.WalkedAway:
+                    ShowAnnoyed();
                     Leave(line);
                     break;
                 default:
@@ -182,6 +187,7 @@ namespace VentsAndVending.Customers
                     FacePlayerIfNear(5f);
                     if (_patienceLeft <= 0f)
                     {
+                        ShowAnnoyed();
                         Leave(Line(_definition.Lines.Impatient));
                     }
                     break;
@@ -231,6 +237,15 @@ namespace VentsAndVending.Customers
             }
 
             transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(to), _faceSpeed * Time.deltaTime);
+        }
+
+        /// <summary>Brief scowl + shake (e.g. when a price is too high).</summary>
+        public void ShowAnnoyed()
+        {
+            if (_visual != null)
+            {
+                _visual.PlayAnnoyed();
+            }
         }
 
         private void SetBubble(string line)
