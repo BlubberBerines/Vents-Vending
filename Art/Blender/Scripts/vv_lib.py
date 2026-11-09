@@ -67,6 +67,19 @@ def replace_object(name, mesh, coll, parent="PRES_Pivot"):
     return o
 
 
+def clean_mesh(mesh, recalc_normals=True):
+    """QA cleanup (blender-asset-qa): weld duplicates, dissolve degenerate faces, make normals consistent/outward."""
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.dissolve_degenerate(bm, edges=bm.edges, dist=1e-5)
+    if recalc_normals:
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+
+
 def tris(mesh):
     return sum(len(p.vertices) - 2 for p in mesh.polygons)
 

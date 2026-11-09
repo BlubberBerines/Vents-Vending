@@ -253,7 +253,7 @@ def _cart(builder, mat, c, scale=1.0):
     builder.part(mat, mk_box((0.062 * s, 0.005, 0.036 * s), bevel=0.002, segs=1), loc=c + Vector((0.006 * s, 0, 0.004 * s)))
     builder.part(mat, mk_box((0.008 * s, 0.005, 0.03 * s), bevel=0.001, segs=1), loc=c + Vector((-0.03 * s, 0, 0.016 * s)), rot=(0, -25, 0))
     builder.part(mat, mk_box((0.022 * s, 0.005, 0.007 * s), bevel=0.001, segs=1), loc=c + Vector((-0.044 * s, 0, 0.03 * s)))
-    builder.part(mat, mk_box((0.062 * s, 0.005, 0.006 * s), bevel=0.001, segs=1), loc=c + Vector((0.006 * s, 0, -0.02 * s)))
+    builder.part(mat, mk_box((0.062 * s, 0.005, 0.006 * s), bevel=0.001, segs=1), loc=c + Vector((0.006 * s, -0.0025, -0.02 * s)))
     for wx in (-0.016, 0.026):
         builder.part(mat, mk_cyl(0.008 * s, 0.006, 10), loc=c + Vector((wx * s, 0, -0.032 * s)), rot=(90, 0, 0))
 
@@ -323,6 +323,10 @@ def build_vendor():
     for v in boots_shell.vertices:
         v.co.z = max(0.0, v.co.z)
     boots_shell.update()
+    # QA: the shell's flattened underside sat exactly on the sole block (z-fighting) - drop it, the sole covers it
+    bm_ = bmesh.new(); bm_.from_mesh(boots_shell)
+    bmesh.ops.delete(bm_, geom=[f for f in bm_.faces if all(v.co.z < 0.003 for v in f.verts)], context="FACES")
+    bm_.to_mesh(boots_shell); bm_.free()
     bb = Builder()
     bb.part("VV_MAT_CharcoalFabric", mk_mesh(boots_shell))
     bpy.data.meshes.remove(boots_shell)
@@ -451,8 +455,8 @@ def build_vendor():
     ac.part("VV_MAT_EmissiveCyan", mk_box((0.08, 0.008, 0.03), bevel=0.003, segs=1), loc=(0, -0.131, 1.372), rot=(-8, 0, 0))
     # Shopping-cart emblems: on the bib and on the pocket
     eb = hit_front(at, 0.0, 1.13)
-    _cart(ac, "VENDOR_MAT_Print", eb + Vector((0, -0.004, 0)), 1.0)
-    _cart(ac, "VENDOR_MAT_Print", pk + Vector((0, -0.016, 0)), 1.3)
+    _cart(ac, "VENDOR_MAT_Print", eb + Vector((0, -0.009, 0)), 1.0)        # QA: proud of the fabric, not buried in it
+    _cart(ac, "VENDOR_MAT_Print", pk + Vector((0, -0.0155, 0)), 1.3)
     # Vial pouch on the right hip (character's right = -X): two pink and one cyan product vial
     rp, ryaw = on_belt(282, 0.045)
     ac.part("VENDOR_MAT_Leather", mk_box((0.07, 0.14, 0.11), bevel=0.012, segs=2), loc=rp + Vector((0, 0, -0.05)), rot=(0, 0, ryaw))
@@ -552,6 +556,10 @@ def build_vendor():
         p = hit_front(tree, tx, zt - 0.008)
         mouth.part("VENDOR_MAT_Teeth", mk_box((0.02, 0.01, 0.016), bevel=0.003, segs=1), loc=(tx, p.y + 0.008, zt - 0.008))
     me = mouth.mesh(smooth=False); replace_object("VENDOR_Mouth", me, coll); report["VENDOR_Mouth"] = tris(me)
+
+    # QA cleanup on every part (open shells with deliberate inward faces keep their winding)
+    for o in coll.objects:
+        clean_mesh(o.data, recalc_normals=o.name not in ("VENDOR_Mouth", "VENDOR_Eyelids"))
 
     report["TOTAL"] = sum(v for k, v in report.items())
     return report
