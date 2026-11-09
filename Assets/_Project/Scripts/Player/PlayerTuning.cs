@@ -36,6 +36,18 @@ namespace VentsAndVending.Player
         [Tooltip("How fast the capsule and camera move between stances (m/s).")]
         public float StanceTransitionSpeed = 5f;
 
+        [Header("Climbing (mantle onto crates, ledges, vent mouths)")]
+        [Tooltip("Lowest ledge (above the feet) worth a climb; lower ones are stepped or jumped.")]
+        public float MinClimbHeight = 0.35f;
+        [Tooltip("Highest ledge (above the feet) the player can pull up onto (crates are 1.0-1.1 m).")]
+        public float MaxClimbHeight = 1.15f;
+        [Tooltip("Free depth needed on top of the ledge.")]
+        public float MinClimbDepth = 0.65f;
+        public float ClimbBaseTime = 0.35f;
+        public float ClimbTimePerMetre = 0.2f;
+        [Tooltip("How far ahead of the player to look for a climbable face.")]
+        public float ClimbProbeDistance = 0.8f;
+
         [Header("Interaction")]
         public float InteractionDistance = 2.5f;
 
@@ -48,6 +60,7 @@ namespace VentsAndVending.Player
             PlayerMovementState.Crouching => CrouchSpeed,
             PlayerMovementState.Crawling => CrawlSpeed,
             PlayerMovementState.Interacting => 0f,
+            PlayerMovementState.Climbing => 0f,
             _ => WalkSpeed
         };
 

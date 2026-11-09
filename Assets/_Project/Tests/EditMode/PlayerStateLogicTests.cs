@@ -78,6 +78,20 @@ namespace VentsAndVending.Tests
             Assert.AreEqual(PlayerMovementState.Crawling, PlayerStateLogic.ResolvePosture(input));
         }
 
+        [Test]
+        public void Climbing_OverridesInteracting_AndForcesPosture()
+        {
+            var input = Input();
+            input.IsClimbing = true;
+            input.ClimbPosture = PlayerMovementState.Crawling;
+            input.IsInteracting = true;
+            Assert.AreEqual(PlayerMovementState.Climbing, PlayerStateLogic.Resolve(input));
+            Assert.AreEqual(PlayerMovementState.Crawling, PlayerStateLogic.ResolvePosture(input));
+        }
+
+        [Test]
+        public void CannotJump_WhileClimbing() => Assert.IsFalse(PlayerStateLogic.CanJump(PlayerMovementState.Climbing, true));
+
         [TestCase(PlayerMovementState.Normal, true, true)]
         [TestCase(PlayerMovementState.Sprinting, true, true)]
         [TestCase(PlayerMovementState.Normal, false, false)]

@@ -7,6 +7,8 @@ namespace VentsAndVending.Player
         Sprinting,
         Crouching,
         Crawling,
-        Interacting
+        Interacting,
+        /// <summary>Pulling up onto a crate, ledge or into a vent mouth (station layers spec §6.1).</summary>
+        Climbing
     }
 }

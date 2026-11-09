@@ -157,6 +157,7 @@ namespace VentsAndVending.Editor
             var crouch = player.AddComponent<PlayerCrouch>();
             var look = player.AddComponent<PlayerCamera>();
             player.AddComponent<PlayerMovement>();
+            player.AddComponent<PlayerClimb>();
             var pockets = player.AddComponent<InventoryComponent>();
             pockets.Configure("Pockets", 8, VentsAndVending.Progression.UpgradeKeys.PocketsCapacity, "player.pockets");
             var interaction = player.AddComponent<InteractionController>();

@@ -14,6 +14,7 @@ namespace VentsAndVending.Player
         private CharacterController _controller;
         private PlayerInputHandler _input;
         private PlayerStateController _state;
+        private PlayerClimb _climb;
         private Vector3 _horizontalVelocity;
         private float _verticalVelocity;
 
@@ -25,10 +26,18 @@ namespace VentsAndVending.Player
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<PlayerInputHandler>();
             _state = GetComponent<PlayerStateController>();
+            _climb = GetComponent<PlayerClimb>();
         }
 
         private void Update()
         {
+            if (_climb != null && _climb.IsClimbing)
+            {
+                _horizontalVelocity = Vector3.zero;   // the climb owns the transform (controller disabled)
+                _verticalVelocity = 0f;
+                return;
+            }
+
             float dt = Time.deltaTime;
             PlayerTuning tuning = _state.Tuning;
             PlayerMovementState state = _state.Current;
@@ -44,7 +53,8 @@ namespace VentsAndVending.Player
                 _verticalVelocity = GroundedStickVelocity;
             }
 
-            if (_input.JumpPressed && PlayerStateLogic.CanJump(state, grounded))
+            bool climbed = _climb != null && _climb.JumpConsumedThisFrame;
+            if (_input.JumpPressed && !climbed && PlayerStateLogic.CanJump(state, grounded))
             {
                 _verticalVelocity = tuning.JumpVelocity;
             }
@@ -61,6 +71,11 @@ namespace VentsAndVending.Player
         /// <summary>Teleport safely (CharacterController must be disabled to set position).</summary>
         public void Teleport(Vector3 position, Quaternion rotation)
         {
+            if (_climb != null)
+            {
+                _climb.Cancel();   // a teleport (escort, load) ends any climb in progress
+            }
+
             _controller.enabled = false;
             transform.SetPositionAndRotation(position, rotation);
             _horizontalVelocity = Vector3.zero;

@@ -38,6 +38,7 @@ Expands **GDD Part 4 (The Vent Network)** and **§19.1 Location 1 (Maintenance N
    - 25 is "found from 11" in the index, but the chart ties it to 02.
    - The index takes precedence.
 10. **Maintenance Underpass (U01), 2026-11-08.** See `Docs/superpowers/specs/2026-11-08-maintenance-underpass-design.md`. A drone-patrolled maintenance sublevel (P3/P4, floor y −3.6) under the gallery, reached by a **crowbar-pried floor grate in 03 The Long Crawl** (`GATE_GRATE_03`, one-way drop). It leads upright to a push-bar exit in the plaza (`GATE_EXIT_U01`, inside only, never saved open), so it is an earned, faster, riskier alternative to 03 → 05. This amends the blueprint: the first patrolled corridor sits **below** the vents rather than in the P1 Security district (21–24), which stays planned. Inside it, being seen is suspicious even empty-handed (trespass), the supply closet is a guaranteed hiding spot, and a catch escorts you out to the plaza. Home is still vents-only.
+11. **Station ring and layers, 2026-11-09 (approved).** See `Docs/superpowers/specs/2026-11-09-station-ring-layers-design.md`. The station is a **ring** built in four stacked layers: **L1 Concourse** (public: plaza, lounge, customers) → **L2 Crawlspace** (crawl-only vent maze: AC trunks and garbage chutes) → **L3 Maintenance** (standing tunnels; the den, behind a full-size sliding door; every vent entrance is a head-height mouth reached by climbing crates) → **L4 Basement** (the Maintenance Underpass, drone patrols). It **replaces §3's planes** as the physical model (§3 kept for the blueprint mapping), **supersedes item 4** (L2 is crawl-only by design; the den-to-customer crawl stays short) and **supersedes "home is vents-only" in item 10** (the den is entered through its door in L3). Room and gate IDs are unchanged; only their layer changes.
 
 ---
 
@@ -75,6 +76,8 @@ Expands **GDD Part 4 (The Vent Network)** and **§19.1 Location 1 (Maintenance N
 | Legacy return | 02 → 11 → 25 → 26 → 28 → 02 | Exploration loop and return shortcut once the shaft is repaired |
 
 ## 3. Vertical planes
+
+> **Superseded as the physical model by the station layers (§0 item 11):** L1 Concourse, L2 Crawlspace, L3 Maintenance, L4 Basement. Mapping: P2 → L1/L2, P3 → L3, P4 → L2 (AC/garbage ducts) + L4 (processing rooms), P5 → L4, P1 security → L1 offices + L4 drone docks. The planes below are kept as the blueprint's reference.
 
 Broad elevation bands, not literal floors.
 

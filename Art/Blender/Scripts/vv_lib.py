@@ -124,6 +124,31 @@ def catmull_rom(points, samples):
     return out
 
 
+def resample(points, n):
+    """`n` points evenly spaced by arc length along the polyline `points`."""
+    acc = [0.0]
+    for a, b in zip(points, points[1:]):
+        acc.append(acc[-1] + (b - a).length)
+    out, j = [], 0
+    for k in range(n):
+        d = acc[-1] * k / (n - 1)
+        while j < len(acc) - 2 and acc[j + 1] < d:
+            j += 1
+        seg = max(1e-9, acc[j + 1] - acc[j])
+        out.append(points[j].lerp(points[j + 1], min(1.0, (d - acc[j]) / seg)))
+    return out
+
+
+def max_curvature(points):
+    """Largest turning angle per metre along a polyline (1 / bend radius)."""
+    k = 0.0
+    for a, b, c in zip(points, points[1:], points[2:]):
+        u, v = b - a, c - b
+        if u.length > 1e-6 and v.length > 1e-6:
+            k = max(k, u.angle(v) / (0.5 * (u.length + v.length)))
+    return k
+
+
 def loft(centre, radius_fn, segments=10, cap_start=False, cap_end=True, ellipse=None):
     """Tube along a polyline `centre`; radius_fn(t in 0..1) -> radius (or (rx, ry)). Rounded end cap."""
     bm = bmesh.new()
@@ -133,10 +158,11 @@ def loft(centre, radius_fn, segments=10, cap_start=False, cap_end=True, ellipse=
     for i, c in enumerate(centre):
         t = i / (n - 1)
         tang = (centre[min(i + 1, n - 1)] - centre[max(i - 1, 0)]).normalized()
-        ref = Vector((0, 0, 1)) if abs(tang.z) < 0.9 else Vector((1, 0, 0))
-        side = tang.cross(ref).normalized()
-        if prev_side is not None and side.dot(prev_side) < 0:
-            side = -side
+        if prev_side is None:
+            ref = Vector((0, 0, 1)) if abs(tang.z) < 0.9 else Vector((1, 0, 0))
+            side = tang.cross(ref).normalized()
+        else:                                   # parallel transport: no twisting or flipped rings at bends
+            side = (prev_side - tang * prev_side.dot(tang)).normalized()
         prev_side = side
         up = side.cross(tang).normalized()
         r = radius_fn(t)

@@ -13,6 +13,10 @@ namespace VentsAndVending.Player
         public bool CanStand;
         /// <summary>There is room to crouch.</summary>
         public bool CanCrouch;
+        /// <summary>A climb is in progress (overrides everything else).</summary>
+        public bool IsClimbing;
+        /// <summary>Posture forced while climbing (the posture the player will have on top of the ledge).</summary>
+        public PlayerMovementState ClimbPosture;
 
         public static PlayerStateInput Default => new PlayerStateInput { CanStand = true, CanCrouch = true };
     }
@@ -25,6 +29,11 @@ namespace VentsAndVending.Player
         /// <summary>Body posture, ignoring interaction. Drives capsule and camera height.</summary>
         public static PlayerMovementState ResolvePosture(in PlayerStateInput input)
         {
+            if (input.IsClimbing)
+            {
+                return input.ClimbPosture;
+            }
+
             PlayerMovementState desired;
             if (input.InVent || input.WantsCrawl)
             {
@@ -60,6 +69,11 @@ namespace VentsAndVending.Player
         /// <summary>Gameplay state. Interacting overrides movement but keeps the posture.</summary>
         public static PlayerMovementState Resolve(in PlayerStateInput input)
         {
+            if (input.IsClimbing)
+            {
+                return PlayerMovementState.Climbing;
+            }
+
             return input.IsInteracting ? PlayerMovementState.Interacting : ResolvePosture(input);
         }
 

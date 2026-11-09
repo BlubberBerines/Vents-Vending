@@ -16,6 +16,7 @@ namespace VentsAndVending.Player
         private PlayerInputHandler _input;
         private PlayerCrouch _crouch;
         private VentCrawler _ventCrawler;
+        private PlayerClimb _climb;
 
         public PlayerTuning Tuning => _tuning;
 
@@ -36,6 +37,7 @@ namespace VentsAndVending.Player
             _input = GetComponent<PlayerInputHandler>();
             _crouch = GetComponent<PlayerCrouch>();
             _ventCrawler = GetComponent<VentCrawler>();
+            _climb = GetComponent<PlayerClimb>();
         }
 
         private void Update()
@@ -49,7 +51,9 @@ namespace VentsAndVending.Player
                 InVent = _ventCrawler != null && _ventCrawler.InVent,
                 IsInteracting = IsInteracting,
                 CanStand = _crouch == null || _crouch.CanFit(_tuning.NormalCapsuleHeight),
-                CanCrouch = _crouch == null || _crouch.CanFit(_tuning.CrouchCapsuleHeight)
+                CanCrouch = _crouch == null || _crouch.CanFit(_tuning.CrouchCapsuleHeight),
+                IsClimbing = _climb != null && _climb.IsClimbing,
+                ClimbPosture = _climb != null ? _climb.ClimbPosture : PlayerMovementState.Normal
             };
 
             Posture = PlayerStateLogic.ResolvePosture(input);

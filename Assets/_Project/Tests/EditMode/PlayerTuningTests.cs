@@ -35,6 +35,7 @@ namespace VentsAndVending.Tests
         [TestCase(PlayerMovementState.Crouching, 2.2f)]
         [TestCase(PlayerMovementState.Crawling, 1.6f)]
         [TestCase(PlayerMovementState.Interacting, 0f)]
+        [TestCase(PlayerMovementState.Climbing, 0f)]
         public void SpeedFor_State(PlayerMovementState state, float expected)
         {
             Assert.AreEqual(expected, new PlayerTuning().SpeedFor(state));

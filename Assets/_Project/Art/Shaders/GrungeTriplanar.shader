@@ -37,6 +37,9 @@ Shader "VentsAndVending/Grunge Triplanar"
         _EdgeColor ("Bare Edge Colour", Color) = (0.62, 0.6, 0.56, 1)
         _EdgeWear ("Edge Wear Amount", Range(0, 1)) = 0
         _EdgeWidth ("Edge Width (m)", Range(0.005, 0.2)) = 0.04
+        [Header(Edge Wear  any mesh  bevel curvature)]
+        _CurveWear ("Curvature Chip Amount", Range(0, 1)) = 0
+        _CurveThreshold ("Curvature Threshold (1/m)", Range(1, 60)) = 9
 
         [Header(Emission)]
         [HDR] _EmissionColor ("Emission", Color) = (0, 0, 0, 1)
@@ -80,6 +83,8 @@ Shader "VentsAndVending/Grunge Triplanar"
             half4 _EdgeColor;
             half _EdgeWear;
             float _EdgeWidth;
+            half _CurveWear;
+            float _CurveThreshold;
             half4 _EmissionColor;
             half _RampThreshold;
             half _RampSoftness;
@@ -284,6 +289,22 @@ Shader "VentsAndVending/Grunge Triplanar"
                     albedo = lerp(albedo, _EdgeColor.rgb, edge);
                     metallic = lerp(metallic, 0.85, edge);
                     smoothness = lerp(smoothness, 0.6, edge);
+                }
+
+                // Edge wear on any mesh: curvature from screen-space normal derivatives (1/m). Kit pieces have smooth-shaded
+                // bevels, so curvature is high exactly on their edges and ~0 on flat faces; noise breaks it into chips.
+                if (_CurveWear > 0.001)
+                {
+                    float3 nW = normalize(input.normalWS);
+                    float curv = length(fwidth(nW)) / max(length(fwidth(posWS)), 1e-4);
+                    float bandC = saturate((curv - _CurveThreshold) / max(_CurveThreshold, 0.01));
+                    float crispC = lerp(0.1, 0.02, _WearCrispness);
+                    float chipC = smoothstep(0.42 - crispC, 0.42 + crispC, VV_Fbm(posWS * 9.0 + 7.1));
+                    float e2 = bandC * chipC * _CurveWear;
+                    albedo = lerp(albedo, _EdgeColor.rgb, e2);
+                    metallic = lerp(metallic, 0.25, e2);     // low: with no reflections to show, metal chips render dark
+                    smoothness = lerp(smoothness, 0.45, e2);
+                    edge = max(edge, e2);
                 }
 
                 // Rust patches, biased toward low areas and edges

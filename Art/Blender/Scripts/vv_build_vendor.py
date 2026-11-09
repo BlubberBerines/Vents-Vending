@@ -83,8 +83,8 @@ def _arm_dist(c, J, tag):
     return (c - (sh + d * t)).length
 
 
-HEAD_C = Vector((0, -0.005, 1.665))     # skull centre
-HEAD_R = Vector((0.136, 0.134, 0.165))  # half-sizes: wide, rounded alien skull
+HEAD_C = Vector((0, -0.02, 1.69))       # skull centre (ref front view: head spans 1.525-1.855)
+HEAD_R = Vector((0.146, 0.135, 0.1775))  # half-sizes: wide, rounded alien skull
 
 
 def _head_mesh():
@@ -101,14 +101,14 @@ def _head_mesh():
         fx *= 1.0 + 0.13 * math.exp(-((z + 0.18) / 0.28) ** 2)             # full cheeks
         if z < -0.42:
             fx *= 1.0 - 0.30 * (-z - 0.42) / 0.58                          # narrower jaw (but a chin to blend into)
-        fy = 0.9 if y < 0 else 1.12                                        # flatter face, fuller back of the skull
+        fy = 1.15 if y < 0 else 1.2                                        # flatter face, fuller back of the skull
         p = Vector((x * HEAD_R.x * fx, y * HEAD_R.y * fy, z * HEAD_R.z))
         if y > 0 and z > -0.1:                                             # crown sweeps up and back
             p.y += 0.035 * y * max(0.0, z + 0.1)
             p.z += 0.03 * y * max(0.0, z)
-        dm = (Vector((x, y, z)) - Vector((0, -1, -0.42))).length           # muzzle: lower face pushes forward
+        dm = (Vector((x, y, z)) - Vector((0, -1, -0.5))).length            # muzzle: lower face pushes forward
         if dm < 0.55:
-            p.y -= 0.038 * (1 - dm / 0.55) ** 1.5
+            p.y -= 0.075 * (1 - dm / 0.55) ** 1.5
         db = (Vector((x * 0.7, y, z)) - Vector((0, -1, 0.22))).length      # soft brow shelf
         if db < 0.4:
             p.y -= 0.012 * (1 - db / 0.4)
@@ -147,8 +147,8 @@ def _neck_mesh(tree):
 
     def neck_w(z):                 # oval neck (half-widths), tapering upward with a slight swell at the base
         t = max(0.0, min(1.0, (z - 1.29) / 0.27))
-        w = 0.092 - 0.03 * t + 0.008 * math.sin(math.pi * t)
-        return w * 0.88, w          # (x, y)
+        w = 0.108 - 0.034 * t + 0.008 * math.sin(math.pi * t)
+        return w * 0.88, w * 0.85   # (x, y): slimmer front-to-back, per the side view
 
     # Where would the crease be? The lowest height at which the head is clearly wider than the neck.
     z1 = None
@@ -167,7 +167,7 @@ def _neck_mesh(tree):
         return a * a * (3 - 2 * a)
 
     bm = bmesh.new()
-    seg = 14
+    seg = 20
     rings = []
     zs = [1.29 + k * 0.02 for k in range(int((za - 1.29) / 0.02) + 1)]
     zs += [za + (zb + 0.012 - za) * k / 7 for k in range(1, 8)]
@@ -182,8 +182,17 @@ def _neck_mesh(tree):
         else:
             hx, hcy, hy = nx, ncy, ny
         rx, ry, cy = nx + (hx - nx) * w, ny + (hy - ny) * w, ncy + (hcy - ncy) * w
-        rings.append([bm.verts.new((math.cos(2 * math.pi * k / seg) * rx, cy + math.sin(2 * math.pi * k / seg) * ry, z))
-                      for k in range(seg)])
+        ring = []
+        for k in range(seg):
+            a = 2 * math.pi * k / seg
+            d = Vector((math.cos(a) * rx, math.sin(a) * ry, 0))
+            if w > 0:      # inside the flare: never poke out through the jaw (the head is not an exact ellipse)
+                c = Vector((0, cy, z))
+                hit = tree.ray_cast(c, d.normalized(), d.length + 0.05)[0]
+                if hit is not None and (hit - c).length - 0.003 < d.length:
+                    d = d.normalized() * ((hit - c).length - 0.003)
+            ring.append(bm.verts.new((d.x, cy + d.y, z)))
+        rings.append(ring)
     for i in range(len(rings) - 1):
         a, b = rings[i], rings[i + 1]
         for k in range(seg):
@@ -197,37 +206,40 @@ def _neck_mesh(tree):
     return me
 
 
-# (azimuth from straight back, elevation, length, root radius, sweep): five tentacles from the top and rear of the
-# skull, each a little different so they read as organic rather than identical tubes
-TENTACLES = [
-    (0.0, 30.0, 0.46, 0.064, 1.00),      # rear centre: longest, falls down the back of the head
-    (45.0, 40.0, 0.42, 0.060, 0.95),     # rear left
-    (-40.0, 38.0, 0.44, 0.061, 1.00),    # rear right
-    (78.0, 48.0, 0.36, 0.056, 0.85),     # upper left, arcs over and falls beside the face
-    (-82.0, 45.0, 0.38, 0.058, 0.90),    # upper right
+def _mirror(pts):
+    return [(-x, y, z) for x, y, z in pts]
+
+
+# Control points (x, y, z) root -> tip, measured on the head reference sheet (front, side, top-view layout);
+# numbering follows the sheet's top view. Roots sit on the upper/rear cranium, tips stay above the shoulders.
+_T2 = [(0.08, 0.0, 1.84), (0.08, -0.05, 1.89), (0.23, -0.025, 1.84), (0.31, 0.04, 1.67), (0.29, 0.1, 1.59)]
+_T1 = [(0.08, 0.08, 1.8), (0.17, 0.1, 1.81), (0.26, 0.1, 1.72), (0.27, 0.13, 1.61), (0.25, 0.06, 1.61)]
+_T5 = [(-0.08, 0.08, 1.8), (-0.22, 0.13, 1.85), (-0.26, 0.17, 1.72), (-0.26, 0.1, 1.68), (-0.21, 0.07, 1.58)]
+_T3 = [(0, -0.08, 1.84), (0, -0.08, 1.91), (0, 0.03, 1.995), (0, 0.08, 1.96), (0, 0.18, 1.83), (0, 0.19, 1.72)]
+TENTACLES = [            # (control points, root radius); fitted by vv_head_fit.py against the head reference gate
+    (_T1, 0.0375),       # 1 outer, hangs beside the head
+    (_T2, 0.0425),       # 2 inner, splays out to cheek level
+    (_T3, 0.0725),       # 3 central: tall, curving up and back
+    (_mirror(_T2), 0.064),   # 4
+    (_T5, 0.0475),       # 5
 ]
 
 
-def _tentacle_mesh(tree, colliders, az, el, length, r0, sweep):
-    a, e = math.radians(az), math.radians(el)
-    out = Vector((math.sin(a) * math.cos(e), math.cos(a) * math.cos(e), math.sin(e)))
-    loc, _, _, _ = tree.ray_cast(HEAD_C, out)
-    root = loc - out * 0.03                                   # root sunk into the skull: no visible gap
-    horiz = Vector((out.x, out.y, 0)).normalized()
-    # out of the skull, a smooth arc outward and over, then a long fall with a slight curl at the tip
-    ctrl = [root,
-            root + out * 0.05,
-            root + out * 0.06 + horiz * (0.08 * sweep),
-            root + horiz * (0.17 * sweep) + Vector((0, 0, -length * 0.30)),
-            root + horiz * (0.20 * sweep) + Vector((0, 0, -length * 0.65)),
-            root + horiz * (0.17 * sweep) + Vector((0, 0.0, -length * 0.95))]
+TENTACLE_CENTRES = []   # filled by _tentacle_mesh, read by the fit's smoothness check
+
+
+def _tentacle_mesh(tree, colliders, pts, r0):
+    ctrl = [Vector(p) for p in pts]
+    d = (ctrl[0] - HEAD_C).normalized()
+    loc = tree.ray_cast(HEAD_C, d)[0]
+    ctrl[0] = loc - d * 0.03                                   # root sunk into the skull: no visible gap
     ctrl = [ctrl[0]] + drape(ctrl, [r0] * len(ctrl), colliders)[1:]
-    centre = catmull_rom(ctrl, 16)
+    centre = resample(catmull_rom(ctrl, 120), 24)
+    TENTACLE_CENTRES.append(centre)
 
-    def rad(t):                    # thick rounded root, then a gradual taper
-        return r0 * (1.0 + 0.2 * max(0.0, 1.0 - t / 0.15)) * (1.0 - 0.5 * t ** 0.9)
+    def rad(t):                    # thick rounded root, chunky and nearly constant, rounded tip
+        return r0 * (1.0 + 0.18 * max(0.0, 1.0 - t / 0.12)) * (1.0 - 0.18 * t)
     return loft(centre, rad, segments=10, cap_end=True)
-
 
 
 def _hit_back(tree, x, z):
@@ -499,7 +511,7 @@ def build_vendor():
     eyes, lids, brows = Builder(), Builder(), Builder()
     eye_r = 0.05
     for side in (1, -1):
-        p = hit_front(tree, side * 0.058, HEAD_C.z + 0.02)
+        p = hit_front(tree, side * 0.058, HEAD_C.z - 0.045)
         c = p + Vector((side * 0.002, eye_r * 0.6, 0))
         eyes.part("VENDOR_MAT_Sclera", mk_sphere(eye_r, 12, 8), loc=c, scale=(1.12, 1, 0.86))
         eyes.part("VENDOR_MAT_Iris", mk_sphere(eye_r * 0.7, 10, 6), loc=c + Vector((-side * 0.004, -eye_r * 0.72, -0.004)), scale=(1, 0.42, 0.95))
@@ -517,8 +529,8 @@ def build_vendor():
     me = lids.mesh(); replace_object("VENDOR_Eyelids", me, coll); report["VENDOR_Eyelids"] = tris(me)
     me = brows.mesh(); replace_object("VENDOR_Brows", me, coll); report["VENDOR_Brows"] = tris(me)
 
-    # Mouth: a small crooked smile on the muzzle, inset slot with two teeth
-    mw, mz = 0.062, HEAD_C.z - 0.08
+    # Mouth: a small crooked smile on the muzzle (closed, no teeth, per the head reference)
+    mw, mz = 0.062, HEAD_C.z - 0.115
 
     def mouth_top(u):
         return mz + 0.018 * u * u + 0.012 * u               # the left corner curls up
@@ -551,10 +563,6 @@ def build_vendor():
     mouth = Builder()
     mouth.part("VENDOR_MAT_Mouth", mk_mesh(mme))
     bpy.data.meshes.remove(mme)
-    for tx in (-0.016, 0.02):
-        zt = mouth_top(tx / mw)
-        p = hit_front(tree, tx, zt - 0.008)
-        mouth.part("VENDOR_MAT_Teeth", mk_box((0.02, 0.01, 0.016), bevel=0.003, segs=1), loc=(tx, p.y + 0.008, zt - 0.008))
     me = mouth.mesh(smooth=False); replace_object("VENDOR_Mouth", me, coll); report["VENDOR_Mouth"] = tris(me)
 
     # QA cleanup on every part (open shells with deliberate inward faces keep their winding)

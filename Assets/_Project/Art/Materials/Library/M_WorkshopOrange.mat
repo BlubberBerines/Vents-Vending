@@ -36,11 +36,13 @@ Material:
     - _AmbientStrength: 2.6
     - _BlendSharpness: 6
     - _BumpScale: 0.175
-    - _EdgeWear: 0.5
+    - _CurveThreshold: 9
+    - _CurveWear: 0
+    - _EdgeWear: 0.8
     - _EdgeWidth: 0.04
     - _GrimeAmount: 0.5
     - _GrimeHeight: 1.2
-    - _GrimePatches: 0.4
+    - _GrimePatches: 0.3
     - _GrimeScale: 0.8
     - _Metallic: 0.25
     - _PanelSize: 1.5

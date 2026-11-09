@@ -49,6 +49,9 @@ namespace VentsAndVending.Editor
             public Color? Edge;
             public string BaseTexture;   // file name in TextureFolder (optional)
             public string NormalTexture; // file name in TextureFolder (optional)
+            public Color? Emission;      // HDR emission (optional)
+            public float CurveWear;      // chipped paint on bevelled edges of any mesh (shader curvature mask)
+            public float CurveThreshold = 9f;
             public float TextureStrength = 1f;
             public float NormalStrength = 1f;
         }
@@ -100,6 +103,36 @@ namespace VentsAndVending.Editor
             new Preset { Name = "M_BrushedSilver", Base = new Color(0.42f, 0.44f, 0.48f), Metallic = 0.85f, Smoothness = 0.5f,
                 SeamDarkness = 0f, GrimeAmount = 0.1f, GrimePatches = 0.08f, EdgeWear = 0f,
                 BaseTexture = "T_PlazaPanel_Base", NormalTexture = "T_PlazaPanel_Normal", TextureStrength = 0.5f, NormalStrength = 0.3f },
+
+            // Environment kit (scenery art style, Art/Blender/Scripts/vv_build_env_wall.py). Same palette as the Blender
+            // VV_MAT_* scenery materials; panels are modelled, so procedural seams are off (SeamDarkness 0).
+            new Preset { Name = "M_Env_StationPurple", Base = new Color(0.341f, 0.267f, 0.408f), Metallic = 0.2f, Smoothness = 0.38f,
+                GrimeAmount = 0.55f, GrimePatches = 0.4f, RustAmount = 0.04f,
+                BaseTexture = "T_PaintedMetal_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 0.5f, NormalStrength = 0.5f, CurveWear = 0.55f },
+            new Preset { Name = "M_Env_FrameDark", Base = new Color(0.231f, 0.196f, 0.278f), Metallic = 0.5f, Smoothness = 0.45f,
+                GrimeAmount = 0.5f, GrimePatches = 0.3f,
+                BaseTexture = "T_PaintedMetal_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 0.6f, NormalStrength = 0.5f, CurveWear = 0.6f },
+            new Preset { Name = "M_Env_TrimOrange", Base = new Color(0.878f, 0.541f, 0.165f), Metallic = 0.25f, Smoothness = 0.4f,
+                GrimeAmount = 0.4f, GrimePatches = 0.35f, RustAmount = 0.08f,
+                BaseTexture = "T_PaintedMetal_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 0.6f, NormalStrength = 0.5f, CurveWear = 0.85f },
+            new Preset { Name = "M_Env_HazardStripe", Base = Color.white, Metallic = 0.2f, Smoothness = 0.38f, TileSize = 0.52f,
+                GrimeAmount = 0.5f, GrimePatches = 0.3f,
+                BaseTexture = "T_HazardStripe_Base", NormalTexture = "T_PaintedMetal_Normal", TextureStrength = 1f, NormalStrength = 0.4f, CurveWear = 0.7f },
+            new Preset { Name = "M_Env_StencilLilac", Base = new Color(0.612f, 0.537f, 0.733f), Metallic = 0.1f, Smoothness = 0.3f,
+                GrimeAmount = 0.3f, GrimePatches = 0.3f, CurveWear = 0.4f },
+            new Preset { Name = "M_Env_EmissiveAmber", Base = new Color(1f, 0.62f, 0.25f), Metallic = 0f, Smoothness = 0.6f,
+                GrimeAmount = 0f, GrimePatches = 0f, Emission = new Color(1f, 0.45f, 0.12f) * 2.2f },
+            new Preset { Name = "M_Env_FloorMetal", Base = new Color(0.29f, 0.259f, 0.325f), Metallic = 0.55f, Smoothness = 0.42f,
+                GrimeAmount = 0.35f, GrimePatches = 0.5f, RustAmount = 0.06f,
+                BaseTexture = "T_FloorPlate_Base", NormalTexture = "T_FloorPlate_Normal", TextureStrength = 0.6f, NormalStrength = 0.35f, CurveWear = 0.5f },
+            new Preset { Name = "M_Env_Void", Base = new Color(0.02f, 0.016f, 0.024f), Metallic = 0f, Smoothness = 0.1f,
+                GrimeAmount = 0f, GrimePatches = 0f },
+            new Preset { Name = "M_Env_WindowGlow", Base = new Color(0.10f, 0.05f, 0.18f), Metallic = 0f, Smoothness = 0.9f,
+                GrimeAmount = 0f, GrimePatches = 0.15f, Emission = new Color(0.36f, 0.12f, 0.95f) * 0.9f },
+            new Preset { Name = "M_Env_EmissiveCyan", Base = new Color(0.5f, 0.95f, 1f), Metallic = 0f, Smoothness = 0.8f,
+                GrimeAmount = 0f, GrimePatches = 0f, Emission = new Color(0.2f, 0.85f, 1f) * 2.2f },
+            new Preset { Name = "M_Env_EmissiveRed", Base = new Color(1f, 0.25f, 0.2f), Metallic = 0f, Smoothness = 0.6f,
+                GrimeAmount = 0f, GrimePatches = 0f, Emission = new Color(1f, 0.12f, 0.08f) * 2.5f },
         };
 
         // ------------------------------------------------------------------ API
@@ -171,6 +204,9 @@ namespace VentsAndVending.Editor
                 mat.SetColor("_EdgeColor", p.Edge.Value);
             }
 
+            mat.SetColor("_EmissionColor", p.Emission ?? Color.black);
+            mat.SetFloat("_CurveWear", p.CurveWear);
+            mat.SetFloat("_CurveThreshold", p.CurveThreshold);
             Texture2D baseTex = LoadTexture(p.BaseTexture);
             Texture2D normalTex = LoadTexture(p.NormalTexture);
             mat.SetTexture("_BaseMap", baseTex);

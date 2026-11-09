@@ -36,6 +36,8 @@ Material:
     - _AmbientStrength: 2.6
     - _BlendSharpness: 6
     - _BumpScale: 0.14
+    - _CurveThreshold: 9
+    - _CurveWear: 0
     - _EdgeWear: 0.15
     - _EdgeWidth: 0.04
     - _GrimeAmount: 0.2
