@@ -100,7 +100,7 @@ def _head_mesh():
         fx *= 1.0 + 0.06 * max(0.0, z - 0.15)                             # broad forehead
         fx *= 1.0 + 0.13 * math.exp(-((z + 0.18) / 0.28) ** 2)             # full cheeks
         if z < -0.42:
-            fx *= 1.0 - 0.42 * (-z - 0.42) / 0.58                          # narrower jaw and chin
+            fx *= 1.0 - 0.30 * (-z - 0.42) / 0.58                          # narrower jaw (but a chin to blend into)
         fy = 0.9 if y < 0 else 1.12                                        # flatter face, fuller back of the skull
         p = Vector((x * HEAD_R.x * fx, y * HEAD_R.y * fy, z * HEAD_R.z))
         if y > 0 and z > -0.1:                                             # crown sweeps up and back
@@ -121,17 +121,80 @@ def _head_mesh():
     return me
 
 
-def _neck_mesh():
-    """Tapered organic neck: wide at the collar, narrower under the jaw, with a gentle forward lean (an S, not a pipe).
-    Both ends are hidden (inside the collar and inside the head)."""
-    ctrl = [Vector((0, 0.04, 1.29)), Vector((0, 0.03, 1.37)), Vector((0, 0.012, 1.44)), Vector((0, -0.006, 1.50)),
-            Vector((0, -0.01, 1.56))]
-    centre = catmull_rom(ctrl, 9)
+def _head_section(tree, z):
+    """Horizontal cross-section of the head at height z as (x half-width, y front, y back), or None below the head."""
+    cy = HEAD_C.y
+    hits = []
+    for origin, direction in (((0.6, cy, z), (-1, 0, 0)), ((-0.6, cy, z), (1, 0, 0)),
+                              ((0, -0.6, z), (0, 1, 0)), ((0, 0.7, z), (0, -1, 0))):
+        loc = tree.ray_cast(Vector(origin), Vector(direction))[0]
+        if loc is None:
+            return None
+        hits.append(loc)
+    return ((hits[0].x - hits[1].x) * 0.5, hits[2].y, hits[3].y)
 
-    def r(t):                      # (side-to-side, front-to-back): oval, tapering, with a slight swell at the base
+
+def _neck_mesh(tree):
+    """Tapered organic neck with a gentle forward lean that FLARES into the underside of the head: over the last few
+    centimetres its outline blends into the head's own cross-section, so neck flows into chin and jaw (no crease).
+    The bottom is hidden inside the collar; the top ends just inside the head."""
+    ctrl = [Vector((0, 0.04, 1.29)), Vector((0, 0.03, 1.37)), Vector((0, 0.012, 1.44)), Vector((0, -0.006, 1.50)),
+            Vector((0, -0.01, 1.58))]
+    spine = catmull_rom(ctrl, 40)
+
+    def spine_y(z):
+        return min(spine, key=lambda p: abs(p.z - z)).y
+
+    def neck_w(z):                 # oval neck (half-widths), tapering upward with a slight swell at the base
+        t = max(0.0, min(1.0, (z - 1.29) / 0.27))
         w = 0.092 - 0.03 * t + 0.008 * math.sin(math.pi * t)
-        return (w, w * 0.88)
-    return loft(centre, r, segments=12, cap_end=False)
+        return w * 0.88, w          # (x, y)
+
+    # Where would the crease be? The lowest height at which the head is clearly wider than the neck.
+    z1 = None
+    for i in range(100):
+        z = 1.47 + i * 0.002
+        sec = _head_section(tree, z)
+        if sec and sec[0] > neck_w(z)[0] + 0.03:
+            z1 = z
+            break
+    z1 = z1 or 1.53
+    za, zb = z1 - 0.075, z1 + 0.012
+    target = _head_section(tree, zb)
+
+    def smooth(a):
+        a = max(0.0, min(1.0, a))
+        return a * a * (3 - 2 * a)
+
+    bm = bmesh.new()
+    seg = 14
+    rings = []
+    zs = [1.29 + k * 0.02 for k in range(int((za - 1.29) / 0.02) + 1)]
+    zs += [za + (zb + 0.012 - za) * k / 7 for k in range(1, 8)]
+    for z in zs:
+        nx, ny = neck_w(z)
+        ncy = spine_y(z)
+        w = smooth((z - za) / (zb - za))
+        if target:
+            hx = target[0] * 0.985
+            hcy = (target[1] + target[2]) * 0.5
+            hy = (target[2] - target[1]) * 0.5 * 0.985
+        else:
+            hx, hcy, hy = nx, ncy, ny
+        rx, ry, cy = nx + (hx - nx) * w, ny + (hy - ny) * w, ncy + (hcy - ncy) * w
+        rings.append([bm.verts.new((math.cos(2 * math.pi * k / seg) * rx, cy + math.sin(2 * math.pi * k / seg) * ry, z))
+                      for k in range(seg)])
+    for i in range(len(rings) - 1):
+        a, b = rings[i], rings[i + 1]
+        for k in range(seg):
+            bm.faces.new((a[k], a[(k + 1) % seg], b[(k + 1) % seg], b[k]))
+    bm.normal_update()
+    me = bpy.data.meshes.new("_vv_neck")
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = True
+    return me
 
 
 # (azimuth from straight back, elevation, length, root radius, sweep): five tentacles from the top and rear of the
@@ -419,7 +482,7 @@ def build_vendor():
     head.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
     tree = bvh([head])
     replace_object("VENDOR_Head", head, coll); report["VENDOR_Head"] = tris(head)
-    neck = _neck_mesh()
+    neck = _neck_mesh(tree)
     neck.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
     replace_object("VENDOR_Neck", neck, coll); report["VENDOR_Neck"] = tris(neck)
     for i, spec in enumerate(TENTACLES, 1):
