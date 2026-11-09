@@ -80,7 +80,7 @@ In Unity:
 
 ## 8. Presentation and approval renders
 
-Open `VV_PresentationScene.blend` and append or link the character into collection `VV_Reference`, parented to `PRES_Pivot`. Render through Render → Render Image, or the scripted helper, with these views:
+Open `VV_PresentationScene.blend` and append or link the character into collection `VV_Reference`, parented to `PRES_Pivot` at local (0, 0, 0). The pivot sits on the turntable top at z 0.06, so the model keeps its own feet at Z = 0. Render through Render → Render Image, or the scripted helper, with these views:
 
 | View | Camera | Pivot yaw |
 |---|---|---|
