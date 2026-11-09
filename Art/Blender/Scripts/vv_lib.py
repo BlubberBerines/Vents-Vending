@@ -147,6 +147,14 @@ def solidify(mesh, thickness, offset=-1.0):
     return evaluate(mesh, setup)
 
 
+def decimate(mesh, ratio):
+    def setup(o):
+        d = o.modifiers.new("Dec", "DECIMATE")
+        d.ratio = ratio
+        d.use_collapse_triangulate = False
+    return evaluate(mesh, setup)
+
+
 def subdivide(mesh, levels=1):
     def setup(o):
         s = o.modifiers.new("Sub", "SUBSURF")
@@ -260,6 +268,33 @@ def mk_mesh(src):
 
 
 # ---------------------------------------------------------------- rendering
+
+def use_cycles(samples=48):
+    """Approval renders for materials use Cycles (edge wear relies on the Bevel node)."""
+    sc = scene()
+    try:
+        sc.render.engine = "CYCLES"
+    except TypeError as e:
+        print("engine:", e)
+        return
+    sc.cycles.samples = samples
+    sc.cycles.use_denoising = True
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        for kind in ("OPTIX", "CUDA", "HIP", "ONEAPI", "METAL"):
+            try:
+                prefs.compute_device_type = kind
+                prefs.get_devices()
+                if any(d.type == kind for d in prefs.devices):
+                    for d in prefs.devices:
+                        d.use = True
+                    sc.cycles.device = "GPU"
+                    break
+            except TypeError:
+                continue
+    except Exception as e:  # CPU fallback is fine
+        print("cycles device:", e)
+
 
 def render_views(prefix, out_dir, show_collections, views=None, face=False):
     """Render the standard approval views. Only `show_collections` (plus presentation helpers) are visible."""

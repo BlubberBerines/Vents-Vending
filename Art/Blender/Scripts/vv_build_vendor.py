@@ -15,7 +15,6 @@ HEAD_CENTRE = Vector((0, 0.008, 1.405 + 0.212 * HEAD_SCALE))   # chin stays on t
 
 
 def _vendor_materials():
-    material("VENDOR_MAT_Workwear", (0.075, 0.062, 0.095), rough=0.85)          # dark purple-grey workwear
     material("VENDOR_MAT_SkinDark", (0.12, 0.03, 0.19), rough=0.55)            # brows / markings
     material("VENDOR_MAT_Sclera", (0.95, 0.88, 0.62), rough=0.25)
     material("VENDOR_MAT_Iris", (1.0, 0.55, 0.05), rough=0.2, emit=(1.0, 0.45, 0.03), strength=0.6)
@@ -112,11 +111,8 @@ def build_vendor():
 
     # ---------------------------------------------------------------- body (purple skin, full, under the clothes)
     skel, J = _body_skeleton()
-    body = skin_mesh(skel, root=0)
+    body = skin_mesh(skel, root=0)          # full body: the clothing shells are cut from it
     flatten_soles(body)
-    body.materials.append(bpy.data.materials["VV_MAT_AlienSkin"])
-    replace_object("VENDOR_Body", body, coll)
-    report["VENDOR_Body"] = tris(body)
 
     def is_hand(c):
         return any(_arm_dist(c, J, t) < 0.2 and _arm_t(c, J, t) > 0.585 for t in ("L", "R"))
@@ -126,7 +122,7 @@ def build_vendor():
 
     # ---------------------------------------------------------------- head, face
     head = _head_mesh()
-    head.materials.append(bpy.data.materials["VV_MAT_AlienSkin"])
+    head.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
     tree = bvh([head])
     replace_object("VENDOR_Head", head, coll)
     report["VENDOR_Head"] = tris(head)
@@ -151,7 +147,7 @@ def build_vendor():
             low = [v for v in res["verts"] if v.co.z < -0.002]
             bmesh.ops.delete(bm, geom=low, context="VERTS")
         tilt = -14.0 if side > 0 else -6.0                            # left lid slightly higher: one eye more open
-        lids.part("VV_MAT_AlienSkin", lid, loc=c, rot=(tilt, 0, 0))
+        lids.part("VENDOR_MAT_Skin", lid, loc=c, rot=(tilt, 0, 0))
 
         # Brows: chunky ridges sunk into the brow shelf; the left one raised (mischief), the right one lowered (suspicion)
         # Brows ride on the lid tops so they move with the eye area: left raised and arched, right low and flat
@@ -222,7 +218,7 @@ def build_vendor():
                root + out * 0.085 + Vector((0, -0.01, -0.10 - length * 0.9))]
         t.chain(None, pts, [0.060, 0.056, 0.050, 0.042, 0.032, 0.020])
         tm = skin_mesh(t, root=0, subsurf=1, smooth=0.0)
-        tm.materials.append(bpy.data.materials["VV_MAT_AlienSkin"])
+        tm.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
         name = f"VENDOR_Tendril_{i:02d}"
         replace_object(name, tm, coll)
         report[name] = tris(tm)
@@ -258,6 +254,7 @@ def build_vendor():
     replace_object("VENDOR_Trousers", trousers, coll); report["VENDOR_Trousers"] = tris(trousers)
 
     gloves = region_shell(body, lambda c, n: any(_arm_dist(c, J, t) < 0.2 and _arm_t(c, J, t) > 0.55 for t in ("L", "R")), 0.011)
+    gloves = decimate(gloves, 0.42)                                # chunky mitts don't need the finger density
     gloves.materials.append(bpy.data.materials["VV_MAT_CharcoalFabric"])
     replace_object("VENDOR_Gloves", gloves, coll); report["VENDOR_Gloves"] = tris(gloves)
 
@@ -317,12 +314,12 @@ def build_vendor():
         p.use_smooth = True
     ame = solidify(ame, 0.012, offset=1.0)
     ap = Builder()
-    ap.part("VV_MAT_WornFabric", mk_mesh(ame))
+    ap.part("VENDOR_MAT_Apron", mk_mesh(ame))
     bpy.data.meshes.remove(ame)
     # neck straps from the bib corners over the collar
     for side in (1, -1):
         top = hit_front(jt, side * 0.12, 1.24)
-        ap.part("VV_MAT_WornFabric", mk_box((0.035, 0.02, 0.17), bevel=0.006, segs=1),
+        ap.part("VENDOR_MAT_Apron", mk_box((0.035, 0.02, 0.17), bevel=0.006, segs=1),
                 loc=(side * 0.105, top.y + 0.02, 1.32), rot=(-28, 0, side * 14))
     me = ap.mesh(); replace_object("VENDOR_Apron", me, coll); report["VENDOR_Apron"] = tris(me)
 
@@ -410,6 +407,13 @@ def build_vendor():
     ac.part("VV_MAT_OchrePaint", mk_box((0.05, 0.075, 0.03), bevel=0.006, segs=1), loc=lp + Vector((0, 0, -0.13)), rot=(0, 0, lyaw))
     me = ac.mesh(); replace_object("VENDOR_Accessories", me, coll); report["VENDOR_Accessories"] = tris(me)
 
+    # ---------------------------------------------------------------- body: only the visible neck is kept
+    # (the full body exists only to cut the clothing shells; hidden skin would waste ~2.5k triangles)
+    neck = region_shell(body, lambda c, n: c.z > 1.30 and abs(c.x) < 0.14 and not is_arm(c), 0.0)
+    neck.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
+    bpy.data.meshes.remove(body)
+    replace_object("VENDOR_Body", neck, coll)
+    report["VENDOR_Body"] = tris(neck)
+
     report["TOTAL"] = sum(v for k, v in report.items())
-    report["TOTAL_visible_est"] = report["TOTAL"] - report["VENDOR_Body"]
     return report

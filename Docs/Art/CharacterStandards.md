@@ -108,3 +108,17 @@ Before asking for approval at any stage:
 2. Render the stage's required views into `Renders/`.
 3. Report the triangle count, object list, known issues and any deviations from the brief.
 4. Wait for owner approval before starting the next stage.
+
+## 10. Wear and approval rendering (decided at Stage 4)
+
+- **Edge wear is computed in the shader.** `Art/Blender/Scripts/vv_materials.py` adds a tagged `VV_WearLayer` to the library paints, metals and fabrics:
+  - **Edge chips:** a Cycles Bevel-node edge mask, broken up by noise into chips in the material's chip colour. Pale primer shows on paint, bare metal on metal.
+  - **Crease grime:** taken from the Ambient Occlusion node.
+  - **Why not per-vertex data:** a per-vertex convexity attribute was tried and rejected. On low-poly bevelled parts every vertex sits on an edge, so wear flooded whole faces.
+- **Material approval renders use Cycles** (`use_cycles()` in `vv_lib.py`). EEVEE ignores the Bevel node and shows the base material only, which is fine for modelling checks.
+- **Unity:** colour variation, markings and wear are baked to `T_<Asset>_BaseColor` (plus Emission) at Stage 7. That means UV unwrapping, then a Cycles bake.
+- **Character-only materials** are cloned from the library with the wear stripped and re-added with their own settings:
+  - `VENDOR_MAT_Skin`: darker purple markings, crease shading, no chips.
+  - `VENDOR_MAT_Workwear`: dark purple-grey twill with scuffs.
+  - `VENDOR_MAT_Apron`: worn beige with grime and magenta product stains.
+- **Build order in Blender:** `vv_lib.py`, then `vv_materials.py` (`build_materials()`), then `vv_build_vendor.py` (`build_vendor()`). Re-running `build_materials()` recreates the `VENDOR_MAT_*` materials, so `build_vendor()` must follow it to reassign them.
