@@ -97,6 +97,39 @@ class Skel:
         return out
 
 
+def densify(points, radii, segments):
+    """Insert a midpoint into each listed segment index (i -> i+1) so a chain can bend around obstacles."""
+    pts, rad = [], []
+    for i, (p, r) in enumerate(zip(points, radii)):
+        pts.append(p)
+        rad.append(r)
+        if i in segments and i + 1 < len(points):
+            pts.append((p + points[i + 1]) * 0.5)
+            rad.append((r + radii[i + 1]) * 0.5)
+    return pts, rad
+
+
+def drape(points, radii, tree, margin=0.012, iterations=6):
+    """Push a hanging chain out of `tree` (BVH of colliders) joint by joint; each push is carried down the chain,
+    so a tendril that would pass through a shoulder pad ends up resting on top of it."""
+    out = [points[0].copy()]
+    carry = Vector((0, 0, 0))
+    for i in range(1, len(points)):
+        p = points[i] + carry
+        need = radii[i] + margin
+        for _ in range(iterations):
+            loc, nrm, _, dist = tree.find_nearest(p)
+            if loc is None:
+                break
+            inside = (p - loc).dot(nrm) < 0.0
+            if not inside and dist >= need:
+                break
+            p = loc + nrm * need
+        carry = p - points[i]
+        out.append(p)
+    return out
+
+
 def evaluate(mesh, setup):
     """Run modifiers set up by `setup(obj)` on `mesh` and return the evaluated mesh (input mesh is freed)."""
     o = bpy.data.objects.new("_vv_tmp", mesh)
@@ -127,6 +160,17 @@ def skin_mesh(skel, root=0, subsurf=1, smooth=0.6):
             s.render_levels = subsurf
 
     return evaluate(me, setup)
+
+
+def nonmanifold_edges(skel, root=0, subsurf=0):
+    """Build the skin mesh for `skel` and count non-manifold edges (0 = sealed surface)."""
+    me = skin_mesh(skel, root=root, subsurf=subsurf, smooth=0.5)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    n = sum(1 for e in bm.edges if not e.is_manifold)
+    bm.free()
+    bpy.data.meshes.remove(me)
+    return n
 
 
 def flatten_soles(mesh, lo=0.045, hi=0.062, max_abs_y=1.0):
