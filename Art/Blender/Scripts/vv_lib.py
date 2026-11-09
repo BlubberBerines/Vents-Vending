@@ -97,6 +97,65 @@ class Skel:
         return out
 
 
+def catmull_rom(points, samples):
+    """Smooth curve through `points` (Catmull-Rom), `samples` evenly spaced in parameter."""
+    pts = [points[0]] + list(points) + [points[-1]]
+    out = []
+    for k in range(samples):
+        u = k / (samples - 1) * (len(points) - 1)
+        i = min(int(u), len(points) - 2)
+        t = u - i
+        p0, p1, p2, p3 = pts[i], pts[i + 1], pts[i + 2], pts[i + 3]
+        t2, t3 = t * t, t * t * t
+        out.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3))
+    return out
+
+
+def loft(centre, radius_fn, segments=10, cap_start=False, cap_end=True, ellipse=None):
+    """Tube along a polyline `centre`; radius_fn(t in 0..1) -> radius (or (rx, ry)). Rounded end cap."""
+    bm = bmesh.new()
+    n = len(centre)
+    rings = []
+    prev_side = None
+    for i, c in enumerate(centre):
+        t = i / (n - 1)
+        tang = (centre[min(i + 1, n - 1)] - centre[max(i - 1, 0)]).normalized()
+        ref = Vector((0, 0, 1)) if abs(tang.z) < 0.9 else Vector((1, 0, 0))
+        side = tang.cross(ref).normalized()
+        if prev_side is not None and side.dot(prev_side) < 0:
+            side = -side
+        prev_side = side
+        up = side.cross(tang).normalized()
+        r = radius_fn(t)
+        rx, ry = (r, r) if not isinstance(r, tuple) else r
+        ring = []
+        for k in range(segments):
+            a = 2 * math.pi * k / segments
+            ring.append(bm.verts.new(c + side * (math.cos(a) * rx) + up * (math.sin(a) * ry)))
+        rings.append(ring)
+    for i in range(n - 1):
+        a, b = rings[i], rings[i + 1]
+        for k in range(segments):
+            bm.faces.new((a[k], a[(k + 1) % segments], b[(k + 1) % segments], b[k]))
+    if cap_end:
+        r1 = radius_fn(1.0)
+        r1 = max(r1) if isinstance(r1, tuple) else r1
+        tip = bm.verts.new(centre[-1] + (centre[-1] - centre[-2]).normalized() * r1 * 0.9)   # rounded tip
+        for k in range(segments):
+            bm.faces.new((rings[-1][k], rings[-1][(k + 1) % segments], tip))
+    if cap_start:
+        base = bm.verts.new(centre[0])
+        for k in range(segments):
+            bm.faces.new((rings[0][(k + 1) % segments], rings[0][k], base))
+    bm.normal_update()
+    me = bpy.data.meshes.new("_vv_loft")
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = True
+    return me
+
+
 def densify(points, radii, segments):
     """Insert a midpoint into each listed segment index (i -> i+1) so a chain can bend around obstacles."""
     pts, rad = [], []

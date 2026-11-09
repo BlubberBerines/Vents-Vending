@@ -83,78 +83,88 @@ def _arm_dist(c, J, tag):
     return (c - (sh + d * t)).length
 
 
-def _head_skeleton(colliders):
-    """Neck -> skull -> muzzle plus eight tendrils, all one skin skeleton so the surface is continuous."""
-    s = Skel()
-    N = {}
-    N["neck0"] = s.v((0, 0.03, 1.33), 0.086)
-    N["neck1"] = s.v((0, 0.022, 1.42), 0.068); s.e(N["neck0"], N["neck1"])
-    N["neck2"] = s.v((0, 0.010, 1.50), 0.072); s.e(N["neck1"], N["neck2"])
-    N["jaw"] = s.v((0, -0.014, 1.565), (0.098, 0.094)); s.e(N["neck2"], N["jaw"])
-    N["face"] = s.v((0, -0.03, 1.645), (0.116, 0.106)); s.e(N["jaw"], N["face"])
-    N["brow"] = s.v((0, -0.02, 1.725), (0.110, 0.100)); s.e(N["face"], N["brow"])
-    # Swept-back cranium as a chain of nodes, so tendril roots can be spread out: the skin modifier only closes
-    # junctions cleanly with at most three connections per node (more leaves holes).
-    N["crown"] = s.v((0, 0.045, 1.79), (0.096, 0.088)); s.e(N["brow"], N["crown"])
-    N["crownB"] = s.v((0, 0.08, 1.805), (0.084, 0.076)); s.e(N["crown"], N["crownB"])
-    N["crest"] = s.v((0, 0.12, 1.81), (0.070, 0.064)); s.e(N["crownB"], N["crest"])
-    N["crest2"] = s.v((0, 0.16, 1.80), (0.058, 0.054)); s.e(N["crest"], N["crest2"])
-    N["crest3"] = s.v((0, 0.19, 1.778), (0.046, 0.044)); s.e(N["crest2"], N["crest3"])
-    N["crest4"] = s.v((0, 0.212, 1.75), (0.038, 0.036)); s.e(N["crest3"], N["crest4"])
-    N["nape"] = s.v((0, 0.075, 1.70), (0.072, 0.066)); s.e(N["crownB"], N["nape"])          # back of the skull
-    N["dome"] = s.v((0, 0.03, 1.835), (0.07, 0.066)); s.e(N["crown"], N["dome"])            # rounds the top of the skull
-    N["muzzle"] = s.v((0, -0.10, 1.585), (0.068, 0.052)); s.e(N["jaw"], N["muzzle"])
-    # (attach node, start point, initial direction, length, droop): each arcs briefly up/out, then falls, framing the
-    # face and flowing down the back of the head. Start points are mirrored; attachments alternate to spread load.
-    tendrils = [
-        ("crown", (0.05, -0.02, 1.84), (0.45, -0.25, 1.0), 0.30, 2.9),        # forelock arcing up and over to the side
-        ("face", (0.10, -0.03, 1.72), (0.75, -0.25, 0.7), 0.34, 3.2),         # by the left eye
-        ("brow", (-0.10, -0.03, 1.72), (-0.75, -0.25, 0.7), 0.34, 3.2),       # by the right eye
-        ("crownB", (0.10, 0.05, 1.77), (0.95, 0.2, 0.5), 0.38, 2.8),
-        ("crest", (-0.10, 0.05, 1.77), (-0.95, 0.2, 0.5), 0.38, 2.8),
-        ("crest2", (0.06, 0.17, 1.80), (0.62, 0.78, 0.4), 0.42, 2.6),
-        ("crest3", (0.0, 0.21, 1.78), (0.0, 1.0, 0.5), 0.46, 2.6),
-        ("crest3", (-0.06, 0.17, 1.80), (-0.62, 0.78, 0.4), 0.42, 2.6),
-    ]
-    radii = [0.046, 0.043, 0.039, 0.035, 0.032, 0.033]          # slightly bulbous tips, like the sheet
-    skull_nodes = ["face", "brow", "crown", "crownB", "crest", "crest2", "crest3", "crest4", "nape"]
+HEAD_C = Vector((0, -0.005, 1.665))     # skull centre
+HEAD_R = Vector((0.136, 0.134, 0.165))  # half-sizes: wide, rounded alien skull
 
-    def chain_points(root, start, d0, length, droop):
-        d0 = Vector(d0).normalized()
-        step = length / 5
-        # first joint just OUTSIDE the parent node's radius (an edge starting inside its parent's hull tears holes)
-        base = s.V[N[root]]
-        out = (Vector(start) - base).normalized()
-        p = base + out * (max(s.R[N[root]]) + 0.02)
-        pts = [p.copy()]
-        for k in range(1, 6):
-            dk = (d0 + Vector((0, 0, -droop * k / 4))).normalized()
-            p = p + dk * step
-            pts.append(p.copy())
-        return [pts[0]] + drape(pts, radii, colliders)[1:]
 
-    attached = {}
-    for root, start, d0, length, droop in tendrils:
-        # try the intended skull node first, then the others nearest the start point; keep the first that stays sealed
-        order = [root] + sorted((n for n in skull_nodes if n != root), key=lambda n: (s.V[N[n]] - Vector(start)).length)
-        done = False
-        for node in order:
-            base = s.V[N[node]]
-            for jit in (0.0, 12.0, -12.0, 25.0, -25.0):          # nudge the root direction around the node
-                rot = Matrix.Rotation(math.radians(jit), 3, "Z")
-                st = base + rot @ (Vector(start) - base)
-                trial = Skel()
-                trial.V, trial.E, trial.R = list(s.V), list(s.E), list(s.R)
-                trial.chain(N[node], chain_points(node, st, rot @ Vector(d0), length, droop), radii)
-                if nonmanifold_edges(trial, N["neck0"]) == 0:
-                    s.V, s.E, s.R = trial.V, trial.E, trial.R
-                    done = True
-                    break
-            if done:
-                break
-        if not done:
-            print("tendril skipped (no clean attachment):", root, start)
-    return s, N
+def _head_mesh():
+    """Wide, rounded skull: broad forehead, full cheeks, narrower jaw, a soft muzzle and a crown that sweeps back."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=2.0)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=7, use_grid_fill=True)
+    for vt in bm.verts:
+        vt.co = vt.co.normalized()
+    for vt in bm.verts:
+        x, y, z = vt.co
+        fx = 1.0
+        fx *= 1.0 + 0.06 * max(0.0, z - 0.15)                             # broad forehead
+        fx *= 1.0 + 0.13 * math.exp(-((z + 0.18) / 0.28) ** 2)             # full cheeks
+        if z < -0.42:
+            fx *= 1.0 - 0.42 * (-z - 0.42) / 0.58                          # narrower jaw and chin
+        fy = 0.9 if y < 0 else 1.12                                        # flatter face, fuller back of the skull
+        p = Vector((x * HEAD_R.x * fx, y * HEAD_R.y * fy, z * HEAD_R.z))
+        if y > 0 and z > -0.1:                                             # crown sweeps up and back
+            p.y += 0.035 * y * max(0.0, z + 0.1)
+            p.z += 0.03 * y * max(0.0, z)
+        dm = (Vector((x, y, z)) - Vector((0, -1, -0.42))).length           # muzzle: lower face pushes forward
+        if dm < 0.55:
+            p.y -= 0.038 * (1 - dm / 0.55) ** 1.5
+        db = (Vector((x * 0.7, y, z)) - Vector((0, -1, 0.22))).length      # soft brow shelf
+        if db < 0.4:
+            p.y -= 0.012 * (1 - db / 0.4)
+        vt.co = HEAD_C + p
+    for f in bm.faces:
+        f.smooth = True
+    me = bpy.data.meshes.new("_vv_head")
+    bm.to_mesh(me)
+    bm.free()
+    return me
+
+
+def _neck_mesh():
+    """Tapered organic neck: wide at the collar, narrower under the jaw, with a gentle forward lean (an S, not a pipe).
+    Both ends are hidden (inside the collar and inside the head)."""
+    ctrl = [Vector((0, 0.04, 1.29)), Vector((0, 0.03, 1.37)), Vector((0, 0.012, 1.44)), Vector((0, -0.006, 1.50)),
+            Vector((0, -0.01, 1.56))]
+    centre = catmull_rom(ctrl, 9)
+
+    def r(t):                      # (side-to-side, front-to-back): oval, tapering, with a slight swell at the base
+        w = 0.092 - 0.03 * t + 0.008 * math.sin(math.pi * t)
+        return (w, w * 0.88)
+    return loft(centre, r, segments=12, cap_end=False)
+
+
+# (azimuth from straight back, elevation, length, root radius, sweep): five tentacles from the top and rear of the
+# skull, each a little different so they read as organic rather than identical tubes
+TENTACLES = [
+    (0.0, 30.0, 0.46, 0.064, 1.00),      # rear centre: longest, falls down the back of the head
+    (45.0, 40.0, 0.42, 0.060, 0.95),     # rear left
+    (-40.0, 38.0, 0.44, 0.061, 1.00),    # rear right
+    (78.0, 48.0, 0.36, 0.056, 0.85),     # upper left, arcs over and falls beside the face
+    (-82.0, 45.0, 0.38, 0.058, 0.90),    # upper right
+]
+
+
+def _tentacle_mesh(tree, colliders, az, el, length, r0, sweep):
+    a, e = math.radians(az), math.radians(el)
+    out = Vector((math.sin(a) * math.cos(e), math.cos(a) * math.cos(e), math.sin(e)))
+    loc, _, _, _ = tree.ray_cast(HEAD_C, out)
+    root = loc - out * 0.03                                   # root sunk into the skull: no visible gap
+    horiz = Vector((out.x, out.y, 0)).normalized()
+    # out of the skull, a smooth arc outward and over, then a long fall with a slight curl at the tip
+    ctrl = [root,
+            root + out * 0.05,
+            root + out * 0.06 + horiz * (0.08 * sweep),
+            root + horiz * (0.17 * sweep) + Vector((0, 0, -length * 0.30)),
+            root + horiz * (0.20 * sweep) + Vector((0, 0, -length * 0.65)),
+            root + horiz * (0.17 * sweep) + Vector((0, 0.0, -length * 0.95))]
+    ctrl = [ctrl[0]] + drape(ctrl, [r0] * len(ctrl), colliders)[1:]
+    centre = catmull_rom(ctrl, 16)
+
+    def rad(t):                    # thick rounded root, then a gradual taper
+        return r0 * (1.0 + 0.2 * max(0.0, 1.0 - t / 0.15)) * (1.0 - 0.5 * t ** 0.9)
+    return loft(centre, rad, segments=10, cap_end=True)
+
 
 
 def _hit_back(tree, x, z):
@@ -403,19 +413,26 @@ def build_vendor():
     bpy.data.meshes.remove(body)
     replace_object("VENDOR_Body", skin, coll); report["VENDOR_Body"] = tris(skin)
 
-    # ---------------------------------------------------------------- head: neck + skull + muzzle + tendrils, one surface
+    # ---------------------------------------------------------------- head, neck and tentacles (separate meshes)
     colliders = bvh([bpy.data.objects[n].data for n in ("VENDOR_ShoulderPads", "VENDOR_Jacket", "VENDOR_Apron", "VENDOR_Accessories")])
-    hs, N = _head_skeleton(colliders)
-    head = skin_mesh(hs, root=N["neck0"], subsurf=1, smooth=0.5)
+    head = _head_mesh()
     head.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
     tree = bvh([head])
     replace_object("VENDOR_Head", head, coll); report["VENDOR_Head"] = tris(head)
+    neck = _neck_mesh()
+    neck.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
+    replace_object("VENDOR_Neck", neck, coll); report["VENDOR_Neck"] = tris(neck)
+    for i, spec in enumerate(TENTACLES, 1):
+        tm = _tentacle_mesh(tree, colliders, *spec)
+        tm.materials.append(bpy.data.materials["VENDOR_MAT_Skin"])
+        name = f"VENDOR_Tendril_{i:02d}"
+        replace_object(name, tm, coll); report[name] = tris(tm)
 
     # Eyes: almond, set wide on the face, under heavy half-lids; brows ride on the lids
     eyes, lids, brows = Builder(), Builder(), Builder()
     eye_r = 0.05
     for side in (1, -1):
-        p = hit_front(tree, side * 0.056, 1.672)
+        p = hit_front(tree, side * 0.058, HEAD_C.z + 0.02)
         c = p + Vector((side * 0.002, eye_r * 0.6, 0))
         eyes.part("VENDOR_MAT_Sclera", mk_sphere(eye_r, 12, 8), loc=c, scale=(1.12, 1, 0.86))
         eyes.part("VENDOR_MAT_Iris", mk_sphere(eye_r * 0.7, 10, 6), loc=c + Vector((-side * 0.004, -eye_r * 0.72, -0.004)), scale=(1, 0.42, 0.95))
@@ -434,7 +451,7 @@ def build_vendor():
     me = brows.mesh(); replace_object("VENDOR_Brows", me, coll); report["VENDOR_Brows"] = tris(me)
 
     # Mouth: a small crooked smile on the muzzle, inset slot with two teeth
-    mw, mz = 0.062, 1.567
+    mw, mz = 0.062, HEAD_C.z - 0.08
 
     def mouth_top(u):
         return mz + 0.018 * u * u + 0.012 * u               # the left corner curls up
