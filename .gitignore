@@ -60,3 +60,6 @@ desktop.ini
 # Claude Code: per-user settings, and skills the Unity-MCP plugin regenerates locally
 .claude/settings.local.json
 .claude/skills/
+
+# Blender auto-backups (versioned _v### saves are the real backups)
+*.blend[1-9]

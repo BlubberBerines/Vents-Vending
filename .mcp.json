@@ -3,6 +3,13 @@
     "unity": {
       "type": "http",
       "url": "http://localhost:22462"
+    },
+    "blender": {
+      "command": "C:\\Users\\Jarro\\.local\\bin\\uvx.exe",
+      "args": ["blender-mcp"],
+      "env": {
+        "DISABLE_TELEMETRY": "true"
+      }
     }
   }
 }
