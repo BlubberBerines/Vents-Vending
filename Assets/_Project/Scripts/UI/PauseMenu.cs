@@ -49,19 +49,15 @@ namespace VentsAndVending.UI
 
         private void ToMainMenu()
         {
-            if (SaveManager.Instance != null)
-            {
-                SaveManager.Instance.Save(null);
-            }
+            if (SaveManager.Instance == null || !SaveManager.Instance.Save(null))
+            {_status.text="<color=#FF6B5E>Save failed. Staying in game to protect your progress.</color>";return;}
             SceneFlow.ToMainMenu();
         }
 
         private void QuitGame()
         {
-            if (SaveManager.Instance != null)
-            {
-                SaveManager.Instance.Save(null);
-            }
+            if (SaveManager.Instance == null || !SaveManager.Instance.Save(null))
+            {_status.text="<color=#FF6B5E>Save failed. Staying in game to protect your progress.</color>";return;}
             SceneFlow.Quit();
         }
 

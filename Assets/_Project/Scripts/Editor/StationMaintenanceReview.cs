@@ -54,6 +54,7 @@ namespace VentsAndVending.Editor
                 switch(_phase)
                 {
                     case 0:
+                        VentsAndVending.Saving.SaveManager.ReviewDirectory=Path.GetFullPath("Logs/MaintenanceFinishVerification/Saves");
                         Object.FindAnyObjectByType<PlayerCamera>().enabled=false;
                         Check(!GameObject.Find("Maintenance Architectural Finish").GetComponentsInChildren<Collider>().Any(c=>c.enabled),"Decorative panel collisions remain disabled after scene reload");
                         move.Teleport(door.transform.TransformPoint(new Vector3(0,0,1.1f)),door.transform.rotation);Next();break;

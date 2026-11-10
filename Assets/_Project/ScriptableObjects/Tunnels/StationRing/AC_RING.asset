@@ -21,3 +21,11 @@ MonoBehaviour:
     GateId: 
     GateOpensWhenOff: 0
     OneWay: 0
+  - DestinationRoomId: MAINT_ROOM_090
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0
+  - DestinationRoomId: MAINT_ROOM_270
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0

@@ -24,7 +24,7 @@ namespace VentsAndVending.Editor
             _stationFrame.SetPositionAndRotation(RingPoint(60,ServiceAngle,0),Quaternion.Euler(0,90-ServiceAngle,0));
             BuildContinuousRing(root,true); BuildContinuousRing(root,false);
             BuildStationHub(); BuildStationDucts(); BuildStationLounge();
-            BuildStationDenGameplay(); BuildStationBasement(); BuildStationAtmosphere(); BuildStationMaintenanceFinish(); BuildStationLocalControls(); BuildStationFanPuzzle(); BuildStationNavigation();
+            BuildStationDenGameplay(); BuildStationBasement(); BuildStationAtmosphere(); BuildStationMaintenanceFinish(); BuildStationLocalControls(); BuildStationFanPuzzle(); BuildStationRingRooms(); BuildStationResourceLoop(); BuildStationNavigation();
         }
 
         private static void BuildContinuousRing(Transform root,bool crawl)
@@ -35,12 +35,14 @@ namespace VentsAndVending.Editor
             // Openings are slightly narrower than the overlapping connector shells, sealing their jambs.
             float halfAngle=crawl?.55f:1.2f;
             var angles=new SortedSet<float>(Enumerable.Range(0,145).Select(i=>i*2.5f));
+            if(!crawl)foreach(float roomAngle in StationAccessibleRoomAngles){angles.Add(roomAngle-.82f);angles.Add(roomAngle+.82f);}
+            if(crawl)foreach(float roomAngle in StationRoomVentAngles){angles.Add(roomAngle-.55f);angles.Add(roomAngle+.55f);}
             angles.Add(portalAngle-halfAngle);angles.Add(portalAngle+halfAngle);
             var edge=angles.ToArray();
             for(int i=0;i<edge.Length-1;i++)
             {
                 float a=edge[i],b=edge[i+1],mid=(a+b)*.5f;
-                bool portal=Mathf.Abs(Mathf.DeltaAngle(mid,portalAngle))<halfAngle-.001f;
+                bool portal=Mathf.Abs(Mathf.DeltaAngle(mid,portalAngle))<halfAngle-.001f || (!crawl && StationAccessibleRoomAngles.Any(angle=>Mathf.Abs(Mathf.DeltaAngle(mid,angle))<.819f)) || (crawl && StationRoomVentAngles.Any(angle=>Mathf.Abs(Mathf.DeltaAngle(mid,angle))<.549f));
                 bool observation=crawl && IsStationObservationAngle(mid);
                 if(!observation) StationWedge(parent,"Deck",inner,outer,floor-.12f,floor,a,b);
                 else StationRingGrate(parent,inner,outer,floor,a,b);
@@ -82,7 +84,7 @@ namespace VentsAndVending.Editor
             StationRect(cells,-4,4,-6,6);StationRect(cells,-1.5f,1.5f,6,10.15f);
             StationRect(cells,-10,-4,-3,3);StationRect(cells,4,10,-6,-2);
             StationCellSpace(hub,cells,0,3,p=>p.x>=1 && p.x<2.5f && p.z>=-3 && p.z< -1.5f,null,
-                (p,n)=> (p.z>9.9f && n.z>0) || (p.z< -5.9f && Mathf.Abs(p.x)<1.05f && n.z<0) || (p.x>3.9f && p.x<4.1f && Mathf.Abs(p.z)<.65f && n.x>0) || (p.x< -9.9f && n.x<0 && Mathf.Abs(p.z)<1.5f));
+                (p,n)=> (p.z>9.9f && n.z>0) || (p.z< -5.9f && Mathf.Abs(p.x)<1.05f && n.z<0) || (p.x>3.9f && p.x<4.1f && Mathf.Abs(p.z)<.65f && n.x>0) || (p.x< -9.9f && n.x<0 && Mathf.Abs(p.z)<1.5f) || (p.x>9.9f && n.x>0 && Mathf.Abs(p.z+4)<1.05f));
             StationLocalBox(hub,"Crate Mouth Sill",new Vector3(4,.9f,0),new Vector3(.16f,1.8f,1.3f),StationWall);
             StationLocalBox(hub,"Crate Mouth Header",new Vector3(4,2.9f,0),new Vector3(.16f,.2f,1.3f),StationWall);
             Kitp(hub,"ENV_Crate_Fixed_A",3.45f,0,0,0);
@@ -90,13 +92,14 @@ namespace VentsAndVending.Editor
             StationPartition(hub,4,-6,-2,"09 SUPPLY STORE");
             Prop(hub,Props+"/PROP_server_rack.prefab",-9.2f,0,1.8f,90);
             Prop(hub,Props+"/PROP_Generator.prefab",-8.7f,0,-1.8f,90);
-            Prop(hub,Props+"/PROP_Locker_Row.prefab",9.4f,0,-4,90);
+            Prop(hub,Props+"/PROP_Locker_Row.prefab",7,0,-5.4f,0);
             StationLight(hub,"Hub Worklight",new Vector3(0,2.5f,1),new Color(1,.8f,.55f),11,12);
             StationLight(hub,"Power Room Cyan",new Vector3(-7,2.4f,0),new Color(.35f,.8f,1),7,8);
             StationLight(hub,"Stores Amber",new Vector3(7,2.4f,-4),new Color(1,.65f,.35f),7,8);
             BuildStationDen();
             StationLabel(hub,"02 SERVICE JUNCTION\nDEN / AC ACCESS / U01 SHORTCUT",new Vector3(0,2.3f,5.7f),180,.045f);
-            StationLabel(hub,"CRATE -> HATCH -> LOUNGE\nL2 CRAWL ACCESS",new Vector3(3.85f,2.5f,0),90,.028f);
+            // Put the instruction beside the hatch, not across its bars/hinge sweep.
+            StationLabel(hub,"CRAWL TO LOUNGE\nCRATE -> HATCH\nL2 AC ACCESS",new Vector3(3.72f,1.25f,1.85f),90,.018f);
         }
 
         private static void BuildStationDen()

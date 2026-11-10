@@ -18,6 +18,7 @@ namespace VentsAndVending.World
         [SerializeField] private AudioClip _latchSound;
         [SerializeField] private float _senseRadius = 2.2f;
         [SerializeField] private bool _automatic = true;
+        [SerializeField] private bool _securedOpen;
         [SerializeField, Min(.5f)] private float _holdOpenSeconds = 4f;
         private float _manualTimer;
         internal void ConfigureManual(float holdOpenSeconds = 4f)
@@ -55,6 +56,11 @@ namespace VentsAndVending.World
             {
                 _closedLocal[i] = _leaves[i] != null ? _leaves[i].localPosition : Vector3.zero;
             }
+            if(_securedOpen)
+            {
+                OpenAmount=1;
+                for(int i=0;i<_leaves.Length && i<_slideOffsets.Length;i++)if(_leaves[i]!=null)_leaves[i].localPosition=_closedLocal[i]+_slideOffsets[i]+Vector3.forward*_unsealDepth;
+            }
         }
 
         private void Update()
@@ -80,7 +86,7 @@ namespace VentsAndVending.World
                 else _manualTimer=Mathf.Max(0,_manualTimer-Time.deltaTime);
             }
             bool open = _automatic ? SlidingDoorLogic.WantsOpen(_locked, near, occupied)
-                : !_locked && (_manualTimer>0 || (occupied && OpenAmount>0));
+                : !_locked && (_securedOpen || _manualTimer>0 || (occupied && OpenAmount>0));
             if (open != _wasOpen)
             {
                 Sfx.PlayAt(open ? _openSound : _closeSound, transform.position, open ? .7f : .35f);
@@ -101,7 +107,7 @@ namespace VentsAndVending.World
             }
         }
 
-        public string GetPrompt(InteractionController interactor) => _locked ? "Inspect door" : _automatic ? null : OpenAmount>.5f ? "Keep door open" : "Open door";
+        public string GetPrompt(InteractionController interactor) => _locked ? "Inspect door" : _automatic || _securedOpen ? null : OpenAmount>.5f ? "Keep door open" : "Open door";
 
         public void Interact(InteractionController interactor)
         {

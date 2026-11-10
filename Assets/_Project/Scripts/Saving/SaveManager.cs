@@ -29,7 +29,14 @@ namespace VentsAndVending.Saving
 
         public static SaveManager Instance { get; private set; }
 
-        public static string SaveDirectory => Path.Combine(Application.persistentDataPath, "Saves");
+        internal static string ReviewDirectory;
+        public static string SaveDirectory => ReviewDirectory ?? Path.Combine(Application.persistentDataPath, "Saves");
+        public static string SavedSceneName()
+        {
+            if(TryRead(PathFor(0),out var data,out _) || TryRead(PathFor(0)+".bak",out data,out _))
+                return data.SceneName==Core.SceneFlow.GameScene ? Core.SceneFlow.GameScene : "Greybox_Movement";
+            return Core.SceneFlow.GameScene;
+        }
         public static string PathFor(int slot) => Path.Combine(SaveDirectory, $"save_{slot}.json");
         public static bool HasSave(int slot = 0) => File.Exists(PathFor(slot)) || File.Exists(PathFor(slot) + ".bak");
 
@@ -112,6 +119,13 @@ namespace VentsAndVending.Saving
             }
 
             var data = new SaveData { SavedAtUtc = DateTime.UtcNow.ToString("o") };
+            data.SceneName=UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            foreach(var station in FindObjectsByType<Crafting.MixingStation>(FindObjectsSortMode.None))
+                data.Mixers.Add(station.Process.Capture(station.name));
+            foreach(var vein in FindObjectsByType<World.CrystalVein>(FindObjectsSortMode.None))
+                data.Deposits.Add(vein.Deposit.Capture(vein.SaveId));
+            foreach(var refinery in FindObjectsByType<Crafting.CrystalRefinery>(FindObjectsSortMode.None))
+                data.Refineries.Add(refinery.Process.Capture(refinery.SaveId));
             Transform player = interactor.transform;
             data.Player = new PlayerSave { X = player.position.x, Y = player.position.y, Z = player.position.z, Yaw = player.eulerAngles.y };
 
@@ -260,6 +274,9 @@ namespace VentsAndVending.Saving
                 var saved = new Vector3(data.Player.X, data.Player.Y, data.Player.Z);
                 // Saves from an older level layout may point into the void: keep the scene spawn if there's no floor there.
                 bool onFloor = Physics.Raycast(saved + Vector3.up * 0.5f, Vector3.down, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                Physics.SyncTransforms();
+                foreach(var blocker in Physics.OverlapCapsule(saved+Vector3.up*.31f,saved+Vector3.up*.39f,.28f,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore))
+                    if(!blocker.transform.IsChildOf(interactor.transform)){onFloor=false;break;}
                 if (movement != null && onFloor)
                 {
                     movement.Teleport(saved, Quaternion.Euler(0f, data.Player.Yaw, 0f));
@@ -290,6 +307,15 @@ namespace VentsAndVending.Saving
                     }
                 }
             }
+            foreach(var station in FindObjectsByType<Crafting.MixingStation>(FindObjectsSortMode.None))
+            {
+                var saved=data.Mixers.Find(m=>m!=null && m.Id==station.name);
+                if(saved!=null)station.Process.Restore(saved,_database.FindItem,station.Recipes);
+            }
+            foreach(var vein in FindObjectsByType<World.CrystalVein>(FindObjectsSortMode.None))
+                vein.Deposit.Restore(data.Deposits.Find(s=>s!=null && s.Id==vein.SaveId));
+            foreach(var refinery in FindObjectsByType<Crafting.CrystalRefinery>(FindObjectsSortMode.None))
+                refinery.Process.Restore(data.Refineries.Find(s=>s!=null && s.Id==refinery.SaveId));
         }
 
         private static void Notify(string message)

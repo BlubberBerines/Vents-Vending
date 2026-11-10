@@ -33,3 +33,7 @@ MonoBehaviour:
     GateId: 
     GateOpensWhenOff: 0
     OneWay: 0
+  - DestinationRoomId: SUPPLY_STORE
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0

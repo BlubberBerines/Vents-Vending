@@ -13,15 +13,17 @@ MonoBehaviour:
   m_Name: GameDatabase
   m_EditorClassIdentifier: VentsAndVending::VentsAndVending.Saving.GameDatabase
   _items:
+  - {fileID: 11400000, guid: f3e9aaf1302d7934e8e92bf6e2c7bd63, type: 2}
   - {fileID: 11400000, guid: c74f6033e072048448d07efccce0743d, type: 2}
   - {fileID: 11400000, guid: 021bed5d1ee66f04e8467504956032ce, type: 2}
+  - {fileID: 11400000, guid: 5b2c40d9645a0be4cb21d2308decaea8, type: 2}
+  - {fileID: 11400000, guid: c0e307469aed5f743ae229e1cf044db1, type: 2}
   - {fileID: 11400000, guid: d963da7f115e03e4fbc32223172d7e9e, type: 2}
   - {fileID: 11400000, guid: 83f1f5dd1ff0b6142a39a61efec394f7, type: 2}
-  - {fileID: 11400000, guid: f3e9aaf1302d7934e8e92bf6e2c7bd63, type: 2}
   _upgrades:
   - {fileID: 11400000, guid: d17d3f8cf7f58824dad665a7b61660e7, type: 2}
-  - {fileID: 11400000, guid: 0a175c2495e322147aaad58969972a2d, type: 2}
-  - {fileID: 11400000, guid: c4fbb19e7b9f7d24f8fac163463288a6, type: 2}
   - {fileID: 11400000, guid: da811df1c5ca6f3428be1ebf5c1fe40d, type: 2}
-  - {fileID: 11400000, guid: 7307373077a79814dbc4884bbc2e540f, type: 2}
   - {fileID: 11400000, guid: 9365a52968867854d9d9963668276d8d, type: 2}
+  - {fileID: 11400000, guid: 0a175c2495e322147aaad58969972a2d, type: 2}
+  - {fileID: 11400000, guid: 7307373077a79814dbc4884bbc2e540f, type: 2}
+  - {fileID: 11400000, guid: c4fbb19e7b9f7d24f8fac163463288a6, type: 2}

@@ -15,7 +15,7 @@ namespace VentsAndVending.Editor
             // Group the original half-metre wall cells into runs. Openings remain openings;
             // the existing sealed collision shell continues to own navigation and enclosure.
             var walls=shell.GetComponentsInChildren<BoxCollider>().Where(c=>c.name=="Sealed Boundary").ToArray();
-            foreach(var group in walls.GroupBy(c=>new {X=c.size.x<.2f,Plane=Mathf.RoundToInt((c.size.x<.2f?c.transform.localPosition.x:c.transform.localPosition.z)*100)}))
+            foreach(var group in walls.GroupBy(c=>new {X=c.size.x*c.transform.localScale.x<.2f,Plane=Mathf.RoundToInt((c.size.x*c.transform.localScale.x<.2f?c.transform.localPosition.x:c.transform.localPosition.z)*100)}))
             {
                 bool xWall=group.Key.X;
                 var ordered=group.OrderBy(c=>xWall?c.transform.localPosition.z:c.transform.localPosition.x).ToArray();
@@ -59,23 +59,40 @@ namespace VentsAndVending.Editor
             for(int i=0;i<bays;i++)
             {
                 float angle=(i+.5f)*360/bays;
-                bool entrance=Mathf.Abs(Mathf.DeltaAngle(angle,ServiceAngle))<2.5f;
                 foreach(bool inner in new[]{true,false})
                 {
-                    if(inner && entrance)continue;
                     float radius=inner?70.03f:73.97f;
-                    MaintenanceKit(ring,"ENV_Wall_Standard_A",RingPoint(radius,angle,0),(inner?90:270)-angle,new Vector3(radius*(360f/bays)*Mathf.Deg2Rad/2,1,1));
+                    // Split panel runs at real door margins instead of dropping whole bays:
+                    // otherwise each entrance leaves several metres of bare collision wall.
+                    var spans=new List<Vector2>{new Vector2(i*360f/bays,(i+1)*360f/bays)};
+                    if(inner)foreach(var portal in StationAccessibleRoomAngles.Select(a=>new Vector2(a-1,a+1)).Append(new Vector2(ServiceAngle-1.35f,ServiceAngle+1.35f)))
+                    {
+                        var next=new List<Vector2>();
+                        foreach(var span in spans)
+                        {
+                            if(portal.y<=span.x || portal.x>=span.y){next.Add(span);continue;}
+                            if(portal.x>span.x)next.Add(new Vector2(span.x,portal.x));
+                            if(portal.y<span.y)next.Add(new Vector2(portal.y,span.y));
+                        }
+                        spans=next;
+                    }
+                    foreach(var span in spans)
+                    {
+                        if(span.y-span.x<.05f)continue;
+                        float mid=(span.x+span.y)*.5f;
+                        MaintenanceKit(ring,"ENV_Wall_Standard_A",RingPoint(radius,mid,0),(inner?90:270)-mid,new Vector3(radius*(span.y-span.x)*Mathf.Deg2Rad/2,1,1));
+                    }
                 }
                 if(!IsStationObservationAngle(angle))
                     foreach(float radius in new[]{71f,73f})MaintenanceKit(ring,"ENV_Ceiling_Standard_A",RingPoint(radius,angle,3),-angle,new Vector3(1,1,72*(360f/bays)*Mathf.Deg2Rad/2));
                 var bay=RingGroup("Pipe Vault",ring);bay.SetPositionAndRotation(RingPoint(72,angle,0),Quaternion.Euler(0,-angle,0));
                 foreach(float x in new[]{-1.55f,1.55f})
                 {
-                    Part("Vault Shoulder",bay,new Vector3(x,2.78f,0),new Vector3(.7f,.26f,3.1f),ArtLibrary.Get("M_Env_FrameDark"));
-                    MaintenancePipe(bay,new Vector3(x,2.55f,-1.6f),new Vector3(x,2.55f,1.6f),.075f,pipe);
-                    Part("Pipe Collar",bay,new Vector3(x,2.55f,0),new Vector3(.2f,.2f,.06f),ArtLibrary.Get("M_Env_TrimOrange"));
+                    Part("Vault Shoulder",bay,new Vector3(x,2.6f,0),new Vector3(.8f,.38f,3.1f),ArtLibrary.Get("M_Env_FrameDark"));
+                    MaintenancePipe(bay,new Vector3(x,2.32f,-1.6f),new Vector3(x,2.32f,1.6f),.1f,pipe);
+                    Part("Pipe Collar",bay,new Vector3(x,2.32f,0),new Vector3(.26f,.26f,.07f),ArtLibrary.Get("M_Env_TrimOrange"));
                 }
-                Part("Vault Rib",bay,new Vector3(0,2.84f,-1.5f),new Vector3(3.8f,.15f,.12f),ArtLibrary.Get("M_Env_FrameDark"));
+                Part("Vault Rib",bay,new Vector3(0,2.52f,-1.5f),new Vector3(3.8f,.18f,.16f),ArtLibrary.Get("M_Env_FrameDark"));
             }
         }
 

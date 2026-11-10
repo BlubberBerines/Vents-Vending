@@ -12,6 +12,10 @@ namespace VentsAndVending.Saving
     {
         public int Version = SaveCodec.CurrentVersion;
         public string SavedAtUtc;
+        public string SceneName;
+        public List<VentsAndVending.Crafting.MixingSave> Mixers = new List<VentsAndVending.Crafting.MixingSave>();
+        public List<VentsAndVending.Crafting.DepositSave> Deposits = new List<VentsAndVending.Crafting.DepositSave>();
+        public List<VentsAndVending.Crafting.RefiningSave> Refineries = new List<VentsAndVending.Crafting.RefiningSave>();
         public PlayerSave Player = new PlayerSave();
         public int Credits;
         public int SecurityIncidents;

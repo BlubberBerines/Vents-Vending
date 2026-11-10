@@ -30,9 +30,10 @@ namespace VentsAndVending.Editor
         {
             UiThemeBuilder.Build();
             Build();
+            BuildCompleteConcourseRing();
             BuildMainMenuScene();
             SetBuildScenes();
-            EditorSceneManager.OpenScene(ScenePath);
+            EditorSceneManager.OpenScene(ConcourseRingPath);
         }
 
         // ------------------------------------------------------------------ Save system (game scene)
@@ -129,6 +130,7 @@ namespace VentsAndVending.Editor
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(MainMenuPath, true),
+                new EditorBuildSettingsScene(ConcourseRingPath, true),
                 new EditorBuildSettingsScene(ScenePath, true)
             };
         }

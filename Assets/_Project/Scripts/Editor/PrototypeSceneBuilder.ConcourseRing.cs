@@ -94,6 +94,7 @@ namespace VentsAndVending.Editor
             var player = CreatePlayer(spawn, den.rotation * Quaternion.Euler(0,180,0));
             player.name = "Player_L1_Concourse";
             CreateHud(player.GetComponent<VentsAndVending.Interaction.InteractionController>());
+            CreateStationSaveSystem();
 
             EditorSceneManager.SaveScene(scene, ConcourseRingPath);
             AssetDatabase.SaveAssets();

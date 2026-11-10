@@ -5,6 +5,16 @@ using VentsAndVending.Inventory;
 
 namespace VentsAndVending.Crafting
 {
+    [Serializable]
+    public sealed class MixingSave
+    {
+        public string Id,RecipeId;
+        public List<string> Ingredients=new List<string>();
+        public MixingPhase Phase;
+        public float Progress,SettleRemaining;
+        public ItemQuality Quality;
+        public bool Overheated;
+    }
     public enum MixingPhase
     {
         Idle,
@@ -103,6 +113,24 @@ namespace VentsAndVending.Crafting
         public float SettleSpeed { get; set; } = 1f;
 
         public bool CanLoad => Phase == MixingPhase.Idle && _loaded.Count < Capacity;
+
+        public MixingSave Capture(string id)
+        {
+            var save=new MixingSave{Id=id,RecipeId=ActiveRecipe!=null?ActiveRecipe.Id:null,Phase=Phase,Progress=Progress,SettleRemaining=SettleRemaining,Quality=ResultQuality,Overheated=Overheated};
+            foreach(var item in _loaded)save.Ingredients.Add(item.Id);
+            return save;
+        }
+        public void Restore(MixingSave save,Func<string,ItemDefinition> lookup,IEnumerable<RecipeDefinition> recipes)
+        {
+            _loaded.Clear();ActiveRecipe=null;Phase=MixingPhase.Idle;Progress=0;SettleRemaining=0;Overheated=false;
+            foreach(var id in save.Ingredients??new List<string>()){var item=lookup(id);if(item!=null && _loaded.Count<Capacity)_loaded.Add(item);}
+            foreach(var recipe in recipes)if(recipe!=null && recipe.Id==save.RecipeId){ActiveRecipe=recipe;break;}
+            if(ActiveRecipe==null || !ActiveRecipe.Check(_loaded).Matches){ActiveRecipe=null;return;}
+            Phase=Enum.IsDefined(typeof(MixingPhase),save.Phase)?save.Phase:MixingPhase.Idle;
+            Progress=float.IsNaN(save.Progress)?0:Mathf.Clamp(save.Progress,0,MixingRules.AutoStopAt);
+            SettleRemaining=float.IsNaN(save.SettleRemaining)?0:Mathf.Clamp(save.SettleRemaining,0,ActiveRecipe.SettleDuration);
+            ResultQuality=Enum.IsDefined(typeof(ItemQuality),save.Quality)?save.Quality:ItemQuality.Standard;Overheated=save.Overheated;
+        }
 
         public bool Load(ItemDefinition item)
         {

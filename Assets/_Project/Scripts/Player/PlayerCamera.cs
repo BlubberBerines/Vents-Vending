@@ -25,6 +25,9 @@ namespace VentsAndVending.Player
         private PlayerInputHandler _input;
         private PlayerStateController _state;
         private float _pitch;
+        private static PlayerCamera _active;
+        private bool _wantsCursorLocked;
+        private int _captureFrames;
 
         public float MouseSensitivity
         {
@@ -40,6 +43,7 @@ namespace VentsAndVending.Player
 
         private void Awake()
         {
+            _active = this;
             _input = GetComponent<PlayerInputHandler>();
             _state = GetComponent<PlayerStateController>();
             if (_pitchRoot == null)
@@ -63,7 +67,27 @@ namespace VentsAndVending.Player
             ApplySettings();
         }
 
-        private void OnDestroy() => Core.GameSettings.Changed -= ApplySettings;
+        private void OnDestroy()
+        {
+            Core.GameSettings.Changed -= ApplySettings;
+            if (_active == this) _active = null;
+        }
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (focused && _wantsCursorLocked) _captureFrames = 4;
+        }
+
+        private void LateUpdate()
+        {
+            // UI callbacks and the Editor's Escape handling can release a lock later in
+            // the closing frame. Retry briefly after UI processing, not on another click.
+            if (!_wantsCursorLocked || _captureFrames <= 0 || !Application.isFocused ||
+                (_state != null && _state.IsInteracting)) return;
+            _captureFrames--;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
         private void ApplySettings()
         {
@@ -112,8 +136,22 @@ namespace VentsAndVending.Player
 
         public static void SetCursorLocked(bool locked)
         {
+            if (_active != null)
+            {
+                _active._wantsCursorLocked = locked;
+                _active._captureFrames = locked ? 4 : 0;
+            }
             Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !locked;
+        }
+
+        public static void ResumeGameplayCursor()
+        {
+#if UNITY_EDITOR
+            // A UI control can retain Editor keyboard focus after it is hidden.
+            UnityEditor.EditorApplication.ExecuteMenuItem("Window/General/Game");
+#endif
+            SetCursorLocked(true);
         }
     }
 }

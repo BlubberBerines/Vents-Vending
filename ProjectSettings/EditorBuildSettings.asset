@@ -7,7 +7,10 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/_Project/Scenes/MainMenu/MainMenu.unity
-    guid: 00000000000000000000000000000000
+    guid: 909acafd77044ca459a412f707903e7f
+  - enabled: 1
+    path: Assets/_Project/Scenes/Districts/Station_Concourse_Ring.unity
+    guid: 61c68ca1cd4d3214983da1353e04acbb
   - enabled: 1
     path: Assets/_Project/Scenes/Prototype/Greybox_Movement.unity
     guid: 1739f8c870367a6429e7bfa5542b7967

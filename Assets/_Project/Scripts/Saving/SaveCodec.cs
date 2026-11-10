@@ -8,7 +8,7 @@ namespace VentsAndVending.Saving
     /// <summary>Pure capture/restore and JSON (de)serialisation with validation. No file IO here.</summary>
     public static class SaveCodec
     {
-        public const int CurrentVersion = 4; // v2 Tunnels, v3 Orders, v4 Appearance (older saves load with empty state)
+        public const int CurrentVersion = 6; // v6 crystal veins and in-flight refinery batches
 
         public static List<StackSave> CaptureInventory(InventoryModel inventory)
         {
@@ -93,6 +93,9 @@ namespace VentsAndVending.Saving
             }
 
             data.Upgrades ??= new List<string>();
+            data.Mixers ??= new List<VentsAndVending.Crafting.MixingSave>();
+            data.Deposits ??= new List<VentsAndVending.Crafting.DepositSave>();
+            data.Refineries ??= new List<VentsAndVending.Crafting.RefiningSave>();
             data.Inventories ??= new List<InventorySave>();
             data.Player ??= new PlayerSave();
             data.Tunnels ??= new VentsAndVending.Tunnels.TunnelSave();

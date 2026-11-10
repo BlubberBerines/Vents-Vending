@@ -7,7 +7,7 @@ namespace VentsAndVending.Core
     public static class SceneFlow
     {
         public const string MainMenuScene = "MainMenu";
-        public const string GameScene = "Greybox_Movement";
+        public const string GameScene = "Station_Concourse_Ring";
 
         /// <summary>Set by the main menu; the game scene's SaveManager loads the save when true.</summary>
         public static bool ContinueRequested { get; set; }
@@ -21,7 +21,7 @@ namespace VentsAndVending.Core
         public static void ContinueGame()
         {
             ContinueRequested = true;
-            Load(GameScene);
+            Load(Saving.SaveManager.SavedSceneName());
         }
 
         public static void ToMainMenu() => Load(MainMenuScene);

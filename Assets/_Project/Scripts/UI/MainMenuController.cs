@@ -75,8 +75,8 @@ namespace VentsAndVending.UI
             UiFactory.Place(head.rectTransform, tl, tl, new Vector2(26f, -22f), new Vector2(400f, 24f));
             TextMeshProUGUI items = UiFactory.Text(card.transform, "Items",
                 "<b>VentNet orders</b> <color=#9AA3AD>— customers message the den PC</color>\n" +
-                "<b>Concourse Lounge</b> <color=#9AA3AD>— richer clients, behind Fan 17</color>\n" +
-                "<b>Meet spots A · B · C</b> <color=#9AA3AD>— pick your risk</color>", 20f, TextAlignmentOptions.TopLeft);
+                "<b>Concourse Lounge</b> <color=#9AA3AD>— find clients by mugshot and name</color>\n" +
+                "<b>Maintenance ring</b> <color=#9AA3AD>— rooms, steam leaks and service routes</color>", 20f, TextAlignmentOptions.TopLeft);
             UiFactory.Place(items.rectTransform, tl, tl, new Vector2(26f, -58f), new Vector2(420f, 140f));
             items.lineSpacing = 18f;
 

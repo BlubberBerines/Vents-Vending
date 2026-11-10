@@ -7,6 +7,103 @@ the original Cartesian blueprint is not copied over the new ring.
 
 ## Implemented topology
 
+### Material sourcing / first gathering loop
+
+The Den PC already supports **Supplies**: Glarb Extract (5 CC), Lumina Gel
+(4 CC), Stabiliser Gel (3 CC), and the crowbar (60 CC). Ingredient purchases
+deliver one unit directly to the saved Den cupboard; refused purchases do not
+charge credits. The starter cupboard stock remains unchanged for now.
+
+The free alternative branches through the existing Supply Store door just
+outside the Den. A second manual door at service-frame (10,0,-4) leads down a
+sealed, winding 2.6 m corridor to a chamber at (24,-1.8,-23). Its corrupted
+auxiliary reactor has six mineable growths, plus fused decorative growth on the
+vessel. The reactor collider is solid; the surrounding floor is walkable.
+
+Take the spare pickaxe beside the chamber entrance with E. Carrying it enables
+three E strikes on a vein, separated by a 0.65 s strike cooldown. Harvesting
+awards 3 Raw Core Crystals and shrinks the growth until it regrows after 180 s
+of game time. A full inventory preserves the final strike/harvest. Pickaxes are
+reusable and the loaner rack can replace a lost tool without duplicating one
+already carried. Raw crystals are not valid mixer ingredients.
+
+The compact Den Crystal Refinery stands beside the central aisle at Den-local
+(1.05,0,-3.2), facing into the room. E loads 3 carried raw crystals; processing
+takes 8 s, then E collects 2 Lumina Gel. A full inventory leaves the batch ready
+in the machine. The player can walk away while it runs. Its live status panel
+shows input/output instructions and remaining time. The gel is the existing
+lumina_gel item used by the Glarb-Juice recipe, not a parallel crafting economy.
+
+Save version 6 records all deposit strike progress/regrowth timers and refinery
+batches, along with tool/material inventory. Old saves migrate to empty resource
+state. Pausing freezes processing/regrowth; time offline does not advance them.
+
+Live verification used an isolated Logs/CoreLoopReview/Saves directory: bought
+gel through the PC Supplies Buy button (4 CC deducted, cupboard +1); movement
+input bot traversed every bend and both doors in both directions; injected E
+input acquired the axe, harvested a vein, started and collected a refinery batch.
+A save/load resumed the machine at the identical remaining time, and its gel
+was loaded into the existing mixer to produce one Glarb-Juice. All 50 sampled
+access-route positions had floor and ceiling coverage. Six unique deposit save
+IDs are present. Sixteen new resource-state tests cover tool requirements, full
+inventory safety, cooldown/regrowth, input/output atomicity and save migration.
+The complete EditMode suite passed: 235 tests, no failures or skips.
+
+### Visual refinement pass
+
+Corrected five locker placements that penetrated side walls by approximately
+0.11 m, moved the shared desk/cart placement inward, and separated the lockers
+from rear partitions. All 15 side-room prop meshes now fit inside their authored
+room footprints. Added continuous foot seals, full-footprint ceiling kit coverage
+for annexes/deep stores, and local painted-panel/deck/ceiling material variants.
+The variants use the existing triplanar texture library with smaller wear/rust
+patterns; no shared Den or imported-kit materials were replaced globally.
+
+Service doors now have attached stiffeners and finer, less orange rust patches.
+Ring wall panel runs split around actual door margins instead of omitting whole
+bays. Fixed wall-run orientation detection to include collider transform scale
+in both the Den approach and new skirting. Moved the lounge-crawl instructions
+beside the hatch so the text no longer overlaps grille bars or the hinge sweep.
+
+Validation: compared captured Play-mode views before/after; 144/144 ring samples
+have standing clearance and floor support; all 1,092 sampled room positions have
+floor/ceiling coverage. Movement-input bot traversed both expanded rooms and
+the Tool Store rising crawl route into the AC ring. All 40 focused door, tunnel
+and player-state tests passed. No runtime exceptions observed. QA saves remained
+isolated under Logs/RefinementReview/Saves.
+
+### Irregular maintenance-room revision
+
+Entrance positions now follow an uneven sequence: 39, 58, 126, 193, 219,
+242, 254 and 337 degrees. Short clusters alternate with long uninterrupted runs;
+The entrance table below reflects this revision.
+Persistent identities remain MAINT_ROOM_045/090/225/270/345, and the steam valve
+remains STEAM_RING_225, independent of its new position at 219 degrees.
+
+Pump Service (58 degrees) has a 6 x 9 m main space, a separately door-controlled
+rear machinery bay and a 5 x 5 m lateral control annex. The Tool Store (242 degrees)
+has a different L-shaped footprint: a calibration annex, a rear store behind a
+sliding door, and a narrower deep-stock extension. These are ordinary navigation
+spaces, not additional mandatory puzzles. Equipment stays out of the door lanes.
+
+Each expanded room has a low, hinged side hatch in its rear bay. An enclosed,
+automatically crawling approach and rising duct join the existing L2 AC ring,
+with another hinged hatch at the ring end. The two new ring wall apertures are
+authored with the ducts, not hidden behind solid collision. The risers reach
+3.3 m before crossing the maintenance ring wall, preserving standing clearance
+below. Graph connections are bidirectional and room discovery covers the annexes.
+
+Closing any ModalScreen clears UI selection before restoring gameplay capture.
+PlayerCamera retries capture briefly after the closing frame, cancels retries
+when another menu opens, and retries on application focus return; it does not
+continuously force-lock the cursor when the user releases it in the Editor.
+
+This pass's checks: 40 focused door/tunnel/player-state tests passed. Live
+movement traversed both rooms' internal doors, both rising ducts, the AC-ring
+join, and the Tool Store return route. PC and cupboard open/close checks restored
+Locked/hidden cursor state without mouse-click input. QA saves use an isolated
+Logs/IrregularRoomsReview/Saves directory, not the player's save slots.
+
 - **L1, +4.6 m:** public concourse and the first enclosed customer lounge. Appointment
   customers and ambient passengers share a baked NavMesh and the existing trading system.
 - **L2, +3.3 m:** continuous AC crawl ring. A branched, enclosed riser junction
@@ -222,5 +319,58 @@ to check manual operation, occupancy, closure, lighting, fan timing and clearanc
 This pass completed those checks, including all 144 maintenance-ring samples and
 the fan/cache passage samples. Hub/ring captures were visually inspected.
 
-Later power-routing puzzles and additional districts remain expansion work. This
-pass does not replace the main menu's existing game-scene selection.
+## Complete game flow and ring-room pass
+
+New Game now enters Station_Concourse_Ring. MainMenu, the station and the legacy
+greybox are enabled in build settings. Continue reads scene identity from the
+save (including backup fallback); old saves without a scene name retain the
+legacy greybox route. Build All Scenes now includes the station assembly.
+
+The station has SaveManager, a full item/upgrade database and ProgressionManager.
+Pause supports Save, Save & Main Menu and Save & Quit; a failed save refuses to
+leave gameplay. Save v5 adds scene identity and mixer state: loaded ingredients,
+recipe, phase, progress, settle time and product quality survive scene changes.
+Credits, inventories, orders, appearance and infrastructure continue through
+the existing save system. Invalid saved positions inside closed obstructions
+fall back to the Den spawn rather than trapping the player. Steam isolation snaps
+immediately on restore so a saved open passage is not momentarily treated as blocked.
+
+A rusty two-leaf blast door separates the Den approach from the maintenance ring
+at service-frame z=8. It opens with E, takes 1.25 s to open / 1.5 s to close and
+holds for five clear-doorway seconds. The ring vault shoulders and side pipes sit
+lower (side pipes at 2.32 m, cross ribs at 2.52 m), retaining standing clearance.
+
+Eight inward-facing entrances are spread around the ring:
+
+| Angle | Space | Access |
+|---|---|---|
+| 39° | Pipefitter break room | Door secured open; ordinary room |
+| 58° | Pump service | Manual doors, machinery/control annex, AC crawl connection |
+| 126° | Sealed relay vault | Permanently sealed, backed by the ring wall |
+| 193° | Collapsed access | Locked facade obscured by fallen brace and debris |
+| 219° | Steam service | One isolation-valve encounter, off the main route |
+| 242° | Tool store | Manual doors, calibration/deep stores, AC crawl connection |
+| 254° | Decommissioned | Permanently sealed, backed by the ring wall |
+| 337° | Maintenance rest bay | Door secured open; ordinary room |
+
+The five usable rooms have complete shells, short vestibules, panel ceilings,
+lights, dressing, discovery volumes and graph connections. The three dead entries
+are intentionally not claims of playable rooms behind their doors. Twelve other
+small steam vents provide particles and positional hissing without collision or
+tasks. Only the 219° room's jet blocks its vestibule; E on its nearby valve stops
+the jet/hiss and saves isolation under STEAM_RING_225. No steam blocks the main lap.
+Isolation is one-way for this pass; no restarting a jet onto someone in the doorway.
+
+Verification in the live Editor:
+
+- New Game UI -> station; saved -> Save & Main Menu -> Continue UI -> station.
+- Credits, cupboard stock, an in-flight mixer batch, lights and steam state restored.
+- Corrupted only an isolated test save: backup loaded, then Continue restored the
+  correct station scene and 37-credit test balance. Real player saves were untouched.
+- Simulated E opened the blast door; input-driven walking passed into the ring.
+- Input-driven walking entered and returned from all five usable rooms.
+- Simulated E isolated the blocking steam jet; its blocker cleared immediately.
+- Main-ring clearance passed all 144 samples; no runtime exceptions observed.
+- All 30 focused SaveTests, MixerPersistenceTests and SlidingDoorTests passed.
+
+Further power-routing puzzles and additional districts remain expansion work.

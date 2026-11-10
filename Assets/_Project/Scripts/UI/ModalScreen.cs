@@ -62,11 +62,11 @@ namespace VentsAndVending.UI
             LastClosedFrame = Time.frameCount;
             _root.SetActive(false);
             _interactor.State.IsInteracting = false;
-            PlayerCamera.SetCursorLocked(true);
             if (EventSystem.current != null)
             {
                 EventSystem.current.SetSelectedGameObject(null);
             }
+            PlayerCamera.ResumeGameplayCursor();
         }
 
         protected virtual void OnClosing()
