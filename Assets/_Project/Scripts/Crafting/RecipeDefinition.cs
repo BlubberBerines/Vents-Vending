@@ -100,6 +100,20 @@ namespace VentsAndVending.Crafting
             return new RecipeCheck(true, IsCorrectOrder(loaded), null);
         }
 
+        /// <summary>Allocation-free exact match for the station's per-frame status light.</summary>
+        public bool MatchesIngredients(IReadOnlyList<ItemDefinition> loaded)
+        {
+            int total=0;
+            foreach(var ingredient in _ingredients)
+            {
+                total+=ingredient.Quantity;
+                int count=0;
+                for(int i=0;i<loaded.Count;i++)if(loaded[i]==ingredient.Item)count++;
+                if(count!=ingredient.Quantity)return false;
+            }
+            return loaded.Count==total;
+        }
+
         /// <summary>True when ingredients first appear in the recipe's listed order.</summary>
         public bool IsCorrectOrder(IReadOnlyList<ItemDefinition> loaded)
         {

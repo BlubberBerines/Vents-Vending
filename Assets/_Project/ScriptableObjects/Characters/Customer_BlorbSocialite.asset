@@ -29,6 +29,10 @@ MonoBehaviour:
   _haggleAttempts: 2
   _patience: 55
   _portrait: {fileID: 5475959528097857003, guid: f56765a04440fb74cabb14561a50dc8b, type: 3}
+  _portraits:
+  - {fileID: 5475959528097857003, guid: f56765a04440fb74cabb14561a50dc8b, type: 3}
+  - {fileID: 2390829015962017718, guid: 9fac061cdf861a344b4869d2ef5fd373, type: 3}
+  - {fileID: -7474120047494884930, guid: 0182f52816b46474b821c713d9fdefbb, type: 3}
   _bodyColors:
   - {r: 0.95, g: 0.85, b: 0.95, a: 1}
   - {r: 1, g: 0.8, b: 0.35, a: 1}

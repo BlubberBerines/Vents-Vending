@@ -50,7 +50,8 @@ namespace VentsAndVending.UI
         private float _toastTimer;
 
         private GameObject _dealsRoot;
-        private readonly DealRow[] _deals = new DealRow[OrderRules.MaxActiveOrders];
+        private readonly DealRow[] _deals = new DealRow[1];
+        private TextMeshProUGUI _stationClock;
         private TextMeshProUGUI _dealsFooter;
         private float _dealsRefresh;
 
@@ -79,6 +80,8 @@ namespace VentsAndVending.UI
             BuildCrosshairAndPrompt(root);
             BuildToast(root);
             BuildDeals(root);
+            _stationClock=UiFactory.Mono(root,"Station Clock","",21,TextAlignmentOptions.Left,UiFactory.Paper);
+            UiFactory.Place(_stationClock.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(32,-32),new Vector2(450,40));
             BuildStanceAndHints(root);
         }
 
@@ -173,7 +176,7 @@ namespace VentsAndVending.UI
         private void BuildDeals(Transform root)
         {
             Image panel = UiFactory.Panel(root, "Deals", null, 5f, 14f);
-            UiFactory.Place(panel.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(32f, -32f), new Vector2(470f, 10f));
+            UiFactory.Place(panel.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-32f, -146f), new Vector2(470f, 10f));
             panel.raycastTarget = false;
             var list = panel.gameObject.AddComponent<VerticalLayoutGroup>();
             list.padding = new RectOffset(18, 18, 14, 14);
@@ -192,16 +195,16 @@ namespace VentsAndVending.UI
                 dot.sprite = UiTheme.Current.Circle;
             }
             UiFactory.Layout(dot.gameObject, preferredHeight: 10f, preferredWidth: 10f);
-            UiFactory.Label(header, "Title", "VentNet · deals", UiFactory.Go);
+            UiFactory.Label(header, "Title", "Tracked deal", UiFactory.Go);
 
             for (int i = 0; i < _deals.Length; i++)
             {
                 RectTransform r = UiFactory.Rect($"Deal {i}", panel.transform);
                 UiFactory.HRow(r, 14f);
-                UiFactory.Layout(r.gameObject, preferredHeight: 46f);
+                UiFactory.Layout(r.gameObject, preferredHeight: 86f);
                 var d = new DealRow { Root = r.gameObject };
                 d.Badge = UiFactory.Panel(r, "Badge", UiFactory.Row, 0f, 9f);
-                UiFactory.Layout(d.Badge.gameObject, preferredHeight: 42f, preferredWidth: 42f);
+                UiFactory.Layout(d.Badge.gameObject, preferredHeight: 78f, preferredWidth: 78f);
                 d.Letter = UiFactory.Heading(d.Badge.transform, "Letter", "A", 22f, TextAlignmentOptions.Center);
                 UiFactory.Stretch(d.Letter.rectTransform);
                 RectTransform texts = UiFactory.Rect("Texts", r);
@@ -214,9 +217,10 @@ namespace VentsAndVending.UI
                 d.Title.textWrappingMode = TextWrappingModes.NoWrap;
                 d.Title.overflowMode = TextOverflowModes.Ellipsis;
                 d.Detail = UiFactory.Text(texts, "Detail", string.Empty, 16f, TextAlignmentOptions.Left, UiFactory.MutedText);
-                d.Detail.textWrappingMode = TextWrappingModes.NoWrap;
+                d.Detail.textWrappingMode = TextWrappingModes.Normal;
                 d.Timer = UiFactory.Mono(r, "Timer", string.Empty, 20f, TextAlignmentOptions.Right);
                 UiFactory.Layout(d.Timer.gameObject, preferredWidth: 70f);
+                d.Timer.gameObject.SetActive(false);
                 _deals[i] = d;
             }
 
@@ -238,7 +242,7 @@ namespace VentsAndVending.UI
             RectTransform hints = UiFactory.Rect("Hints", root);
             UiFactory.Place(hints, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-32f, 34f), new Vector2(500f, 34f));
             UiFactory.HRow(hints, 24f, TextAnchor.MiddleRight);
-            UiFactory.KeyHint(hints, "Tab", "Inventory");
+            UiFactory.KeyHint(hints, "Tab", "Journal");
             UiFactory.KeyHint(hints, "Esc", "Pause");
             _hints = hints.gameObject;
         }
@@ -410,6 +414,7 @@ namespace VentsAndVending.UI
             _dealsRefresh = 0.2f;
 
             OrderManager manager = OrderManager.Instance;
+            if(manager!=null)_stationClock.text=StationTime.Label(manager.Board.Clock)+(StationTime.IsNight(manager.Board.Clock)?" / NIGHT":" / DAY");
             if (manager == null || busy)
             {
                 _dealsRoot.SetActive(false);
@@ -420,7 +425,7 @@ namespace VentsAndVending.UI
             int shown = 0;
             foreach (CustomerOrder o in board.Orders)
             {
-                if (!o.IsActive || shown >= _deals.Length)
+                if (!o.IsActive || o.Id!=manager.TrackedOrderId || shown >= _deals.Length)
                 {
                     continue;
                 }
@@ -431,18 +436,19 @@ namespace VentsAndVending.UI
                 row.Badge.color = bg;
                 row.Letter.color = fg;
                 var who=manager.FindCustomer(o.CustomerId);
-                bool portrait=who!=null && who.Portrait!=null;
-                row.Badge.sprite=portrait?who.Portrait:null;
+                bool portrait=who!=null && who.PortraitFor(o.CustomerName)!=null;
+                row.Badge.sprite=portrait?who.PortraitFor(o.CustomerName):null;
                 row.Badge.color=portrait?Color.white:bg;
                 row.Badge.preserveAspect=portrait;
                 row.Letter.text = portrait ? string.Empty : o.SpotId;
                 var product = manager.FindProduct(o.ProductId);
-                row.Title.text = $"{o.CustomerName} · {o.Quantity}× {(product != null ? product.DisplayName : o.ProductId)}";
+                row.Title.text = o.CustomerName;
                 bool waiting = o.Status == OrderStatus.Waiting;
                 row.Detail.text = waiting
                     ? (spot!=null && spot.RoomMeeting ? "<color=#3FE0FF>Find this person in the lounge</color>" : "<color=#3FE0FF>waiting at the spot</color>")
                     : $"{o.MinimumQuality}+ · {(spot != null ? spot.DisplayName : "")}";
                 row.Timer.text = OrderRules.Clock(waiting ? o.WindowClosesAt - board.Clock : o.WindowOpensAt - board.Clock);
+                row.Detail.text=$"{o.Quantity} x {(product!=null?product.DisplayName:o.ProductId)}\n{spot?.Label??o.SpotId}";
                 row.Timer.color = waiting ? UiFactory.Credit : UiFactory.Paper;
             }
             for (int i = shown; i < _deals.Length; i++)
@@ -451,9 +457,9 @@ namespace VentsAndVending.UI
             }
 
             int offers = board.OfferCount;
-            _dealsFooter.gameObject.SetActive(offers > 0);
+            _dealsFooter.gameObject.SetActive(false);
             _dealsFooter.text = $"{offers} new message{(offers == 1 ? "" : "s")} <color=#9AA3AD>· PC in the den</color>";
-            _dealsRoot.SetActive(shown > 0 || offers > 0);
+            _dealsRoot.SetActive(shown > 0);
         }
 
         private void ShowToast(string message)

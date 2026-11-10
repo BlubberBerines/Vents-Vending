@@ -57,10 +57,13 @@ namespace VentsAndVending.Editor
                 spot.ConfigureRoomMeeting();
                 meetings.Add(spot);
             }
-            var customers=CreateRichCustomers().Cast<CustomerDefinition>().ToArray();
+            var customers=CreateRichCustomers().Cast<CustomerDefinition>().Concat(new[]{_blorbDefinition,_gromflomiteDefinition}).ToArray();
             foreach(var customer in customers)BuildStationPortrait(customer);
             RingGroup("Station VentNet Orders",lounge).gameObject.AddComponent<VentsAndVending.Orders.OrderManager>()
                 .Configure(customers,meetings,spawn,spawn,ProceduralAudio.Message);
+            var managerSettings=new SerializedObject(lounge.GetComponentInChildren<VentsAndVending.Orders.OrderManager>());
+            managerSettings.FindProperty("_recruitmentRequired").boolValue=true;managerSettings.ApplyModifiedPropertiesWithoutUndo();
+            lounge.gameObject.AddComponent<VentsAndVending.Orders.StationDayCycle>();
             BuildStationCrowd(customers,spawn);
             _stationEscort=RingGroup("U01 Escort Exit",lounge);_stationEscort.localPosition=new Vector3(-4.5f,4.65f,0);
         }

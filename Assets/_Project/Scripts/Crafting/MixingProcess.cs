@@ -123,6 +123,8 @@ namespace VentsAndVending.Crafting
         public void Restore(MixingSave save,Func<string,ItemDefinition> lookup,IEnumerable<RecipeDefinition> recipes)
         {
             _loaded.Clear();ActiveRecipe=null;Phase=MixingPhase.Idle;Progress=0;SettleRemaining=0;Overheated=false;
+            ResultQuality=ItemQuality.Standard;
+            if(save==null)return;
             foreach(var id in save.Ingredients??new List<string>()){var item=lookup(id);if(item!=null && _loaded.Count<Capacity)_loaded.Add(item);}
             foreach(var recipe in recipes)if(recipe!=null && recipe.Id==save.RecipeId){ActiveRecipe=recipe;break;}
             if(ActiveRecipe==null || !ActiveRecipe.Check(_loaded).Matches){ActiveRecipe=null;return;}
@@ -161,7 +163,7 @@ namespace VentsAndVending.Crafting
         {
             foreach (RecipeDefinition recipe in recipes)
             {
-                if (recipe != null && recipe.Check(_loaded).Matches)
+                if (recipe != null && recipe.MatchesIngredients(_loaded))
                 {
                     return recipe;
                 }

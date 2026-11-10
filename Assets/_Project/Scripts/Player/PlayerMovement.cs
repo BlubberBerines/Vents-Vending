@@ -78,6 +78,8 @@ namespace VentsAndVending.Player
 
             _controller.enabled = false;
             transform.SetPositionAndRotation(position, rotation);
+            Physics.SyncTransforms();
+            GetComponent<PlayerCrouch>()?.FitAfterTeleport();
             _horizontalVelocity = Vector3.zero;
             _verticalVelocity = 0f;
             _controller.enabled = true;

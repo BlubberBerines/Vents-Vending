@@ -119,6 +119,13 @@ namespace VentsAndVending.Saving
             }
 
             var data = new SaveData { SavedAtUtc = DateTime.UtcNow.ToString("o") };
+            foreach(var drop in FindObjectsByType<PickupItem>(FindObjectsSortMode.None))
+            {
+                if(!drop.IsRuntimeDrop || drop.Item==null || drop.Count<=0)continue;
+                var position=drop.transform.position;var rotation=drop.transform.eulerAngles;
+                data.WorldDrops.Add(new WorldDropSave{Item=drop.Item.Id,Count=drop.Count,Quality=drop.Quality,
+                    X=position.x,Y=position.y,Z=position.z,Pitch=rotation.x,Yaw=rotation.y,Roll=rotation.z});
+            }
             data.SceneName=UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             if(Orders.SupplyDeliveryService.Instance!=null)data.Deliveries=Orders.SupplyDeliveryService.Instance.Queue.Capture();
             foreach(var station in FindObjectsByType<Crafting.MixingStation>(FindObjectsSortMode.None))
@@ -226,6 +233,9 @@ namespace VentsAndVending.Saving
                 return;
             }
 
+            // Panels hold references to live customers, vessels and draft selections: close before replacing state.
+            foreach(var screen in FindObjectsByType<UI.ModalScreen>(FindObjectsSortMode.None))screen.Close();
+
             // Upgrades first so capacity bonuses exist before inventories are filled.
             if (ProgressionManager.Instance != null)
             {
@@ -311,7 +321,21 @@ namespace VentsAndVending.Saving
             foreach(var station in FindObjectsByType<Crafting.MixingStation>(FindObjectsSortMode.None))
             {
                 var saved=data.Mixers.Find(m=>m!=null && m.Id==station.name);
-                if(saved!=null)station.Process.Restore(saved,_database.FindItem,station.Recipes);
+                station.Process.Restore(saved,_database.FindItem,station.Recipes);
+            }
+            // Replace only player-created drops. Authored pickups remain owned by their once-switches.
+            foreach(var drop in FindObjectsByType<PickupItem>(FindObjectsSortMode.None))
+                if(drop.IsRuntimeDrop){drop.gameObject.SetActive(false);Destroy(drop.gameObject);}
+            foreach(var saved in data.WorldDrops)
+            {
+                if(saved==null || saved.Count<=0)continue;
+                var item=_database.FindItem(saved.Item);
+                var position=new Vector3(saved.X,saved.Y,saved.Z);
+                var rotation=new Vector3(saved.Pitch,saved.Yaw,saved.Roll);
+                if(item==null || item.WorldPrefab==null || !Finite(position) || !Finite(rotation))
+                {Debug.LogWarning("[SaveManager] Skipped invalid dropped item: "+saved.Item);continue;}
+                var quality=Enum.IsDefined(typeof(ItemQuality),saved.Quality)?saved.Quality:ItemQuality.Standard;
+                PickupItem.Spawn(item,saved.Count,quality,position,Quaternion.Euler(rotation));
             }
             foreach(var vein in FindObjectsByType<World.CrystalVein>(FindObjectsSortMode.None))
                 vein.Deposit.Restore(data.Deposits.Find(s=>s!=null && s.Id==vein.SaveId));
@@ -332,6 +356,9 @@ namespace VentsAndVending.Saving
                 interactor.Notify(message);
             }
         }
+
+        private static bool Finite(Vector3 value)=>!float.IsNaN(value.x) && !float.IsInfinity(value.x)
+            && !float.IsNaN(value.y) && !float.IsInfinity(value.y) && !float.IsNaN(value.z) && !float.IsInfinity(value.z);
 
         internal void SetDatabase(GameDatabase database) => _database = database;
     }

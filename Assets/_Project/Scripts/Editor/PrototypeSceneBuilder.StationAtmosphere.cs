@@ -16,7 +16,7 @@ namespace VentsAndVending.Editor
             {var t=RingGroup("Passenger Lounge Pause",_stationLounge);t.localPosition=p;destinations.Add(t);}
             foreach(float angle in new[]{6f,10,18,23})
             {var t=RingGroup("Passenger Concourse Pause",_stationFrame);t.position=RingPoint(73,angle,4.65f);destinations.Add(t);}
-            var definitions=customers.Concat(new[]{_blorbDefinition,_gromflomiteDefinition}).ToArray();
+            var definitions=customers.Concat(new[]{_blorbDefinition,_gromflomiteDefinition}).Distinct().ToArray();
             RingGroup("Station Passenger Traffic",_stationFrame).gameObject.AddComponent<StationCrowd>()
                 .Configure(definitions,new[]{firstEntry,second},destinations.ToArray());
         }
@@ -62,12 +62,24 @@ namespace VentsAndVending.Editor
 
         private static void BuildStationPortrait(CustomerDefinition definition)
         {
+            int count=Mathf.Max(1,definition.BodyColors.Length);
+            var portraits=new Sprite[count];
+            for(int i=0;i<count;i++)portraits[i]=BuildStationPortraitVariant(definition,i);
+            var so=new SerializedObject(definition);
+            so.FindProperty("_portrait").objectReferenceValue=portraits[0];
+            var variants=so.FindProperty("_portraits");variants.arraySize=count;
+            for(int i=0;i<count;i++)variants.GetArrayElementAtIndex(i).objectReferenceValue=portraits[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static Sprite BuildStationPortraitVariant(CustomerDefinition definition,int variant)
+        {
             const string folder="Assets/_Project/Art/UI/CustomerPortraits";EnsureFolder(folder);
-            string path=folder+"/"+definition.Id+".png";
+            string path=folder+"/"+definition.Id+(variant==0?"":"_"+variant.ToString("00"))+".png";
             var model=Object.Instantiate(definition.Prefab);
             var cameraObject=new GameObject("Temporary Mugshot Camera");
             var camera=cameraObject.AddComponent<Camera>();camera.enabled=false;
-            var target=new RenderTexture(192,192,24);
+            var target=new RenderTexture(384,384,24);
             Texture2D copy=null;
             var materials=new System.Collections.Generic.List<Material>();
             try
@@ -75,7 +87,7 @@ namespace VentsAndVending.Editor
                 model.transform.position=new Vector3(1000,1000,1000);
                 foreach(var child in model.GetComponentsInChildren<Transform>())child.gameObject.layer=31;
                 var visual=model.GetComponentInChildren<CustomerVisual>();
-                if(visual!=null && definition.BodyColors.Length>0)visual.ApplyTint(definition.BodyColors[0],definition.BodyGlow);
+                if(visual!=null && definition.BodyColors.Length>0)visual.ApplyTint(definition.BodyColors[variant],definition.BodyGlow);
                 foreach(var renderer in model.GetComponentsInChildren<MeshRenderer>())
                 {
                     if(renderer.GetComponent<TMPro.TMP_Text>()!=null)continue;
@@ -86,19 +98,20 @@ namespace VentsAndVending.Editor
                 }
                 var bounds=new Bounds(model.transform.position+Vector3.up,.1f*Vector3.one);
                 foreach(var r in model.GetComponentsInChildren<MeshRenderer>())if(r.GetComponent<TMPro.TMP_Text>()==null)bounds.Encapsulate(r.bounds);
-                var focus=bounds.center+Vector3.up*bounds.extents.y*.45f;
+                var focus=bounds.center+Vector3.up*bounds.extents.y*.32f;
+                camera.orthographic=true;camera.orthographicSize=bounds.size.y*.38f;
                 camera.transform.position=focus+new Vector3(0,.05f,Mathf.Max(1.4f,bounds.size.y*.8f));
                 camera.transform.LookAt(focus);camera.fieldOfView=35;camera.cullingMask=1<<31;
                 camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.07f,.1f,.14f);
                 camera.targetTexture=target;camera.Render();var old=RenderTexture.active;
-                try{RenderTexture.active=target;copy=new Texture2D(192,192,TextureFormat.RGB24,false);copy.ReadPixels(new Rect(0,0,192,192),0,0);copy.Apply();}
+                try{RenderTexture.active=target;copy=new Texture2D(384,384,TextureFormat.RGB24,false);copy.ReadPixels(new Rect(0,0,384,384),0,0);copy.Apply();}
                 finally{RenderTexture.active=old;}
                 System.IO.File.WriteAllBytes(path,copy.EncodeToPNG());
             }
             finally{if(copy!=null)Object.DestroyImmediate(copy);Object.DestroyImmediate(model);Object.DestroyImmediate(cameraObject);target.Release();Object.DestroyImmediate(target);foreach(var material in materials)Object.DestroyImmediate(material);}
             AssetDatabase.ImportAsset(path);
             var importer=(TextureImporter)AssetImporter.GetAtPath(path);importer.textureType=TextureImporterType.Sprite;importer.SaveAndReimport();
-            var so=new SerializedObject(definition);so.FindProperty("_portrait").objectReferenceValue=AssetDatabase.LoadAssetAtPath<Sprite>(path);so.ApplyModifiedPropertiesWithoutUndo();
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
     }
 }

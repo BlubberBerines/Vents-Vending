@@ -20,6 +20,14 @@ namespace VentsAndVending.Orders
         [SerializeField] private Transform _spawnPoint;
         [SerializeField] private Transform _exitPoint;
         [SerializeField] private AudioClip _messageSound;
+        [SerializeField] private bool _recruitmentRequired;
+        private float _nextVisitorRetry;
+        private string _trackedOrderId;
+        public Customers.CustomerLedger Customers { get; }=new Customers.CustomerLedger();
+        public string TrackedOrderId=>_trackedOrderId;
+        public CustomerOrder TrackedOrder {get{var order=Board.Find(_trackedOrderId);return order!=null && order.IsActive?order:null;}}
+        public void Track(string id){var order=Board.Find(id);_trackedOrderId=order!=null && order.IsActive?id:null;}
+        public bool RecruitmentRequired=>_recruitmentRequired;
 
         private readonly System.Random _rng = new System.Random();
         private readonly Dictionary<string, Customer> _visitors = new Dictionary<string, Customer>();
@@ -65,6 +73,11 @@ namespace VentsAndVending.Orders
         private void Update()
         {
             Board.Tick(Time.deltaTime, _rng);
+            if(Time.time>=_nextVisitorRetry)
+            {
+                _nextVisitorRetry=Time.time+.5f;
+                foreach(var order in Board.Orders)if(order.Status==OrderStatus.Waiting && !_visitors.ContainsKey(order.Id))SpawnVisitor(order);
+            }
             UpdateSpotMarks();
         }
 
@@ -113,21 +126,45 @@ namespace VentsAndVending.Orders
             return true;
         }
 
+        public bool Schedule(CustomerOrder order,float startsAt)
+        {
+            if(order==null || !Board.Schedule(order.Id,startsAt))return false;
+            Notify($"Booked {order.CustomerName}: {StationTime.Label(startsAt)}, {FindSpot(order.SpotId)?.Label}. Waits 2m 30s.");
+            return true;
+        }
+
         public void Decline(CustomerOrder order) => Board.Decline(order.Id);
 
         /// <summary>Called by the sale panel after the goods and credits have changed hands.</summary>
-        public void CompleteHandoff(CustomerOrder order, int payout)
+        public bool CompleteHandoff(CustomerOrder order, int payout)
         {
-            if (Board.Complete(order.Id, payout))
+            if (order != null && ReferenceEquals(Board.Find(order.Id),order) && Board.Complete(order.Id, payout))
             {
                 _visitors.Remove(order.Id);
+                Customers.AdjustTrust(order.CustomerName,8);
+                if(_trackedOrderId==order.Id)_trackedOrderId=null;
+                return true;
             }
+            return false;
         }
 
         // ------------------------------------------------------------------ Board events
 
         private CustomerOrder MakeOffer(OrderBoard board)
         {
+            if(_recruitmentRequired)
+            {
+                var regulars=new List<Customers.CustomerRecord>();
+                foreach(var record in Customers.Records)
+                    if(record.Recruited && record.LikedProducts.Count>0 && !HasPendingCustomer(record.Name))regulars.Add(record);
+                if(regulars.Count==0)return null;
+                var selectedRecord=regulars[_rng.Next(regulars.Count)];var definition=FindCustomer(selectedRecord.DefinitionId);
+                var product=FindProduct(selectedRecord.LikedProducts[_rng.Next(selectedRecord.LikedProducts.Count)]);
+                var spots=_spots.FindAll(s=>s!=null && (s.RoomMeeting || !board.IsSpotBusy(s.SpotId)));
+                if(definition==null || product==null || spots.Count==0)return null;
+                var location=spots[_rng.Next(spots.Count)];
+                return new CustomerOrder{CustomerId=definition.Id,CustomerName=selectedRecord.Name,ProductId=product.Id,Quantity=_rng.Next(definition.QuantityRange.x,definition.QuantityRange.y+1),MinimumQuality=definition.LikesPoorQuality?ItemQuality.Poor:definition.MinimumQuality,Markup=Mathf.Max(0,definition.PriceToleranceRange.x*.8f+OrderRules.MarkupBonus(board.Trust)+selectedRecord.Trust*.001f),SpotId=location.SpotId,RoomMeeting=location.RoomMeeting};
+            }
             var candidates = _customers.FindAll(c => c != null && c.Prefab != null && c.Wants.Count > 0);
             var freeSpots = _spots.FindAll(s => s != null && (s.RoomMeeting || !board.IsSpotBusy(s.SpotId)));
             if (candidates.Count == 0 || freeSpots.Count == 0)
@@ -155,6 +192,9 @@ namespace VentsAndVending.Orders
             };
         }
 
+        public bool HasPendingCustomer(string name)
+        {foreach(var order in Board.Orders)if(order.CustomerName==name && (order.IsActive || order.Status==OrderStatus.Offered))return true;return false;}
+
         private void OnOfferReceived(CustomerOrder order)
         {
             if (_messageSound != null)
@@ -173,6 +213,8 @@ namespace VentsAndVending.Orders
 
         private void OnMissed(CustomerOrder order)
         {
+            Customers.AdjustTrust(order.CustomerName,-10);
+            if(_trackedOrderId==order.Id)_trackedOrderId=null;
             if (_visitors.TryGetValue(order.Id, out Customer c) && c != null)
             {
                 c.GiveUp();
@@ -192,13 +234,24 @@ namespace VentsAndVending.Orders
                 return;
             }
 
-            GameObject go = Instantiate(def.Prefab, _spawnPoint.position, _spawnPoint.rotation);
-            var customer = go.GetComponent<Customer>();
+            Vector3 spawn=_spawnPoint.position;
+            Quaternion rotation=_spawnPoint.rotation;
+            var savedPosition=new Vector3(order.VisitorX,order.VisitorY,order.VisitorZ);
+            var savedMeeting=new Vector3(order.MeetingX,order.MeetingY,order.MeetingZ);
+            bool restorePosition=order.HasVisitorPosition && Finite(savedPosition) && Finite(savedMeeting)
+                && UnityEngine.AI.NavMesh.SamplePosition(savedPosition,out var _,.8f,UnityEngine.AI.NavMesh.AllAreas);
+            if(restorePosition){spawn=savedPosition;rotation=Quaternion.Euler(0,order.VisitorYaw,0);}
+            Customer customer=null;
+            foreach(var passenger in FindObjectsByType<Customer>(FindObjectsSortMode.None))
+                if(passenger.IsAmbient && passenger.DisplayName==order.CustomerName)
+                {if(passenger.State==CustomerState.Trading)return;customer=passenger;break;}
+            GameObject go=customer!=null?customer.gameObject:Instantiate(def.Prefab, spawn, rotation);
+            if(customer==null)customer=go.GetComponent<Customer>();
             Transform destination=spot.transform;
             if (spot.RoomMeeting)
             {
                 var point=new GameObject("Lounge rendezvous "+order.Id);
-                point.transform.SetParent(go.transform,false);point.transform.position=spot.PickMeetingPosition();
+                point.transform.SetParent(go.transform,false);point.transform.position=restorePosition?savedMeeting:spot.PickMeetingPosition();
                 destination=point.transform;
             }
             customer.BeginOrder(def, order, product, destination, _exitPoint != null ? _exitPoint : _spawnPoint);
@@ -235,7 +288,23 @@ namespace VentsAndVending.Orders
 
         // ------------------------------------------------------------------ Save
 
-        public OrderBoardSave Capture() => Board.Capture();
+        private static bool Finite(Vector3 value)=>!float.IsNaN(value.x) && !float.IsInfinity(value.x)
+            && !float.IsNaN(value.y) && !float.IsInfinity(value.y) && !float.IsNaN(value.z) && !float.IsInfinity(value.z);
+
+        public OrderBoardSave Capture()
+        {
+            foreach(var pair in _visitors)
+            {
+                var customer=pair.Value;var order=Board.Find(pair.Key);
+                if(customer==null || order==null || order.Status!=OrderStatus.Waiting)continue;
+                var agent=customer.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                if(agent==null || !agent.isOnNavMesh || !Finite(agent.destination))continue;
+                var p=customer.transform.position;var destination=agent.destination;
+                order.HasVisitorPosition=true;order.VisitorX=p.x;order.VisitorY=p.y;order.VisitorZ=p.z;order.VisitorYaw=customer.transform.eulerAngles.y;
+                order.MeetingX=destination.x;order.MeetingY=destination.y;order.MeetingZ=destination.z;
+            }
+            var save=Board.Capture();save.TrackedOrderId=_trackedOrderId;save.Customers.AddRange(Customers.Records);return save;
+        }
 
         /// <summary>Restores the board and brings back anyone who should be standing at a spot right now.</summary>
         public void Restore(OrderBoardSave save)
@@ -248,7 +317,10 @@ namespace VentsAndVending.Orders
                 }
             }
             _visitors.Clear();
+            foreach(var crowd in FindObjectsByType<StationCrowd>(FindObjectsSortMode.None))crowd.ResetPassengers();
+            Customers.Restore(save?.Customers);
             Board.Restore(save);
+            Track(save?.TrackedOrderId);
             foreach (CustomerOrder o in Board.Orders)
             {
                 if (o.Status == OrderStatus.Waiting)

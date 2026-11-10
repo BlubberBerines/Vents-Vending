@@ -193,6 +193,7 @@ namespace VentsAndVending.Editor
             SetReference(hud.AddComponent<InventoryScreen>(), "_interactor", interactor);
             SetReference(hud.AddComponent<MixingPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<SalePanel>(), "_interactor", interactor);
+            SetReference(hud.AddComponent<ConversationPanel>(), "_interactor", interactor);
             SetReference(hud.AddComponent<UpgradePanel>(), "_interactor", interactor);
             var ventNet = hud.AddComponent<VentNetPanel>();
             SetReference(ventNet, "_interactor", interactor);

@@ -8,6 +8,17 @@ namespace VentsAndVending.Tests
 {
     public class SaveTests
     {
+        [Test] public void DroppedStockSurvivesJsonWithCountQualityAndPosition()
+        {
+            var data=new SaveData();data.WorldDrops.Add(new WorldDropSave{Item="glarb_juice",Count=3,Quality=ItemQuality.Premium,X=12,Y=1.2f,Z=-4,Yaw=90});
+            Assert.IsTrue(SaveCodec.TryParse(SaveCodec.ToJson(data),out var parsed,out _));
+            var drop=parsed.WorldDrops[0];Assert.AreEqual(3,drop.Count);Assert.AreEqual(ItemQuality.Premium,drop.Quality);Assert.AreEqual(12,drop.X);Assert.AreEqual(90,drop.Yaw);
+        }
+        [Test] public void UndefinedNumericQualityRestoresAsStandard()
+        {
+            var inventory=new InventoryModel(2);SaveCodec.RestoreInventory(inventory,new[]{new StackSave{Item="glarb_juice",Count=1,Quality="999"}},Lookup);
+            Assert.AreEqual(1,inventory.Count(_juice,ItemQuality.Standard));
+        }
         private ItemDefinition _juice;
         private ItemDefinition _gel;
         private Dictionary<string, ItemDefinition> _db;

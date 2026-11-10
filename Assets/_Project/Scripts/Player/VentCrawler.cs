@@ -15,6 +15,9 @@ namespace VentsAndVending.Player
         [SerializeField] private float _probeRadius = 0.25f;
 
         private readonly Collider[] _hits = new Collider[8];
+        private CharacterController _body;
+
+        private void Awake()=>_body=GetComponent<CharacterController>();
 
         public bool InVent { get; private set; }
         public VentZone CurrentZone { get; private set; }
@@ -22,7 +25,10 @@ namespace VentsAndVending.Player
         private void Update()
         {
             Vector3 probe = transform.position + transform.up * _probeHeight;
-            int count = Physics.OverlapSphereNonAlloc(probe, _probeRadius, _hits, ~0, QueryTriggerInteraction.Collide);
+            // Detect the mouth before the capsule's leading edge hits its low header.
+            // A smaller probe otherwise leaves the player standing outside a zone they cannot enter.
+            float radius=Mathf.Max(_probeRadius,_body!=null?_body.radius+.12f:_probeRadius);
+            int count = Physics.OverlapSphereNonAlloc(probe, radius, _hits, ~0, QueryTriggerInteraction.Collide);
 
             VentZone zone = null;
             for (int i = 0; i < count && zone == null; i++)

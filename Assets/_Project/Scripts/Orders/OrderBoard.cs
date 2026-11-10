@@ -11,6 +11,7 @@ namespace VentsAndVending.Orders
     public sealed class OrderBoard
     {
         private readonly List<CustomerOrder> _orders = new List<CustomerOrder>();
+        private readonly List<CustomerOrder> _tickSnapshot = new List<CustomerOrder>();
         private float _nextOfferAt = OrderRules.FirstOfferDelay;
         private int _nextId = 1;
 
@@ -42,13 +43,22 @@ namespace VentsAndVending.Orders
             Clock += Math.Max(0f, dt);
             bool changed = false;
 
-            foreach (CustomerOrder o in _orders.ToArray())
+            _tickSnapshot.Clear();
+            _tickSnapshot.AddRange(_orders);
+            foreach (CustomerOrder o in _tickSnapshot)
             {
                 if (o.Status == OrderStatus.Offered && Clock >= o.OfferExpiresAt)
                 {
                     o.Status = OrderStatus.Expired;
                     changed = true;
                     OfferExpired?.Invoke(o);
+                }
+                else if ((o.Status == OrderStatus.Accepted || o.Status == OrderStatus.Waiting) && Clock >= o.WindowClosesAt)
+                {
+                    o.Status = OrderStatus.Missed;
+                    Trust = OrderRules.Clamp(Trust + OrderRules.TrustForMissing);
+                    changed = true;
+                    Missed?.Invoke(o);
                 }
                 else if (o.Status == OrderStatus.Accepted && Clock >= o.WindowOpensAt)
                 {
@@ -119,13 +129,19 @@ namespace VentsAndVending.Orders
 
         public bool Accept(string id, Random rng)
         {
+            float lead=Lerp(OrderRules.MinLeadTime,OrderRules.MaxLeadTime,(float)rng.NextDouble());
+            return Schedule(id,Clock+lead);
+        }
+
+        public bool Schedule(string id,float startsAt)
+        {
             CustomerOrder o = Find(id);
-            if (AcceptBlocker(o) != null)
+            if (AcceptBlocker(o) != null || float.IsNaN(startsAt) || float.IsInfinity(startsAt) || startsAt<Clock+1 || startsAt>Clock+StationTime.DaySeconds)
             {
                 return false;
             }
             o.Status = OrderStatus.Accepted;
-            o.WindowOpensAt = Clock + Lerp(OrderRules.MinLeadTime, OrderRules.MaxLeadTime, (float)rng.NextDouble());
+            o.WindowOpensAt = startsAt;
             o.WindowClosesAt = o.WindowOpensAt + OrderRules.WindowLength;
             Changed?.Invoke();
             return true;
@@ -147,7 +163,7 @@ namespace VentsAndVending.Orders
         public bool Complete(string id, int payout)
         {
             CustomerOrder o = Find(id);
-            if (o == null || o.Status != OrderStatus.Waiting)
+            if (o == null || o.Status != OrderStatus.Waiting || Clock >= o.WindowClosesAt)
             {
                 return false;
             }

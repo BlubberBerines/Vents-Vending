@@ -40,11 +40,14 @@ namespace VentsAndVending.Orders
         };
         public float ActiveArrivalSeconds=>Phase==DeliveryPhase.Outbound?Remaining+UnloadSeconds:Phase==DeliveryPhase.Unloading?Remaining:NextWindowSeconds;
         public PurchaseResult Order(SupplyListing listing,Wallet wallet,InventoryModel drop)
+            => OrderCart(new[]{listing},wallet,drop);
+
+        public PurchaseResult OrderCart(IReadOnlyList<SupplyListing> cart,Wallet wallet,InventoryModel drop)
         {
-            if(listing.Item==null || wallet==null || drop==null || listing.Price<0)return PurchaseResult.QueueFull;
-            if(_orders.Count>=MaxOrders)return PurchaseResult.QueueFull;
-            int reserved=_orders.Count(o=>o.ItemId==listing.Item.Id);
-            if(drop.SpaceFor(listing.Item)<=reserved)return PurchaseResult.LockerFull;
+            if(cart==null || cart.Count==0 || wallet==null || drop==null || cart.Any(l=>l.Item==null || l.Price<0))return PurchaseResult.QueueFull;
+            if(_orders.Count+cart.Count>MaxOrders)return PurchaseResult.QueueFull;
+            long total=cart.Sum(l=>(long)l.Price);
+            if(total>int.MaxValue)return PurchaseResult.QueueFull;
             // Space shared by different item types must also be reserved; simulate the complete manifest.
             var capacity=new InventoryModel(drop.Capacity);
             foreach(var stack in drop.Slots)if(!stack.IsEmpty)capacity.Add(stack.Item,stack.Count,stack.Quality);
@@ -53,10 +56,14 @@ namespace VentsAndVending.Orders
                 var item=_definitions.TryGetValue(order.ItemId,out var known)?known:null;
                 if(item==null || capacity.Add(item,1)>0)return PurchaseResult.LockerFull;
             }
-            if(!capacity.CanAdd(listing.Item,1))return PurchaseResult.LockerFull;
-            if(!wallet.TrySpend(listing.Price))return PurchaseResult.CannotAfford;
-            _definitions[listing.Item.Id]=listing.Item;
-            _orders.Add(new SupplyOrder{ItemId=listing.Item.Id,Price=listing.Price});
+            foreach(var listing in cart)if(capacity.Add(listing.Item,1)>0)return PurchaseResult.LockerFull;
+            // Exactly one payment, after validating the whole combined order.
+            if(!wallet.TrySpend((int)total))return PurchaseResult.CannotAfford;
+            foreach(var listing in cart)
+            {
+                _definitions[listing.Item.Id]=listing.Item;
+                _orders.Add(new SupplyOrder{ItemId=listing.Item.Id,Price=listing.Price});
+            }
             return PurchaseResult.OrderQueued;
         }
         private readonly Dictionary<string,ItemDefinition> _definitions=new Dictionary<string,ItemDefinition>();

@@ -45,7 +45,25 @@ namespace VentsAndVending.Customers
 
         [Header("Look")]
         [SerializeField] private Sprite _portrait;
+        [SerializeField] private Sprite[] _portraits = Array.Empty<Sprite>();
         public Sprite Portrait => _portrait;
+        public int AppearanceIndex(string customerName)
+        {
+            // Stable across sessions and save/load; string.GetHashCode is not.
+            uint hash=2166136261;
+            foreach(char c in (_id ?? "")+"/"+(customerName ?? ""))hash=unchecked((hash^c)*16777619);
+            return _bodyColors==null || _bodyColors.Length==0?0:(int)(hash%(uint)_bodyColors.Length);
+        }
+        public Color AppearanceColor(string name) => _bodyColors!=null && _bodyColors.Length>0?_bodyColors[AppearanceIndex(name)]:Color.white;
+        public Sprite PortraitFor(string name)
+        {int index=AppearanceIndex(name);return _portraits!=null && index<_portraits.Length && _portraits[index]!=null?_portraits[index]:_portrait;}
+        public string IdentificationText(string name)
+        {
+            Color.RGBToHSV(AppearanceColor(name),out float hue,out float saturation,out float value);
+            string color=saturation<.16f?(value<.35f?"charcoal":value>.8f?"pale":"grey"):
+                hue<.045f || hue>.95f?"red":hue<.12f?"orange":hue<.19f?"yellow":hue<.44f?"green":hue<.55f?"teal":hue<.72f?"blue":hue<.84f?"purple":"pink";
+            return $"{_speciesName} / {color} colouring";
+        }
         [Tooltip("One is picked per visit for the tinted body parts (variety in the crowd).")]
         [SerializeField] private Color[] _bodyColors = Array.Empty<Color>();
         [SerializeField, Range(0f, 1f)] private float _bodyGlow = 0.12f;

@@ -159,9 +159,14 @@ namespace VentsAndVending.Crafting
             return _process.TryStart(MatchedRecipe);
         }
 
-        /// <summary>Returns the vessel's contents to the player; anything that doesn't fit is dropped beside the station.</summary>
+        /// <summary>Returns all ingredients only when they fit; otherwise the entire vessel remains safe.</summary>
         public void EmptyVessel(InteractionController interactor)
         {
+            // Loose overflow pickups are not part of the station save. Keep the whole vessel safe instead.
+            var check=new InventoryModel(interactor.Inventory.Model.Capacity);
+            foreach(var stack in interactor.Inventory.Model.Slots)if(!stack.IsEmpty)check.Add(stack.Item,stack.Count,stack.Quality);
+            foreach(var item in _process.Loaded)if(check.Add(item,1)>0)
+            {interactor.Notify("Make room in your pockets first. Ingredients are safe in the vessel.");return;}
             foreach (ItemDefinition item in _process.EmptyVessel())
             {
                 if (interactor.Inventory.Model.Add(item, 1) > 0)

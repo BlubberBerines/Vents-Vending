@@ -8,6 +8,28 @@ namespace VentsAndVending.Tests.EditMode
 {
     public sealed class OrderTests
     {
+        [Test] public void VisitorJourneySurvivesSaveJsonWithoutChangingDeadline()
+        {
+            var order=Offer();order.HasVisitorPosition=true;order.VisitorX=58.2f;order.VisitorY=4.6f;order.VisitorZ=12.3f;order.MeetingX=59;order.MeetingY=4.6f;order.MeetingZ=14;order.WindowClosesAt=200;
+            var data=new SaveData();data.Orders.Orders.Add(order);
+            Assert.IsTrue(SaveCodec.TryParse(SaveCodec.ToJson(data),out var parsed,out _));var restored=parsed.Orders.Orders[0];
+            Assert.IsTrue(restored.HasVisitorPosition);Assert.AreEqual(58.2f,restored.VisitorX);Assert.AreEqual(14,restored.MeetingZ);Assert.AreEqual(200,restored.WindowClosesAt);
+        }
+        [Test] public void OldSavesHaveNoInventedVisitorOrWorldDrops()
+        {Assert.IsTrue(SaveCodec.TryParse("{\"Version\":7,\"Orders\":{\"Orders\":[{\"Id\":\"ORD001\"}]}}",out var data,out _));Assert.IsFalse(data.Orders.Orders[0].HasVisitorPosition);Assert.IsEmpty(data.WorldDrops);}
+        [Test] public void LargeClockStepMissesExpiredMeetingWithoutSpawningCustomer()
+        {
+            var board=new OrderBoard();var order=board.AddOffer(Offer());board.Accept(order.Id,new Random(1));
+            int spawned=0;board.WindowOpened+=_=>spawned++;
+            board.Tick(order.WindowClosesAt+1,new Random(1));
+            Assert.AreEqual(OrderStatus.Missed,order.Status);Assert.AreEqual(0,spawned);Assert.IsFalse(board.Complete(order.Id,100));
+        }
+        [Test] public void CompletedDealCannotPayOrAwardTrustAgain()
+        {
+            var board=new OrderBoard();var order=board.AddOffer(Offer());board.Accept(order.Id,new Random(1));
+            board.Tick(order.WindowOpensAt,new Random(1));Assert.IsTrue(board.Complete(order.Id,10));int trust=board.Trust;
+            Assert.IsFalse(board.Complete(order.Id,100));Assert.AreEqual(10,order.Payout);Assert.AreEqual(trust,board.Trust);
+        }
         /// <summary>Always the shortest interval / lead time: makes timing tests deterministic.</summary>
         private sealed class ZeroRandom : Random
         {

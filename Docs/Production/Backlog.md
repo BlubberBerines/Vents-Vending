@@ -77,3 +77,13 @@ reputation (GDD 9.3), customer orders, Federation Inspector, production state in
 - [x] Security: trespass suspicion, hiding zones, escort-out on catch, drones patrol relative to a floor height
 - [ ] Fill the locked stores (storerooms, loot, later expansions); humanoid security staff
 - [ ] Play-test underpass patrol timing and the 60 CC price
+
+## Station customer-flow refinement (10 November 2026)
+
+- [x] Tab journal: in-progress deals, customer contacts/regulars, one selected HUD tracker
+- [x] E conversations with passengers; finished-product sampling; persistent named trust, likes/dislikes and recruitment
+- [x] Orders from recruited regulars, with player-booked start times and customer-defined locations
+- [x] Saved station clock; 24-minute day/night shift; 150-real-second appointment windows
+- [x] Den ceiling pipes and a non-blocking corner steam leak
+- [ ] Expand the product catalogue and richer individual taste/persuasion rules (roadmap)
+- [ ] Human, unassisted full-loop playthroughs and a new standalone-build smoke test for the revised flow

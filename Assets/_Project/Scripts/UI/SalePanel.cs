@@ -210,7 +210,7 @@ namespace VentsAndVending.UI
 
         private void MakeOffer()
         {
-            if (_customer == null || !_selectedQuality.HasValue)
+            if (_resolved || _customer == null || !_selectedQuality.HasValue)
             {
                 return;
             }
@@ -275,13 +275,20 @@ namespace VentsAndVending.UI
 
             int unit = UnitPayoutFor(quality);
             int total = unit * _customer.WantedQuantity;
+            // The clock keeps running while this panel is open. Never charge stock/pay a stale or missed deal.
+            var manager=Orders.OrderManager.Instance;
+            if(_wallet==null || manager==null || !manager.CompleteHandoff(_order,total))
+            {
+                Interactor.Notify("This deal is no longer active. Your stock has not been taken.");
+                Close();
+                return;
+            }
+            _resolved = true;
             Interactor.Inventory.Model.Remove(_customer.WantedProduct, _customer.WantedQuantity, quality);
             if (_wallet != null)
             {
                 _wallet.Wallet.Add(total);
             }
-            _resolved = true;
-            Orders.OrderManager.Instance?.CompleteHandoff(_order, total);
             _customer.EndTrade(TradeOutcome.Sold, _customer.Line(lines.Accept, unit));
             Interactor.Notify($"Deal done: {_customer.WantedQuantity} × {_customer.WantedProduct.DisplayName} for <color=#19E5FF>+{total} CC</color>  <color=#9AA3AD>(trust +{Orders.OrderRules.TrustForCompleting})</color>");
             Close();

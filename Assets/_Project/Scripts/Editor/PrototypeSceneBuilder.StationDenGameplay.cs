@@ -43,7 +43,7 @@ namespace VentsAndVending.Editor
             foreach(var item in recipes.SelectMany(r=>r.Ingredients).Select(i=>i.Item).Distinct())
                 inventory.AddStartingItem(item,30);
             cupboard.gameObject.AddComponent<StorageContainer>();
-            StationLabel(den,"MIXING / VENTNET\nINGREDIENTS IN CUPBOARD",new Vector3(0,2.3f,-6.1f),0,.027f);
+            StationLabel(den,"MIX A SAMPLE / RECRUIT IN LOUNGE\nBOOK ON PC / TRACK IN TAB\nINGREDIENTS IN CUPBOARD",new Vector3(0,2.3f,-6.1f),0,.019f);
         }
     }
 }

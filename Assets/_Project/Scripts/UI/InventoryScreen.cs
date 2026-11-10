@@ -10,7 +10,7 @@ namespace VentsAndVending.UI
     /// Player inventory (Tab) and storage transfer view (GDD §17.3). Click a row to move the stack to the other side;
     /// with no container open, clicking drops the stack into the world.
     /// </summary>
-    public sealed class InventoryScreen : ModalScreen
+    public sealed partial class InventoryScreen : ModalScreen
     {
         private GameObject _otherColumn;
         private RectTransform _playerList;
@@ -65,10 +65,12 @@ namespace VentsAndVending.UI
             _otherColumn.SetActive(_other != null);
             _details.text = string.Empty;
             Refresh();
+            OpenJournal(other==null);
         }
 
         protected override void OnClosing()
         {
+            CloseJournal();
             _player.Model.Changed -= Refresh;
             if (_other != null)
             {
@@ -190,8 +192,8 @@ namespace VentsAndVending.UI
             var panel = UiFactory.Panel(canvas.transform, "Panel");
             UiFactory.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 820f));
 
-            BuildColumn(panel.transform, "PlayerColumn", new Vector2(30f, -30f), out _playerTitle, out _playerList);
-            _otherColumn = BuildColumn(panel.transform, "OtherColumn", new Vector2(610f, -30f), out _otherTitle, out _otherList);
+            _pocketColumn=BuildColumn(panel.transform, "PlayerColumn", new Vector2(30f, -98f), out _playerTitle, out _playerList,550);
+            _otherColumn = BuildColumn(panel.transform, "OtherColumn", new Vector2(610f, -98f), out _otherTitle, out _otherList,550);
 
             _details = UiFactory.Text(panel.transform, "Details", string.Empty, 20f, TextAlignmentOptions.TopLeft);
             UiFactory.Place(_details.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(30f, 60f), new Vector2(1120f, 90f));
@@ -199,6 +201,7 @@ namespace VentsAndVending.UI
             _hint = UiFactory.Text(panel.transform, "Hint", string.Empty, 18f, TextAlignmentOptions.Center, UiFactory.MutedText);
             UiFactory.Place(_hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(1120f, 30f));
 
+            BuildJournal(panel.transform);
             return canvas.gameObject;
         }
 

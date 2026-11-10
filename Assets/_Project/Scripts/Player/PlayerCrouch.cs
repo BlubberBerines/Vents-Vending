@@ -40,6 +40,29 @@ namespace VentsAndVending.Player
                 return true;
             }
 
+            return HasClearance(height);
+        }
+
+        /// <summary>Resize before re-enabling the controller after loading/teleporting into a low passage.</summary>
+        public void FitAfterTeleport()
+        {
+            var tuning=_state.Tuning;
+            float height=HasClearance(tuning.NormalCapsuleHeight)?tuning.NormalCapsuleHeight:
+                HasClearance(tuning.CrouchCapsuleHeight)?tuning.CrouchCapsuleHeight:tuning.CrawlCapsuleHeight;
+            _controller.height=height;
+            _controller.center=new Vector3(0,height*.5f,0);
+            if(_cameraRoot!=null)
+            {
+                var position=_cameraRoot.localPosition;
+                position.y=height==tuning.NormalCapsuleHeight?tuning.NormalCameraHeight:
+                    height==tuning.CrouchCapsuleHeight?tuning.CrouchCameraHeight:tuning.CrawlCameraHeight;
+                _cameraRoot.localPosition=position;
+            }
+        }
+
+        private bool HasClearance(float height)
+        {
+
             float radius = _controller.radius * 0.95f;
             Vector3 up = transform.up;
             Vector3 bottom = transform.position + up * (_controller.radius + 0.1f);

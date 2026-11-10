@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,6 +49,9 @@ namespace VentsAndVending.UI
         [SerializeField] private InventoryComponent _locker;
         private float _nextDeliveryRefresh;
         private TextMeshProUGUI _deliveryStatus;
+        private readonly SupplyCart _cart=new SupplyCart();
+        private readonly Dictionary<string,float> _meetingTimes=new Dictionary<string,float>();
+        private TextMeshProUGUI _clockLabel;
 
         private void OnEnable() => VentNetTerminal.PanelRequested += OnPanelRequested;
 
@@ -83,6 +87,7 @@ namespace VentsAndVending.UI
 
         protected override void UpdateWhileOpen()
         {
+            if(_clockLabel!=null && OrderManager.Instance!=null)_clockLabel.text=StationTime.Label(OrderManager.Instance.Board.Clock)+" / "+(StationTime.IsNight(OrderManager.Instance.Board.Clock)?"NIGHT SHIFT":"DAY SHIFT");
             if(_showSupplies && SupplyDeliveryService.Instance!=null && Time.unscaledTime>=_nextDeliveryRefresh)
             {_nextDeliveryRefresh=Time.unscaledTime+1;if(_deliveryStatus!=null)_deliveryStatus.text=SupplyDeliveryService.Instance.StatusText;}
             if (_dirty)
@@ -139,6 +144,7 @@ namespace VentsAndVending.UI
             if (_showSupplies)
             {
                 if(SupplyDeliveryService.Instance!=null)_deliveryStatus=Note(_inbox,SupplyDeliveryService.Instance.StatusText,64);
+                CartCard();
                 foreach (SupplyListing listing in _supplies)
                 {
                     SupplyCard(listing);
@@ -146,7 +152,7 @@ namespace VentsAndVending.UI
             }
             else if (offers == 0)
             {
-                Note(_inbox, "No new messages. Customers ping you every minute or so — better trust, more pings.");
+                Note(_inbox,manager.RecruitmentRequired?"No new requests. Talk to passengers and offer a sample to recruit regular customers. Your regulars will message you here.":"No new messages. Customers ping you every minute or so — better trust, more pings.",80);
             }
 
             bool anyDeal = false;
@@ -183,6 +189,7 @@ namespace VentsAndVending.UI
         private void ShowSupplies(bool on)
         {
             _showSupplies = on;
+            _inbox.anchoredPosition=Vector2.zero;
             Rebuild();
         }
 
@@ -218,11 +225,44 @@ namespace VentsAndVending.UI
 
             TextMeshProUGUI price = UiFactory.Mono(c, "Price", $"{listing.Price} CC", 24f, TextAlignmentOptions.Right, UiFactory.Credit);
             UiFactory.Place(price.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-214f, -18f), new Vector2(120f, 30f));
-            UiFactory.Button(c, "Buy", SupplyDeliveryService.Instance!=null?"Order":"Buy", () => Buy(listing),
+            UiFactory.Button(c, "AddToCart", "Add to cart", () => AddToCart(listing),
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 18f), new Vector2(180f, 46f), ButtonStyle.Go);
         }
 
-        private void Buy(SupplyListing listing)
+        private void AddToCart(SupplyListing listing)
+        {
+            if(!_cart.Add(listing))Interactor.Notify("Cart limit: 12 items. Checkout or remove an item first.");
+            _dirty=true;
+        }
+
+        private void CartCard()
+        {
+            var lines=_cart.Items.GroupBy(l=>l.Item).ToArray();
+            var card=UiFactory.Panel(_inbox,"Supply Cart",TermCard,0,12);
+            UiFactory.Layout(card.gameObject,preferredHeight:130+lines.Length*42);
+            var title=UiFactory.Heading(card.transform,"Cart Title",$"CART / {_cart.Count} ITEMS / {_cart.Total} CC",22);
+            UiFactory.Place(title.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(18,-14),new Vector2(640,32));
+            if(lines.Length==0)
+            {
+                var hint=UiFactory.Text(card.transform,"Cart Hint","Add supplies below. Nothing is charged until checkout.",17,TextAlignmentOptions.Left,TermMuted);
+                UiFactory.Place(hint.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(18,-48),new Vector2(610,26));
+            }
+            for(int index=0;index<lines.Length;index++)
+            {
+                var line=lines[index];var listing=line.First();float y=-52-index*42;
+                var label=UiFactory.Text(card.transform,"Cart Line",$"{line.Key.DisplayName} x{line.Count()} / {line.Sum(l=>l.Price)} CC",18,TextAlignmentOptions.Left,TermText);
+                UiFactory.Place(label.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(18,y),new Vector2(490,34));
+                var remove=UiFactory.Button(card.transform,"Remove "+line.Key.Id,"-",()=>{_cart.Remove(listing.Item);_dirty=true;},new Vector2(1,1),new Vector2(1,1),new Vector2(-76,y),new Vector2(46,34));
+                var add=UiFactory.Button(card.transform,"Add "+line.Key.Id,"+",()=>AddToCart(listing),new Vector2(1,1),new Vector2(1,1),new Vector2(-18,y),new Vector2(46,34));
+                foreach(var control in new[]{remove,add})
+                {var labelText=control.GetComponentInChildren<TextMeshProUGUI>();labelText.fontSize=18;labelText.overflowMode=TextOverflowModes.Overflow;}
+            }
+            UiFactory.Button(card.transform,"Clear Cart","Clear cart",()=>{_cart.Clear();_dirty=true;},new Vector2(0,0),new Vector2(0,0),new Vector2(18,14),new Vector2(140,40));
+            var checkout=UiFactory.Button(card.transform,"Checkout Cart",$"Checkout / {_cart.Total} CC",CheckoutCart,new Vector2(1,0),new Vector2(1,0),new Vector2(-18,14),new Vector2(260,44),ButtonStyle.Go);
+            checkout.interactable=_cart.Count>0;
+        }
+
+        private void CheckoutCart()
         {
             var wallet = Interactor != null ? Interactor.GetComponent<PlayerWallet>() : null;
             if (wallet == null || _locker == null)
@@ -230,8 +270,15 @@ namespace VentsAndVending.UI
                 return;
             }
             var delivery=SupplyDeliveryService.Instance;
-            PurchaseResult result = delivery!=null?delivery.Order(listing,wallet.Wallet):SupplyShop.TryBuy(listing, wallet.Wallet, _locker.Model);
-            Interactor.Notify(result==PurchaseResult.OrderQueued?$"Order booked. Courier window {delivery.WindowText}; collect at the ring delivery bay.":result==PurchaseResult.QueueFull?"Courier manifest is full. Wait for the next run.":result==PurchaseResult.LockerFull&&delivery!=null?"Delivery bay is full or reserved. Collect existing parcels first.":SupplyShop.Message(result));
+            int count=_cart.Count;
+            var legacy=delivery==null?new DeliveryQueue():null;
+            PurchaseResult result = delivery!=null?delivery.Checkout(_cart.Items,wallet.Wallet):legacy.OrderCart(_cart.Items,wallet.Wallet,_locker.Model);
+            if(result==PurchaseResult.OrderQueued)
+            {
+                if(legacy!=null)legacy.Tick(46,_locker.Model);
+                _cart.Clear();
+            }
+            Interactor.Notify(result==PurchaseResult.OrderQueued?(delivery!=null?$"Combined order booked: {count} items. Courier window {delivery.WindowText}; collect at the ring delivery bay.":"Combined order delivered to your locker."):result==PurchaseResult.QueueFull?"Cart or courier manifest is full. Your cart is unchanged.":result==PurchaseResult.LockerFull?"Delivery storage is full or reserved. Your cart is unchanged.":SupplyShop.Message(result));
             _dirty = true;
         }
 
@@ -244,20 +291,22 @@ namespace VentsAndVending.UI
             int unit = manager.UnitPayout(o, o.MinimumQuality);
 
             Image card = UiFactory.Panel(_inbox, o.Id, TermCard, 0f, 14f);
-            UiFactory.Layout(card.gameObject, preferredHeight: 138f);
+            UiFactory.Layout(card.gameObject, preferredHeight: 226f);
             Transform c = card.transform;
 
-            Color avatarColour = who != null && who.BodyColors != null && who.BodyColors.Length > 0 ? who.BodyColors[0] : UiFactory.Hazard;
+            Color avatarColour = who != null ? who.AppearanceColor(o.CustomerName) : UiFactory.Hazard;
             Image avatar = UiFactory.Panel(c, "Avatar", avatarColour, 0f, 12f);
-            UiFactory.Place(avatar.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(52f, 52f));
-            if(who != null && who.Portrait != null){avatar.sprite=who.Portrait;avatar.color=Color.white;avatar.preserveAspect=true;}
+            UiFactory.Place(avatar.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(104f, 104f));
+            if(who != null && who.PortraitFor(o.CustomerName) != null){avatar.sprite=who.PortraitFor(o.CustomerName);avatar.color=Color.white;avatar.preserveAspect=true;}
             else {
                 TextMeshProUGUI letter = UiFactory.Display(avatar.transform, "Letter", o.CustomerName.Substring(0, 1), 26f, TextAlignmentOptions.Center, Color.white);
                 UiFactory.Stretch(letter.rectTransform);
             }
 
             TextMeshProUGUI name = UiFactory.Heading(c, "Name", $"{o.CustomerName} <size=75%><color=#8FB39A>{(who != null ? who.SpeciesName : "")}</color></size>", 22f);
-            UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(86f, -14f), new Vector2(460f, 30f));
+            UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(140f, -14f), new Vector2(440f, 30f));
+            var identity=UiFactory.Text(c,"Identity",who!=null?who.IdentificationText(o.CustomerName):"Match the face and name",17,TextAlignmentOptions.Left,TermMuted);
+            UiFactory.Place(identity.rectTransform,new Vector2(0,1),new Vector2(0,1),new Vector2(140,-46),new Vector2(550,26));
             TextMeshProUGUI timer = UiFactory.Mono(c, "Timer", string.Empty, 16f, TextAlignmentOptions.Right, TermMuted);
             UiFactory.Place(timer.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-214f, -18f), new Vector2(160f, 24f));
             _timers.Add((timer, o));
@@ -265,11 +314,11 @@ namespace VentsAndVending.UI
             string quote = who != null ? CustomerDefinition.Pick(who.Lines.Greeting) : "…";
             quote = quote.Replace("{product}", productName).Replace("{name}", o.CustomerName).Replace("{qty}", o.Quantity.ToString());
             TextMeshProUGUI said = UiFactory.Text(c, "Quote", $"“{quote}”", 18f, TextAlignmentOptions.TopLeft, TermText);
-            UiFactory.Place(said.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(86f, -46f), new Vector2(560f, 46f));
+            UiFactory.Place(said.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(140f, -78f), new Vector2(600f, 46f));
             said.overflowMode = TextOverflowModes.Ellipsis;
 
             RectTransform chips = UiFactory.Rect("Chips", c);
-            UiFactory.Place(chips, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(86f, 14f), new Vector2(580f, 32f));
+            UiFactory.Place(chips, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(18f, 66f), new Vector2(710f, 32f));
             UiFactory.HRow(chips, 8f);
             UiFactory.Chip(chips, "Qty", $"{o.Quantity}× {productName}", new Color(0.11f, 0.165f, 0.13f), TermText, 15f);
             var (qbg, qfg) = UiFactory.QualityColours(o.MinimumQuality);
@@ -283,13 +332,29 @@ namespace VentsAndVending.UI
 
             string blocker = manager.Board.AcceptBlocker(o);
             string acceptLabel = blocker == null ? "Accept" : blocker.Contains("Spot") ? $"Spot {o.SpotId} booked" : "Max deals";
-            Button accept = UiFactory.Button(c, "Accept", acceptLabel, () => { manager.Accept(o); _dirty = true; },
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 66f), new Vector2(180f, 46f), ButtonStyle.Go);
+            if(!_meetingTimes.TryGetValue(o.Id,out float proposed) || proposed<=manager.Board.Clock+1)_meetingTimes[o.Id]=StationTime.NextHalfHour(manager.Board.Clock);
+            var meeting=UiFactory.Text(c,"Choose Meeting","Meet: "+StationTime.Label(_meetingTimes[o.Id]),18,TextAlignmentOptions.Left,TermText);
+            UiFactory.Place(meeting.rectTransform,new Vector2(0,0),new Vector2(0,0),new Vector2(90,20),new Vector2(430,32));
+            UiFactory.Button(c,"Earlier Meeting","-30m",()=>AdjustMeeting(o,-30),new Vector2(0,0),new Vector2(0,0),new Vector2(18,18),new Vector2(66,38)).GetComponentInChildren<TextMeshProUGUI>().fontSize=16;
+            UiFactory.Button(c,"Later Meeting","+30m",()=>AdjustMeeting(o,30),new Vector2(0,0),new Vector2(0,0),new Vector2(530,18),new Vector2(66,38)).GetComponentInChildren<TextMeshProUGUI>().fontSize=16;
+            Button accept = UiFactory.Button(c, "Accept", blocker==null?"Book time":acceptLabel, () =>
+            {
+                if(!manager.Schedule(o,_meetingTimes[o.Id]))Interactor.Notify("Choose a future meeting time. You can book up to one station day ahead.");
+                _dirty = true;
+            },
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 76f), new Vector2(180f, 46f), ButtonStyle.Go);
             accept.interactable = blocker == null;
             UiFactory.Button(c, "Decline", "Decline", () => { manager.Decline(o); _dirty = true; },
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 14f), new Vector2(180f, 44f));
 
             AddHover(card.gameObject, o.SpotId);
+        }
+
+        private void AdjustMeeting(CustomerOrder order,float minutes)
+        {
+            float now=OrderManager.Instance.Board.Clock;
+            _meetingTimes[order.Id]=Mathf.Clamp(_meetingTimes[order.Id]+minutes,now+30,now+StationTime.DaySeconds);
+            _dirty=true;
         }
 
         private void DealRow(OrderManager manager, CustomerOrder o)
@@ -298,7 +363,7 @@ namespace VentsAndVending.UI
             MeetSpot spot = manager.FindSpot(o.SpotId);
             var product = manager.FindProduct(o.ProductId);
             Image row = UiFactory.Panel(_deals, o.Id, here ? new Color(0.055f, 0.1f, 0.08f) : TermCard, 0f, 12f);
-            UiFactory.Layout(row.gameObject, preferredHeight: 60f);
+            UiFactory.Layout(row.gameObject, preferredHeight: 98f);
             if (here)
             {
                 var glow = row.gameObject.AddComponent<Outline>();
@@ -308,9 +373,9 @@ namespace VentsAndVending.UI
 
             var (bg, fg) = UiFactory.RiskColours(spot != null ? (int)spot.Risk : 1);
             Image badge = UiFactory.Panel(row.transform, "Badge", bg, 0f, 9f);
-            UiFactory.Place(badge.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(40f, 40f));
+            UiFactory.Place(badge.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(78f, 78f));
             var who=manager.FindCustomer(o.CustomerId);
-            if(who!=null && who.Portrait!=null){badge.sprite=who.Portrait;badge.color=Color.white;badge.preserveAspect=true;}
+            if(who!=null && who.PortraitFor(o.CustomerName)!=null){badge.sprite=who.PortraitFor(o.CustomerName);badge.color=Color.white;badge.preserveAspect=true;}
             else {
                 TextMeshProUGUI letter = UiFactory.Heading(badge.transform, "Letter", o.SpotId, 22f, TextAlignmentOptions.Center, fg);
                 UiFactory.Stretch(letter.rectTransform);
@@ -319,8 +384,9 @@ namespace VentsAndVending.UI
             TextMeshProUGUI text = UiFactory.Text(row.transform, "Deal",
                 $"<b>{o.CustomerName}</b> <color=#8FB39A>— {o.Quantity}× {(product != null ? product.DisplayName : o.ProductId)} {o.MinimumQuality}+ · {(spot != null ? spot.DisplayName : "")}</color>",
                 19f, TextAlignmentOptions.Left, TermText);
-            UiFactory.Place(text.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(66f, 0f), new Vector2(480f, 30f));
-            text.textWrappingMode = TextWrappingModes.NoWrap;
+            UiFactory.Place(text.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(106f, 0f), new Vector2(590f, 72f));
+            text.text += "\n"+(who!=null?who.IdentificationText(o.CustomerName):"");
+            text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Ellipsis;
             TextMeshProUGUI timer = UiFactory.Mono(row.transform, "Timer", string.Empty, 19f, TextAlignmentOptions.Right, here ? UiFactory.Credit : TermText);
             UiFactory.Place(timer.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-18f, 0f), new Vector2(230f, 30f));
@@ -493,9 +559,9 @@ namespace VentsAndVending.UI
             UiFactory.Place(bar.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -2f), new Vector2(1552f, 72f));
             TextMeshProUGUI title = UiFactory.Mono(bar.transform, "Title", "VENTNET", 32f, TextAlignmentOptions.Left, UiFactory.Go);
             UiFactory.Place(title.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(30f, 0f), new Vector2(200f, 40f));
-            TextMeshProUGUI sub = UiFactory.Label(bar.transform, "Sub", "burner inbox · relay 3-C (unlicensed)", TermMuted);
+            TextMeshProUGUI sub = _clockLabel=UiFactory.Label(bar.transform, "Sub", "Station time", TermMuted);
             UiFactory.Place(sub.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(200f, -2f), new Vector2(600f, 24f));
-            TextMeshProUGUI trustLabel = UiFactory.Label(bar.transform, "TrustLabel", "Trust", new Color(0.79f, 0.85f, 0.81f));
+            TextMeshProUGUI trustLabel = UiFactory.Label(bar.transform, "TrustLabel", "Rep", new Color(0.79f, 0.85f, 0.81f));
             UiFactory.Place(trustLabel.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-420f, 0f), new Vector2(90f, 24f));
             _trustFill = UiFactory.Bar(bar.transform, "Trust", 0.5f, UiFactory.Hazard);
             UiFactory.Place((RectTransform)_trustFill.transform.parent, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-220f, 0f), new Vector2(190f, 16f));
@@ -510,8 +576,17 @@ namespace VentsAndVending.UI
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(690f, -84f), new Vector2(170f, 38f));
             _tabSupplies = UiFactory.Button(w, "TabSupplies", "Supplies", () => ShowSupplies(true),
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(870f, -84f), new Vector2(120f, 38f));
-            _inbox = UiFactory.Rect("Inbox", w);
-            UiFactory.Place(_inbox, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -128f), new Vector2(960f, 456f));
+            var inboxView=UiFactory.Rect("Inbox Viewport",w);
+            UiFactory.Place(inboxView,new Vector2(0,1),new Vector2(0,1),new Vector2(30,-128),new Vector2(960,456));
+            inboxView.gameObject.AddComponent<RectMask2D>();
+            var scroll=inboxView.gameObject.AddComponent<ScrollRect>();scroll.horizontal=false;scroll.movementType=ScrollRect.MovementType.Clamped;scroll.scrollSensitivity=32;
+            // A transparent raycast surface lets the wheel work between cards as well.
+            var hit=inboxView.gameObject.AddComponent<Image>();hit.color=Color.clear;
+            _inbox = UiFactory.Rect("Inbox", inboxView);
+            _inbox.anchorMin=new Vector2(0,1);_inbox.anchorMax=Vector2.one;_inbox.pivot=new Vector2(.5f,1);
+            _inbox.sizeDelta=Vector2.zero;_inbox.anchoredPosition=Vector2.zero;
+            scroll.viewport=inboxView;scroll.content=_inbox;
+            _inbox.gameObject.AddComponent<ContentSizeFitter>().verticalFit=ContentSizeFitter.FitMode.PreferredSize;
             UiFactory.VerticalList(_inbox, 12f).childAlignment = TextAnchor.UpperLeft;
 
             TextMeshProUGUI dealsTitle = UiFactory.Label(w, "DealsTitle", "Deals", TermMuted);

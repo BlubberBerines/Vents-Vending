@@ -35,6 +35,7 @@ namespace VentsAndVending.Orders
         }
         private void OnDestroy(){if(Instance==this)Instance=null;}
         public PurchaseResult Order(SupplyListing listing,Wallet wallet)=>Queue.Order(listing,wallet,_dropBox.Model);
+        public PurchaseResult Checkout(System.Collections.Generic.IReadOnlyList<SupplyListing> cart,Wallet wallet)=>Queue.OrderCart(cart,wallet,_dropBox.Model);
         private Vector3 RoutePoint(float progress,out Vector3 forward)
         {
             float distance=Mathf.Clamp01(progress)*_totalLength;

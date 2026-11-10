@@ -16,6 +16,7 @@ namespace VentsAndVending.Interaction
         public ItemDefinition Item => _item;
         public int Count => _count;
         public ItemQuality Quality => _quality;
+        public bool IsRuntimeDrop { get; private set; }
 
         internal void SetOnce(string switchId) => _onceSwitchId = switchId;
 
@@ -102,6 +103,8 @@ namespace VentsAndVending.Interaction
             }
 
             pickup.Configure(item, count, quality);
+            pickup.IsRuntimeDrop=true;
+            pickup._onceSwitchId=string.Empty; // the original placed pickup's once-switch must not consume a dropped copy
             return pickup;
         }
 

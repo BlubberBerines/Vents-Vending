@@ -110,7 +110,7 @@ namespace VentsAndVending.Editor
         }
         private static void BuildDenCrystalRefinery(ItemDefinition raw)
         {
-            var root=RingGroup("Den Crystal Refinery",_stationFrame.Find("L3_01_Den"));root.localPosition=new Vector3(-2.3f,0,-4.7f);root.localRotation=Quaternion.Euler(0,90,0);
+            var root=RingGroup("Den Crystal Refinery",_stationFrame.Find("L3_01_Den"));root.localPosition=new Vector3(-2.3f,0,-1.45f);root.localRotation=Quaternion.Euler(0,90,0);
             var body=StationLocalBox(root,"Refinery Cabinet",new Vector3(0,.55f,0),new Vector3(.8f,1.1f,.9f),StationMetal);
             Part("Refining Vessel",root,new Vector3(0,1.24f,0),new Vector3(.5f,.22f,.5f),ArtLibrary.Get("M_BrushedSilver"),PrimitiveType.Cylinder);
             var rotor=RingGroup("Refinery Rotor",root);rotor.localPosition=new Vector3(0,1.47f,0);Part("Rotor Crossbar",rotor,Vector3.zero,new Vector3(.58f,.05f,.10f),StationMetal);

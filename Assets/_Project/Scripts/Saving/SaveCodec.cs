@@ -8,7 +8,7 @@ namespace VentsAndVending.Saving
     /// <summary>Pure capture/restore and JSON (de)serialisation with validation. No file IO here.</summary>
     public static class SaveCodec
     {
-        public const int CurrentVersion = 7; // v7 paid courier manifests and route progress
+        public const int CurrentVersion = 9; // v9 named customer relationships and a tracked, scheduled deal
 
         public static List<StackSave> CaptureInventory(InventoryModel inventory)
         {
@@ -45,7 +45,7 @@ namespace VentsAndVending.Saving
                     continue;
                 }
 
-                if (!Enum.TryParse(stack.Quality, out ItemQuality quality))
+                if (!Enum.TryParse(stack.Quality, out ItemQuality quality) || !Enum.IsDefined(typeof(ItemQuality),quality))
                 {
                     quality = ItemQuality.Standard;
                 }
@@ -99,12 +99,14 @@ namespace VentsAndVending.Saving
             data.Deliveries ??= new VentsAndVending.Orders.DeliverySave();
             data.Deliveries.Orders ??= new List<VentsAndVending.Orders.SupplyOrder>();
             data.Inventories ??= new List<InventorySave>();
+            data.WorldDrops ??= new List<WorldDropSave>();
             data.Player ??= new PlayerSave();
             data.Tunnels ??= new VentsAndVending.Tunnels.TunnelSave();
             data.Tunnels.DiscoveredRooms ??= new List<string>();
             data.Tunnels.Switches ??= new List<VentsAndVending.Tunnels.SwitchSave>();
             data.Orders ??= new VentsAndVending.Orders.OrderBoardSave();
             data.Orders.Orders ??= new List<VentsAndVending.Orders.CustomerOrder>();
+            data.Orders.Customers ??= new List<VentsAndVending.Customers.CustomerRecord>();
             data.Appearance ??= new VentsAndVending.Player.Appearance.AppearanceSave();
             data.Appearance.Owned ??= new List<string>();
             data.Appearance.Equipped ??= new List<VentsAndVending.Player.Appearance.EquippedSave>();

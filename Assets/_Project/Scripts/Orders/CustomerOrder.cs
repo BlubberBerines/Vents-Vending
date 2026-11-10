@@ -44,6 +44,10 @@ namespace VentsAndVending.Orders
         public float WindowOpensAt;
         public float WindowClosesAt;
         public int Payout;
+        // Optional in older saves: preserve a visitor's journey instead of restarting it on every load.
+        public bool HasVisitorPosition;
+        public float VisitorX,VisitorY,VisitorZ,VisitorYaw;
+        public float MeetingX,MeetingY,MeetingZ;
 
         public bool IsActive => Status == OrderStatus.Accepted || Status == OrderStatus.Waiting;
         public bool IsFinished => Status >= OrderStatus.Completed;
@@ -56,6 +60,8 @@ namespace VentsAndVending.Orders
         public int Trust = OrderRules.StartTrust;
         public float NextOfferAt = OrderRules.FirstOfferDelay;
         public int NextId = 1;
+        public string TrackedOrderId;
+        public List<VentsAndVending.Customers.CustomerRecord> Customers=new List<VentsAndVending.Customers.CustomerRecord>();
         public List<CustomerOrder> Orders = new List<CustomerOrder>();
     }
 }

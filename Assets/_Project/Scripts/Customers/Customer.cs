@@ -32,6 +32,8 @@ namespace VentsAndVending.Customers
     {
         /// <summary>Raised when the player starts talking to a customer.</summary>
         public static event Action<Customer, InteractionController> TradeRequested;
+        public static event Action<Customer, InteractionController> ConversationRequested;
+        private CustomerState _beforeConversation;
 
         [SerializeField] private CustomerDefinition _definition;
         [SerializeField] private SpeechBubble _bubble;
@@ -64,6 +66,7 @@ namespace VentsAndVending.Customers
         /// <summary>Starts the visit. Call right after spawning.</summary>
         public void Begin(CustomerDefinition definition, Transform meetingPoint, Transform exitPoint)
         {
+            Order=null;IsAmbient=false;
             _definition = definition;
             _meetingPoint = meetingPoint;
             _exitPoint = exitPoint;
@@ -74,7 +77,7 @@ namespace VentsAndVending.Customers
             PriceTolerance = UnityEngine.Random.Range(definition.PriceToleranceRange.x, definition.PriceToleranceRange.y);
             if (_visual != null && definition.BodyColors != null && definition.BodyColors.Length > 0)
             {
-                _visual.ApplyTint(definition.BodyColors[UnityEngine.Random.Range(0, definition.BodyColors.Length)], definition.BodyGlow);
+                _visual.ApplyTint(definition.AppearanceColor(DisplayName), definition.BodyGlow);
             }
 
             if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
@@ -101,8 +104,8 @@ namespace VentsAndVending.Customers
             WantedQuantity = order.Quantity;
             PriceTolerance = order.Markup;
             // The reference portrait uses this same appearance, not a different random visit tint.
-            if (_visual != null && definition.BodyColors.Length > 0)
-                _visual.ApplyTint(definition.BodyColors[0], definition.BodyGlow);
+            if (_visual != null)
+                _visual.ApplyTint(definition.AppearanceColor(DisplayName), definition.BodyGlow);
         }
 
         public void BeginAmbient(CustomerDefinition definition, Transform destination, Transform exit, string passengerName)
@@ -110,6 +113,7 @@ namespace VentsAndVending.Customers
             Begin(definition, destination, exit);
             IsAmbient = true;
             DisplayName = passengerName;
+            if (_visual != null) _visual.ApplyTint(definition.AppearanceColor(DisplayName), definition.BodyGlow);
             WantedProduct = null;
         }
 
@@ -128,7 +132,7 @@ namespace VentsAndVending.Customers
 
         public string GetPrompt(InteractionController interactor)
         {
-            if (IsAmbient) return $"{DisplayName} · {_definition.SpeciesName}";
+            if (IsAmbient) return State==CustomerState.Leaving?null:$"Talk to {DisplayName} · {_definition.SpeciesName}";
             if (State != CustomerState.Waiting || WantedProduct == null)
             {
                 return null;
@@ -140,7 +144,13 @@ namespace VentsAndVending.Customers
 
         public void Interact(InteractionController interactor)
         {
-            if (IsAmbient || State != CustomerState.Waiting)
+            if(IsAmbient && (State==CustomerState.Arriving || State==CustomerState.Waiting))
+            {
+                _beforeConversation=State;State=CustomerState.Trading;_agent.isStopped=true;
+                Orders.OrderManager.Instance?.Customers.Meet(DisplayName,_definition.Id);
+                ConversationRequested?.Invoke(this,interactor);return;
+            }
+            if (State != CustomerState.Waiting)
             {
                 return;
             }
@@ -151,6 +161,9 @@ namespace VentsAndVending.Customers
             Say(Format(CustomerDefinition.Pick(_definition.Lines.Greeting)));
             TradeRequested?.Invoke(this, interactor);
         }
+
+        public void EndConversation()
+        {if(!IsAmbient || State!=CustomerState.Trading)return;State=_beforeConversation;_patienceLeft=Mathf.Max(_patienceLeft,20);if(_agent.isOnNavMesh)_agent.isStopped=false;}
 
         // ------------------------------------------------------------------ Trading
 

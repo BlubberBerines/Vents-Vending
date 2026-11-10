@@ -25,6 +25,17 @@ namespace VentsAndVending.Editor
             BuildContinuousRing(root,true); BuildContinuousRing(root,false);
             BuildStationHub(); BuildStationDucts(); BuildStationLounge();
             BuildStationDenGameplay(); BuildStationBasement(); BuildStationAtmosphere(); BuildStationMaintenanceFinish(); BuildStationLocalControls(); BuildStationFanPuzzle(); BuildStationRingRooms(); BuildStationResourceLoop(); BuildStationDeliveries(); BuildStationNavigation();
+            BuildStationDenPipes();
+        }
+
+        private static void BuildStationDenPipes()
+        {
+            var den=_stationFrame.Find("L3_01_Den");var pipes=RingGroup("Den Ceiling Pipework",den);
+            MaintenancePipe(pipes,new Vector3(2.65f,2.65f,-.6f),new Vector3(2.65f,2.65f,-5.9f),.085f,StationMetal);
+            MaintenancePipe(pipes,new Vector3(-2.65f,2.66f,-5.8f),new Vector3(2.65f,2.66f,-5.8f),.07f,StationMetal);
+            MaintenancePipe(pipes,new Vector3(2.65f,2.65f,-5.8f),new Vector3(2.65f,2.25f,-5.8f),.085f,StationMetal);
+            StationSteam(pipes,new Vector3(2.65f,2.32f,-5.8f),null,false);
+            foreach(var collider in pipes.GetComponentsInChildren<Collider>())collider.enabled=false;
         }
 
         private static void BuildContinuousRing(Transform root,bool crawl)
