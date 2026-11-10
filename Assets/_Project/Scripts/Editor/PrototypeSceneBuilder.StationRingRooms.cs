@@ -78,7 +78,7 @@ namespace VentsAndVending.Editor
                     var cells=new System.Collections.Generic.HashSet<Vector2Int>();StationRect(cells,-3,3,expanded?-10:-7,-1);
                     if(i==1)StationRect(cells,-8,-3,-10,-5);
                     if(i==5){StationRect(cells,-7,-3,-6,-2);StationRect(cells,-3,1,-14,-10);}
-                    StationCellSpace(room,cells,0,2.7f,null,null,(p,n)=>(n.z>0 && p.z> -1.1f && Mathf.Abs(p.x)<1.05f) || (expanded && n.x>0 && Mathf.Abs(p.x-3)<.1f && Mathf.Abs(p.z+8)<.7f));
+                    StationCellSpace(room,cells,0,2.7f,null,null,(p,n)=>(n.z>0 && p.z> -1.1f && Mathf.Abs(p.x)<1.05f) || (expanded && n.x>0 && Mathf.Abs(p.x-3)<.1f && Mathf.Abs(p.z+8)<.7f) || (i==5 && n.z<0 && p.z< -13.9f && Mathf.Abs(p.x+1)<1.05f));
                     StationTube(room,"Room Vestibule",new[]{new Vector3(0,0,0),new Vector3(0,0,-1)},2.1f,2.7f,false);
                     Prop(room,Props+"/"+(i==0||i==7?"PROP_Desk_Terminal":"PROP_Tool_Cart")+".prefab",-2.05f,0,-5.7f,180);
                     Prop(room,Props+"/PROP_Locker_Row.prefab",2.1f,0,-3.6f,90);

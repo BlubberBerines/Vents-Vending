@@ -43,9 +43,11 @@ namespace VentsAndVending.UI
         private Button _tabMessages;
         private Button _tabSupplies;
 
-        [Header("Supplies (delivered to the den locker)")]
+        [Header("Supplies (courier to ring delivery bay in the station)")]
         [SerializeField] private SupplyListing[] _supplies = new SupplyListing[0];
         [SerializeField] private InventoryComponent _locker;
+        private float _nextDeliveryRefresh;
+        private TextMeshProUGUI _deliveryStatus;
 
         private void OnEnable() => VentNetTerminal.PanelRequested += OnPanelRequested;
 
@@ -81,6 +83,8 @@ namespace VentsAndVending.UI
 
         protected override void UpdateWhileOpen()
         {
+            if(_showSupplies && SupplyDeliveryService.Instance!=null && Time.unscaledTime>=_nextDeliveryRefresh)
+            {_nextDeliveryRefresh=Time.unscaledTime+1;if(_deliveryStatus!=null)_deliveryStatus.text=SupplyDeliveryService.Instance.StatusText;}
             if (_dirty)
             {
                 _dirty = false;
@@ -110,6 +114,7 @@ namespace VentsAndVending.UI
             OrderManager manager = OrderManager.Instance;
             OrderBoard board = manager.Board;
             _timers.Clear();
+            _deliveryStatus=null;
             ClearChildren(_inbox);
             ClearChildren(_deals);
 
@@ -129,10 +134,11 @@ namespace VentsAndVending.UI
                     }
                 }
             }
-            _inboxTitle.text = _showSupplies ? "SUPPLIES · DELIVERED TO YOUR LOCKER" : offers > 0 ? $"MESSAGES · {offers} NEW" : "MESSAGES";
+            _inboxTitle.text = _showSupplies ? (SupplyDeliveryService.Instance!=null?"SUPPLIES / RING COURIER DELIVERY":"SUPPLIES · DELIVERED TO YOUR LOCKER") : offers > 0 ? $"MESSAGES · {offers} NEW" : "MESSAGES";
             StyleTabs(offers);
             if (_showSupplies)
             {
+                if(SupplyDeliveryService.Instance!=null)_deliveryStatus=Note(_inbox,SupplyDeliveryService.Instance.StatusText,64);
                 foreach (SupplyListing listing in _supplies)
                 {
                     SupplyCard(listing);
@@ -212,7 +218,7 @@ namespace VentsAndVending.UI
 
             TextMeshProUGUI price = UiFactory.Mono(c, "Price", $"{listing.Price} CC", 24f, TextAlignmentOptions.Right, UiFactory.Credit);
             UiFactory.Place(price.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-214f, -18f), new Vector2(120f, 30f));
-            UiFactory.Button(c, "Buy", "Buy", () => Buy(listing),
+            UiFactory.Button(c, "Buy", SupplyDeliveryService.Instance!=null?"Order":"Buy", () => Buy(listing),
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-18f, 18f), new Vector2(180f, 46f), ButtonStyle.Go);
         }
 
@@ -223,8 +229,9 @@ namespace VentsAndVending.UI
             {
                 return;
             }
-            PurchaseResult result = SupplyShop.TryBuy(listing, wallet.Wallet, _locker.Model);
-            Interactor.Notify(SupplyShop.Message(result));
+            var delivery=SupplyDeliveryService.Instance;
+            PurchaseResult result = delivery!=null?delivery.Order(listing,wallet.Wallet):SupplyShop.TryBuy(listing, wallet.Wallet, _locker.Model);
+            Interactor.Notify(result==PurchaseResult.OrderQueued?$"Order booked. Courier window {delivery.WindowText}; collect at the ring delivery bay.":result==PurchaseResult.QueueFull?"Courier manifest is full. Wait for the next run.":result==PurchaseResult.LockerFull&&delivery!=null?"Delivery bay is full or reserved. Collect existing parcels first.":SupplyShop.Message(result));
             _dirty = true;
         }
 
@@ -321,10 +328,11 @@ namespace VentsAndVending.UI
             AddHover(row.gameObject, o.SpotId);
         }
 
-        private static void Note(RectTransform parent, string text, float height = 44f)
+        private static TextMeshProUGUI Note(RectTransform parent, string text, float height = 44f)
         {
             TextMeshProUGUI t = UiFactory.Text(parent, "Note", text, 17f, TextAlignmentOptions.Left, TermMuted);
             UiFactory.Layout(t.gameObject, preferredHeight: height);
+            return t;
         }
 
         private static string TimerText(CustomerOrder o, float now) => o.Status switch

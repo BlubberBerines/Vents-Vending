@@ -27,7 +27,8 @@ namespace VentsAndVending.Editor
             var desk = Prop(den, Props + "/PROP_Desk_Terminal.prefab", -1.2f, 0f, -5.75f, FacePlusZ);
             Prop(den, CosmicP + "CR_Chair_Medium.prefab", -1.2f, 0f, -4.85f, 180f);
             Prop(den, Props + "/PROP_Datapad.prefab", -0.75f, TopOf(desk), -5.85f, 160f);
-            Prop(den, Props + "/PROP_Crate_Stack.prefab", -2.45f, 0f, -5.65f, 10f);
+            var cornerCrates=Prop(den, Props + "/PROP_Crate_Stack.prefab", production ? -2.25f : -2.45f, 0f, production ? -5.8f : -5.65f, 10f);
+            if(production)cornerCrates.transform.localScale*=.5f; // clear the bed-foot refinery and wall panels
             // workbench: table with tools, robot arm, tool cart
             if (!production)
             {
@@ -39,10 +40,10 @@ namespace VentsAndVending.Editor
             Prop(den, Props + "/PROP_robot_arm.prefab", 2.45f, 0f, -5.75f, FacePlusZ);
             Prop(den, Props + "/PROP_Tool_Cart.prefab", 2.35f, 0f, -4.3f, FaceMinusX);
             // sleeping corner + storage
-            Prop(den, Props + "/PROP_Bunk_Bed.prefab", -2.35f, 0f, -3.1f, FacePlusX);
+            Prop(den, Props + "/PROP_Bunk_Bed.prefab", -2.35f, 0f, -3.1f, production ? FaceMinusX : FacePlusX);
             Prop(den, Props + "/PROP_Locker_Row.prefab", 2.6f, 0f, -2.7f, FaceMinusX);
             Prop(den, Props + "/PROP_Plant_Pot.prefab", 0.3f, 0f, -5.85f, 0f);
-            Prop(den, Props + "/PROP_Floor_Lamp.prefab", -2.6f, 0f, -0.9f, 0f);
+            Prop(den, Props + "/PROP_Floor_Lamp.prefab", production ? -2.7f : -2.6f, 0f, production ? -.55f : -.9f, 0f);
             Prop(den, Props + "/PROP_Crate_Small.prefab", 2.45f, 0f, -0.75f, 25f);
             Prop(den, Props + "/PROP_ammo_box.prefab", 2.35f, 0.42f, -0.8f, 40f);
             Prop(den, Props + "/PROP_Fire_Extinguisher.prefab", -1.0f, 0f, -0.6f, FacePlusZ);

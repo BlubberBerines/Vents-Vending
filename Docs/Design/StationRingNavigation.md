@@ -7,6 +7,54 @@ the original Cartesian blueprint is not copied over the new ring.
 
 ## Implemented topology
 
+### Ring logistics and distant core revision (current)
+
+The core no longer branches from Supply Store. Its authored entrance is behind
+the deep stores of the 242-degree Tool Store (persistent ID MAINT_ROOM_270),
+at room-local (-1,0,-14). The existing winding descent/core chamber are rotated
+and translated as one sealed branch behind that opening. Placement is fixed
+across saves/rebuilds; it does not reshuffle the player's learned map. Deposit
+IDs and the refinery save ID are unchanged. Supply Store is enclosed again and
+its graph connection to the core is removed. The core graph now links to Tool
+Store. The shortest maintenance-ring walk from the Den approach is about 164 m
+before entering the room/descending branch, rather than a nearby cupboard trip.
+
+The Den bed rotates 180 degrees only in the production scene. The refinery sits
+at its actual foot end (opposite the pillow), Den-local (-2.3,0,-4.7), facing the
+aisle. The corner crate stack is reduced/repositioned to clear that workspace.
+
+Station PC Supplies now uses paid, queued physical deliveries, not the old
+instant cupboard purchase path (retained only for the legacy greybox scene).
+The marked bay is on the maintenance ring outside the Den culdesac, at radius
+73.55 / angle 15 degrees. E opens its saved 24-slot collection crate; click a
+parcel row to move it into pockets, then close normally. Goods do not enter the
+Den cupboard automatically. All station supply listings, including the crowbar,
+use this route. Starter cupboard stock is retained.
+
+One wheeled courier parks at angle 45 and drives the 30-degree arc at radius
+72.4 to the bay. A fresh run waits 25 s, travels for 18 s and unloads for 3 s
+(nominal first delivery 46 s; PC advertises a 43-55 s window). Wheels roll and
+cargo moves to the crate during unloading. The courier returns before another
+dispatch. Purchases after departure join the following run with its longer
+displayed window. Timers use game time and stop while paused. Traffic causes
+the courier to wait; a full bay preserves the paid manifest until space clears.
+No refused order charges credits. Space is reserved for the complete mixed-item
+manifest, with at most 12 outstanding units.
+
+Save version 7 includes courier phase, remaining route time and paid manifest,
+while the collection crate uses the standard inventory save ID
+station.delivery_bay. Restoring mid-transit does not deliver twice or restart
+the charge. Unavailable saved goods are refunded. PC status updates do not
+rebuild purchase buttons every second.
+
+Validation: 252/252 EditMode tests passed, including 17 new delivery queue tests.
+Live PC purchase charged 4 CC with zero instant stock in either crate/cupboard;
+the courier drove, resumed a mid-route save, unloaded once, returned, and the
+parcel was collected via the actual inventory row interaction. A movement-input
+bot walked the maintenance ring from 12.5 degrees through 0 to 242, entered the
+Tool Store and traversed its internal doors/new descent into the core chamber.
+QA saves remained isolated under Logs/CourierReview/Saves.
+
 ### Material sourcing / first gathering loop
 
 The Den PC already supports **Supplies**: Glarb Extract (5 CC), Lumina Gel

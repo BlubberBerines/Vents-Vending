@@ -25,3 +25,7 @@ MonoBehaviour:
     GateId: 
     GateOpensWhenOff: 0
     OneWay: 0
+  - DestinationRoomId: CORE_RECOVERY
+    GateId: 
+    GateOpensWhenOff: 0
+    OneWay: 0

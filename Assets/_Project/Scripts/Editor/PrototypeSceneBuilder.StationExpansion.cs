@@ -24,7 +24,7 @@ namespace VentsAndVending.Editor
             _stationFrame.SetPositionAndRotation(RingPoint(60,ServiceAngle,0),Quaternion.Euler(0,90-ServiceAngle,0));
             BuildContinuousRing(root,true); BuildContinuousRing(root,false);
             BuildStationHub(); BuildStationDucts(); BuildStationLounge();
-            BuildStationDenGameplay(); BuildStationBasement(); BuildStationAtmosphere(); BuildStationMaintenanceFinish(); BuildStationLocalControls(); BuildStationFanPuzzle(); BuildStationRingRooms(); BuildStationResourceLoop(); BuildStationNavigation();
+            BuildStationDenGameplay(); BuildStationBasement(); BuildStationAtmosphere(); BuildStationMaintenanceFinish(); BuildStationLocalControls(); BuildStationFanPuzzle(); BuildStationRingRooms(); BuildStationResourceLoop(); BuildStationDeliveries(); BuildStationNavigation();
         }
 
         private static void BuildContinuousRing(Transform root,bool crawl)
@@ -84,7 +84,7 @@ namespace VentsAndVending.Editor
             StationRect(cells,-4,4,-6,6);StationRect(cells,-1.5f,1.5f,6,10.15f);
             StationRect(cells,-10,-4,-3,3);StationRect(cells,4,10,-6,-2);
             StationCellSpace(hub,cells,0,3,p=>p.x>=1 && p.x<2.5f && p.z>=-3 && p.z< -1.5f,null,
-                (p,n)=> (p.z>9.9f && n.z>0) || (p.z< -5.9f && Mathf.Abs(p.x)<1.05f && n.z<0) || (p.x>3.9f && p.x<4.1f && Mathf.Abs(p.z)<.65f && n.x>0) || (p.x< -9.9f && n.x<0 && Mathf.Abs(p.z)<1.5f) || (p.x>9.9f && n.x>0 && Mathf.Abs(p.z+4)<1.05f));
+                (p,n)=> (p.z>9.9f && n.z>0) || (p.z< -5.9f && Mathf.Abs(p.x)<1.05f && n.z<0) || (p.x>3.9f && p.x<4.1f && Mathf.Abs(p.z)<.65f && n.x>0) || (p.x< -9.9f && n.x<0 && Mathf.Abs(p.z)<1.5f));
             StationLocalBox(hub,"Crate Mouth Sill",new Vector3(4,.9f,0),new Vector3(.16f,1.8f,1.3f),StationWall);
             StationLocalBox(hub,"Crate Mouth Header",new Vector3(4,2.9f,0),new Vector3(.16f,.2f,1.3f),StationWall);
             Kitp(hub,"ENV_Crate_Fixed_A",3.45f,0,0,0);

@@ -537,7 +537,7 @@ namespace VentsAndVending.Editor
                     var entry=list.GetArrayElementAtIndex(i+1);
                     entry.FindPropertyRelative("Item").objectReferenceValue=ingredients[i];
                     entry.FindPropertyRelative("Price").intValue=Mathf.Max(1,ingredients[i].BaseValue);
-                    entry.FindPropertyRelative("Blurb").stringValue="Delivered to the Den ingredient cupboard.";
+                    entry.FindPropertyRelative("Blurb").stringValue="Ordered for the next wheeled courier run. Collect at the ring delivery bay outside the Den approach.";
                 }
             }
             so.ApplyModifiedPropertiesWithoutUndo();

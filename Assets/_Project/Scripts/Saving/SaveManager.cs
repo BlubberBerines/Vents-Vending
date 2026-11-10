@@ -120,6 +120,7 @@ namespace VentsAndVending.Saving
 
             var data = new SaveData { SavedAtUtc = DateTime.UtcNow.ToString("o") };
             data.SceneName=UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if(Orders.SupplyDeliveryService.Instance!=null)data.Deliveries=Orders.SupplyDeliveryService.Instance.Queue.Capture();
             foreach(var station in FindObjectsByType<Crafting.MixingStation>(FindObjectsSortMode.None))
                 data.Mixers.Add(station.Process.Capture(station.name));
             foreach(var vein in FindObjectsByType<World.CrystalVein>(FindObjectsSortMode.None))
@@ -316,6 +317,11 @@ namespace VentsAndVending.Saving
                 vein.Deposit.Restore(data.Deposits.Find(s=>s!=null && s.Id==vein.SaveId));
             foreach(var refinery in FindObjectsByType<Crafting.CrystalRefinery>(FindObjectsSortMode.None))
                 refinery.Process.Restore(data.Refineries.Find(s=>s!=null && s.Id==refinery.SaveId));
+            if(Orders.SupplyDeliveryService.Instance!=null)
+            {
+                int refund=Orders.SupplyDeliveryService.Instance.Queue.Restore(data.Deliveries,_database.FindItem);
+                if(refund>0){interactor?.GetComponent<PlayerWallet>()?.Wallet.Add(refund);Notify("Unavailable courier goods were refunded.");}
+            }
         }
 
         private static void Notify(string message)

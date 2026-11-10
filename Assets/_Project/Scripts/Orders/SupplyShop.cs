@@ -17,7 +17,9 @@ namespace VentsAndVending.Orders
     {
         Delivered,
         CannotAfford,
-        LockerFull
+        LockerFull,
+        OrderQueued,
+        QueueFull
     }
 
     /// <summary>

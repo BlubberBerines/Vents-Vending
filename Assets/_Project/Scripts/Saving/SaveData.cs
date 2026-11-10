@@ -16,6 +16,7 @@ namespace VentsAndVending.Saving
         public List<VentsAndVending.Crafting.MixingSave> Mixers = new List<VentsAndVending.Crafting.MixingSave>();
         public List<VentsAndVending.Crafting.DepositSave> Deposits = new List<VentsAndVending.Crafting.DepositSave>();
         public List<VentsAndVending.Crafting.RefiningSave> Refineries = new List<VentsAndVending.Crafting.RefiningSave>();
+        public VentsAndVending.Orders.DeliverySave Deliveries = new VentsAndVending.Orders.DeliverySave();
         public PlayerSave Player = new PlayerSave();
         public int Credits;
         public int SecurityIncidents;

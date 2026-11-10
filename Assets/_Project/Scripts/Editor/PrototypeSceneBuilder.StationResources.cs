@@ -21,12 +21,15 @@ namespace VentsAndVending.Editor
             var crystal=GetOrCreateMaterial("Core_Crystal",new Color(.07f,.45f,.48f),.7f,new Color(.1f,.85f,1)*1.4f);
             var corrupt=GetOrCreateMaterial("Core_Corruption",new Color(.30f,.08f,.25f),.4f,new Color(.65f,.05f,.3f)*.65f);
             StationResourcePickup(raw,crystal,false);StationResourcePickup(axe,StationMetal,true);
-            var branch=RingGroup("L3_Corrupted_Core_Recovery",_stationFrame);
+            // Fixed authored placement, selected once: never reshuffle a player's learned map.
+            var room=GameObject.Find("Ring Room 242 TOOL STORE").transform;
+            var branch=RingGroup("L3_Corrupted_Core_Recovery",room);branch.localPosition=new Vector3(3,0,-4);branch.localRotation=Quaternion.Euler(0,90,0);
             var route=new[]{new Vector3(10,0,-4),new Vector3(13,0,-4),new Vector3(17,-.9f,-7),new Vector3(17,-1.8f,-13),new Vector3(24,-1.8f,-13),new Vector3(24,-1.8f,-18)};
             StationTube(branch,"Winding Core Access",route,2.6f,2.6f,false);
-            StationLocalBox(branch,"Supply Exit Header",new Vector3(10,2.8f,-4),new Vector3(.16f,.4f,2.6f),StationWall);
-            StationSideDoor("Core Recovery Access Door",new Vector3(10,0,-4),90);
-            StationLabel(_stationFrame,"MATERIAL RECOVERY\nCORRUPTED CORE ->",new Vector3(9.8f,2.35f,-4),90,.022f);
+            StationLocalBox(branch,"Recovery Exit Header",new Vector3(10,2.65f,-4),new Vector3(.16f,.1f,2.6f),StationWall);
+            var access=RingGroup("Core Recovery Access Door",branch);access.localPosition=new Vector3(10,0,-4);access.localRotation=Quaternion.Euler(0,90,0);
+            RingDoor(access,ArtLibrary.Get("Station_Rusted_Bulkhead"),true,false);
+            StationLabel(room,"MATERIAL RECOVERY\nCORRUPTED CORE / E",new Vector3(-1,2.3f,-13.8f),180,.022f);
             var cells=new HashSet<Vector2Int>();StationRect(cells,19,29,-28,-18);
             StationCellSpace(branch,cells,-1.8f,5,null,null,(p,n)=>n.z>0 && p.z> -18.1f && Mathf.Abs(p.x-24)<1.05f);
             StationLocalBox(branch,"Core Entry Crown",new Vector3(24,2,-18),new Vector3(2.6f,2.4f,.16f),StationWall);
@@ -73,7 +76,7 @@ namespace VentsAndVending.Editor
             StationLabel(branch,"SPARE PICKAXE / E",new Vector3(22,.1f,-19.5f),180,.025f);
             BuildDenCrystalRefinery(raw);
             BuildCoreDiscovery(branch,route);
-            StationLabel(_stationFrame.Find("L3_01_Den"),"FREE MATERIALS: SUPPLY STORE -> CORE\nMINE CRYSTALS / REFINE HERE / MIX / DELIVER\nOR BUY INGREDIENTS: PC > SUPPLIES",new Vector3(0,2.65f,-6.05f),0,.017f);
+            StationLabel(_stationFrame.Find("L3_01_Den"),"FREE MATERIALS: RING TOOL STORE -> CORE\nMINE / REFINE AT BED FOOT / MIX / DELIVER\nPC SUPPLIES: COURIER TO RING DELIVERY BAY",new Vector3(0,2.65f,-6.05f),0,.017f);
         }
 
         private static ItemDefinition StationResourceItem(string file,string id,string display,string description,ItemCategory category,int stack,Color color)
@@ -107,7 +110,7 @@ namespace VentsAndVending.Editor
         }
         private static void BuildDenCrystalRefinery(ItemDefinition raw)
         {
-            var root=RingGroup("Den Crystal Refinery",_stationFrame.Find("L3_01_Den"));root.localPosition=new Vector3(1.05f,0,-3.2f);root.localRotation=Quaternion.Euler(0,-90,0);
+            var root=RingGroup("Den Crystal Refinery",_stationFrame.Find("L3_01_Den"));root.localPosition=new Vector3(-2.3f,0,-4.7f);root.localRotation=Quaternion.Euler(0,90,0);
             var body=StationLocalBox(root,"Refinery Cabinet",new Vector3(0,.55f,0),new Vector3(.8f,1.1f,.9f),StationMetal);
             Part("Refining Vessel",root,new Vector3(0,1.24f,0),new Vector3(.5f,.22f,.5f),ArtLibrary.Get("M_BrushedSilver"),PrimitiveType.Cylinder);
             var rotor=RingGroup("Refinery Rotor",root);rotor.localPosition=new Vector3(0,1.47f,0);Part("Rotor Crossbar",rotor,Vector3.zero,new Vector3(.58f,.05f,.10f),StationMetal);
@@ -126,8 +129,10 @@ namespace VentsAndVending.Editor
                 if(def==null){def=ScriptableObject.CreateInstance<VentRoomDefinition>();AssetDatabase.CreateAsset(def,path);}
                 def.Configure(id,display,"station_ring",3,links.Select(l=>new VentRoomDefinition.Connection{DestinationRoomId=l}).ToArray());EditorUtility.SetDirty(def);return def;
             }
-            var supply=Node("SUPPLY_STORE","Supply Store / Material Recovery",new[]{TunnelIds.ServiceJunction,"CORE_RECOVERY"});
-            var core=Node("CORE_RECOVERY","Corrupted Auxiliary Core",new[]{"SUPPLY_STORE"});
+            var supply=Node("SUPPLY_STORE","Supply Store",new[]{TunnelIds.ServiceJunction});
+            var core=Node("CORE_RECOVERY","Corrupted Auxiliary Core",new[]{"MAINT_ROOM_270"});
+            var toolStore=AssetDatabase.LoadAssetAtPath<VentRoomDefinition>($"{folder}/MAINT_ROOM_270.asset");
+            toolStore.Configure(toolStore.RoomId,toolStore.DisplayName,toolStore.DistrictId,toolStore.Plane,toolStore.Connections.Where(c=>c.DestinationRoomId!="CORE_RECOVERY").Append(new VentRoomDefinition.Connection{DestinationRoomId="CORE_RECOVERY"}).ToArray());EditorUtility.SetDirty(toolStore);
             var junction=AssetDatabase.LoadAssetAtPath<VentRoomDefinition>($"{folder}/{TunnelIds.ServiceJunction}.asset");
             junction.Configure(junction.RoomId,junction.DisplayName,junction.DistrictId,junction.Plane,junction.Connections.Where(c=>c.DestinationRoomId!="SUPPLY_STORE").Append(new VentRoomDefinition.Connection{DestinationRoomId="SUPPLY_STORE"}).ToArray());EditorUtility.SetDirty(junction);
             void Volume(Transform parent,string name,Vector3 position,Vector3 size,VentRoomDefinition room)

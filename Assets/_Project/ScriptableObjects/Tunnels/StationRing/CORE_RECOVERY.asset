@@ -17,7 +17,7 @@ MonoBehaviour:
   _districtId: station_ring
   _plane: 3
   _connections:
-  - DestinationRoomId: SUPPLY_STORE
+  - DestinationRoomId: MAINT_ROOM_270
     GateId: 
     GateOpensWhenOff: 0
     OneWay: 0

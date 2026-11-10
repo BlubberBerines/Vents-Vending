@@ -40,7 +40,7 @@ namespace VentsAndVending.Crafting
             }
             else if (Process.HasBatch) interactor.Notify($"Refinery running: {Mathf.CeilToInt(Process.Remaining)} seconds remaining.");
             else if (Process.Start(interactor.Inventory.Model,_raw)) { interactor.Notify("Loaded 3 raw crystals. Refining takes 8 seconds; you can walk away."); Sfx.PlayAt(_sound,transform.position,.5f); }
-            else interactor.Notify("Carry 3 raw core crystals. Find them past the Supply Store; a pickaxe is beside the core.");
+            else interactor.Notify("Carry 3 raw core crystals. Follow the far-side ring Tool Store to the core; a pickaxe is beside it.");
         }
     }
 }
