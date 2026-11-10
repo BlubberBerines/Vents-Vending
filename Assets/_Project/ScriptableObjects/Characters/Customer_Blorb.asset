@@ -30,6 +30,7 @@ MonoBehaviour:
   _likesPoorQuality: 0
   _haggleAttempts: 2
   _patience: 50
+  _portrait: {fileID: 0}
   _bodyColors:
   - {r: 0.9, g: 0.36, b: 0.88, a: 1}
   - {r: 0.2, g: 0.78, b: 0.75, a: 1}

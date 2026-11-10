@@ -12,6 +12,10 @@ Expands **GDD Part 4 (The Vent Network)** and **§19.1 Location 1 (Maintenance N
 
 ## 0. Decisions and amendments (2026-11-08)
 
+Current ring-scene implementation: see [local controls and first fan challenge](StationRingNavigation.md#local-controls-and-first-fan-challenge).
+The first working fan branch teaches isolation and grants an optional service cache;
+it does not yet unlock a second customer district. The first-sale route remains ungated.
+
 1. **The fan does not gate the first sale.** The nook → plaza route never requires a puzzle: **01 → 02 → 03 → 05 Plaza Access** is open from the start. The fan at **04** instead blocks the way to a **richer customer base**: 04 → 06 Drop Hatch → **07 Plaza Service Hub → 08 Customer Vent**, which overlooks the wealthier mezzanine side of the plaza (bigger budgets, pickier about quality). 16 Power Distribution is reached from 03, so the breaker → fan lesson happens when the player chooses to go after better customers. Later, the same direction grows toward GDD Location 4 (Luxury District).
 2. **Tiered scope.** Following GDD §4.4, launch has two or three hazards:
    - **Slice:** 01–08, 16, 17 and one secret dead-end. Hazards: fan only.
@@ -43,6 +47,10 @@ Expands **GDD Part 4 (The Vent Network)** and **§19.1 Location 1 (Maintenance N
 ---
 
 ## 1. Design principles
+
+Current ring assembly and navigation adaptation: [Station Ring Navigation](StationRingNavigation.md).
+This records the enclosed L2 connectors, L3 side rooms, first customer lounge,
+and re-linked U01 drone shortcut without changing the original room/gate IDs.
 
 - **Fixed topology, authored surprises.** No random maze generation.
 - **Readable navigation.** Each district has its own palette, soundscape, materials and landmark. Junction signage uses old station labels, not a GPS overlay.

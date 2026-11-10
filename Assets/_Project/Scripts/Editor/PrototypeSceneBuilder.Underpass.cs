@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using VentsAndVending.Inventory;
@@ -523,6 +524,22 @@ namespace VentsAndVending.Editor
             crowbar.FindPropertyRelative("Price").intValue = 60;
             crowbar.FindPropertyRelative("Blurb").stringValue = "Lever it. Pry it. Don't ask.";
             so.FindProperty("_locker").objectReferenceValue = locker;
+            var stationLounge=GameObject.Find("L1_08_Customer_Lounge");
+            if(stationLounge!=null)
+            {
+                so.FindProperty("_mapFrame").objectReferenceValue=stationLounge.transform;
+                var ingredients=AssetDatabase.FindAssets("t:ItemDefinition",new[]{ItemFolder})
+                    .Select(id=>AssetDatabase.LoadAssetAtPath<ItemDefinition>(AssetDatabase.GUIDToAssetPath(id)))
+                    .Where(item=>item.Category==ItemCategory.Ingredient).ToArray();
+                list.arraySize=1+ingredients.Length;
+                for(int i=0;i<ingredients.Length;i++)
+                {
+                    var entry=list.GetArrayElementAtIndex(i+1);
+                    entry.FindPropertyRelative("Item").objectReferenceValue=ingredients[i];
+                    entry.FindPropertyRelative("Price").intValue=Mathf.Max(1,ingredients[i].BaseValue);
+                    entry.FindPropertyRelative("Blurb").stringValue="Delivered to the Den ingredient cupboard.";
+                }
+            }
             so.ApplyModifiedPropertiesWithoutUndo();
         }
     }

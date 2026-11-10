@@ -20,7 +20,7 @@ namespace VentsAndVending.Editor
         // yaw for a pack prop whose front should face this direction
         private const float FacePlusZ = 180f, FaceMinusZ = 0f, FacePlusX = -90f, FaceMinusX = 90f;
 
-        private static void DressTestBayDen(Transform l3)
+        private static void DressTestBayDen(Transform l3, bool production = false)
         {
             var den = Group("Den_Dressing", l3);
             // workstation against the south wall
@@ -29,10 +29,13 @@ namespace VentsAndVending.Editor
             Prop(den, Props + "/PROP_Datapad.prefab", -0.75f, TopOf(desk), -5.85f, 160f);
             Prop(den, Props + "/PROP_Crate_Stack.prefab", -2.45f, 0f, -5.65f, 10f);
             // workbench: table with tools, robot arm, tool cart
+            if (!production)
+            {
             var bench = Prop(den, CosmicP + "CR_Table_Small_2.prefab", 1.25f, 0f, -5.7f, 0f);
             Prop(den, Props + "/PROP_Toolbox.prefab", 1.0f, TopOf(bench), -5.75f, 15f);
             Prop(den, CosmicP + "CR_Tool_Hammer.prefab", 1.55f, TopOf(bench), -5.55f, 70f);
             Prop(den, Props + "/PROP_energy_cell.prefab", 1.6f, TopOf(bench), -5.9f, 0f);
+            }
             Prop(den, Props + "/PROP_robot_arm.prefab", 2.45f, 0f, -5.75f, FacePlusZ);
             Prop(den, Props + "/PROP_Tool_Cart.prefab", 2.35f, 0f, -4.3f, FaceMinusX);
             // sleeping corner + storage
@@ -44,7 +47,7 @@ namespace VentsAndVending.Editor
             Prop(den, Props + "/PROP_ammo_box.prefab", 2.35f, 0.42f, -0.8f, 40f);
             Prop(den, Props + "/PROP_Fire_Extinguisher.prefab", -1.0f, 0f, -0.6f, FacePlusZ);
             Prop(den, Props + "/PROP_Medkit_Wall.prefab", -2.97f, 1.5f, -4.6f, FacePlusX);
-            Prop(den, Props + "/PROP_Cable_Spool.prefab", 0.9f, 0f, -3.6f, 30f);
+            if (!production) Prop(den, Props + "/PROP_Cable_Spool.prefab", 0.9f, 0f, -3.6f, 30f);
         }
 
         private static void DressTestBayCorridor(Transform l3)

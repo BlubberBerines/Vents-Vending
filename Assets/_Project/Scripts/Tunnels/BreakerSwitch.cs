@@ -66,6 +66,12 @@ namespace VentsAndVending.Tunnels
                 return;
             }
 
+            if(!IsOn)
+            {
+                foreach(var fan in FindObjectsByType<FanHazard>(FindObjectsSortMode.None))
+                    if(fan.BreakerId==_breakerId && fan.PassageOccupied)
+                    {interactor.Notify("Safety interlock: clear the fan passage before restoring power.");return;}
+            }
             PlayClunk(on: !IsOn);
             bool on = !IsOn;
             TunnelManager.Instance.SetSwitch(_breakerId, on, _startsOn);

@@ -44,6 +44,8 @@ namespace VentsAndVending.Customers
         [SerializeField, Min(5f)] private float _patience = 45f;
 
         [Header("Look")]
+        [SerializeField] private Sprite _portrait;
+        public Sprite Portrait => _portrait;
         [Tooltip("One is picked per visit for the tinted body parts (variety in the crowd).")]
         [SerializeField] private Color[] _bodyColors = Array.Empty<Color>();
         [SerializeField, Range(0f, 1f)] private float _bodyGlow = 0.12f;

@@ -28,7 +28,23 @@ namespace VentsAndVending.Orders
         public string DisplayName => _displayName;
         public MeetRisk Risk => _risk;
         public string Hint => _hint;
-        public string Label => $"Spot {_spotId} · {_displayName}";
+        [SerializeField] private bool _roomMeeting;
+        public bool RoomMeeting => _roomMeeting;
+        public string Label => _roomMeeting ? _displayName : $"Spot {_spotId} · {_displayName}";
+        internal void ConfigureRoomMeeting() => _roomMeeting = true;
+
+        public Vector3 PickMeetingPosition()
+        {
+            if (!_roomMeeting) return transform.position;
+            // Sample free space around the room, not one visible delivery marker.
+            for (int i=0;i<24;i++)
+            {
+                Vector3 candidate=transform.parent.TransformPoint(new Vector3(Random.Range(-2.6f,2.6f),4.6f,Random.Range(-4.7f,4.2f)));
+                if (UnityEngine.AI.NavMesh.SamplePosition(candidate,out var hit,.45f,UnityEngine.AI.NavMesh.AllAreas)
+                    && !Physics.CheckSphere(hit.position+Vector3.up*.65f,.42f,~0,QueryTriggerInteraction.Ignore)) return hit.position;
+            }
+            return transform.position;
+        }
 
         internal void Configure(string id, string displayName, MeetRisk risk, string hint, Renderer[] marks, GameObject beacon, Light glow)
         {

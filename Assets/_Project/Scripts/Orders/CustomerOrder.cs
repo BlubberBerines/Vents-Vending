@@ -37,6 +37,7 @@ namespace VentsAndVending.Orders
         /// <summary>Fraction above the product's sale price the customer pays (0.3 = +30%).</summary>
         public float Markup;
         public string SpotId;
+        public bool RoomMeeting;
         public OrderStatus Status = OrderStatus.Offered;
         public float OfferedAt;
         public float OfferExpiresAt;

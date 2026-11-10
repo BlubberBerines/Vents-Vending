@@ -129,7 +129,7 @@ namespace VentsAndVending.Orders
         private CustomerOrder MakeOffer(OrderBoard board)
         {
             var candidates = _customers.FindAll(c => c != null && c.Prefab != null && c.Wants.Count > 0);
-            var freeSpots = _spots.FindAll(s => s != null && !board.IsSpotBusy(s.SpotId));
+            var freeSpots = _spots.FindAll(s => s != null && (s.RoomMeeting || !board.IsSpotBusy(s.SpotId)));
             if (candidates.Count == 0 || freeSpots.Count == 0)
             {
                 return null;
@@ -151,6 +151,7 @@ namespace VentsAndVending.Orders
                 MinimumQuality = who.LikesPoorQuality ? ItemQuality.Poor : who.MinimumQuality,
                 Markup = Mathf.Max(0f, tolerance * 0.8f + danger + OrderRules.MarkupBonus(board.Trust)),
                 SpotId = where.SpotId,
+                RoomMeeting = where.RoomMeeting,
             };
         }
 
@@ -193,7 +194,14 @@ namespace VentsAndVending.Orders
 
             GameObject go = Instantiate(def.Prefab, _spawnPoint.position, _spawnPoint.rotation);
             var customer = go.GetComponent<Customer>();
-            customer.BeginOrder(def, order, product, spot.transform, _exitPoint != null ? _exitPoint : _spawnPoint);
+            Transform destination=spot.transform;
+            if (spot.RoomMeeting)
+            {
+                var point=new GameObject("Lounge rendezvous "+order.Id);
+                point.transform.SetParent(go.transform,false);point.transform.position=spot.PickMeetingPosition();
+                destination=point.transform;
+            }
+            customer.BeginOrder(def, order, product, destination, _exitPoint != null ? _exitPoint : _spawnPoint);
             _visitors[order.Id] = customer;
         }
 

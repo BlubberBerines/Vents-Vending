@@ -430,12 +430,17 @@ namespace VentsAndVending.UI
                 var (bg, fg) = UiFactory.RiskColours(spot != null ? (int)spot.Risk : 1);
                 row.Badge.color = bg;
                 row.Letter.color = fg;
-                row.Letter.text = o.SpotId;
+                var who=manager.FindCustomer(o.CustomerId);
+                bool portrait=who!=null && who.Portrait!=null;
+                row.Badge.sprite=portrait?who.Portrait:null;
+                row.Badge.color=portrait?Color.white:bg;
+                row.Badge.preserveAspect=portrait;
+                row.Letter.text = portrait ? string.Empty : o.SpotId;
                 var product = manager.FindProduct(o.ProductId);
                 row.Title.text = $"{o.CustomerName} · {o.Quantity}× {(product != null ? product.DisplayName : o.ProductId)}";
                 bool waiting = o.Status == OrderStatus.Waiting;
                 row.Detail.text = waiting
-                    ? $"<color=#3FE0FF>waiting at the spot</color>"
+                    ? (spot!=null && spot.RoomMeeting ? "<color=#3FE0FF>Find this person in the lounge</color>" : "<color=#3FE0FF>waiting at the spot</color>")
                     : $"{o.MinimumQuality}+ · {(spot != null ? spot.DisplayName : "")}";
                 row.Timer.text = OrderRules.Clock(waiting ? o.WindowClosesAt - board.Clock : o.WindowOpensAt - board.Clock);
                 row.Timer.color = waiting ? UiFactory.Credit : UiFactory.Paper;

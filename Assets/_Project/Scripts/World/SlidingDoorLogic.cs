@@ -5,6 +5,12 @@ namespace VentsAndVending.World
     /// <summary>Pure rules for the automatic full-size sliding door (station layers spec §6.3).</summary>
     public static class SlidingDoorLogic
     {
+        /// <summary>Unseal first, then accelerate and cushion the slide; reversing preserves position continuity.</summary>
+        public static float LeafTravel(float amount)
+        {
+            float t=Mathf.Clamp01((amount-.14f)/.86f);
+            return t*t*t*(t*(t*6f-15f)+10f);
+        }
         /// <summary>Opens for a nearby player, stays open while someone stands in the doorway, never opens when locked.</summary>
         public static bool WantsOpen(bool locked, bool playerNear, bool occupied)
         {

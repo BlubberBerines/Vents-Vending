@@ -53,6 +53,7 @@ namespace VentsAndVending.Customers
         public CustomerState State { get; private set; } = CustomerState.Arriving;
         /// <summary>Set when this visit is a VentNet deal (GDD §10.3): agreed product, quantity, quality and price.</summary>
         public Orders.CustomerOrder Order { get; private set; }
+        public bool IsAmbient { get; private set; }
         /// <summary>0–1, how much patience is left while waiting.</summary>
         public float PatienceFraction => _definition != null ? Mathf.Clamp01(_patienceLeft / _definition.Patience) : 0f;
 
@@ -99,6 +100,17 @@ namespace VentsAndVending.Customers
             WantedProduct = product;
             WantedQuantity = order.Quantity;
             PriceTolerance = order.Markup;
+            // The reference portrait uses this same appearance, not a different random visit tint.
+            if (_visual != null && definition.BodyColors.Length > 0)
+                _visual.ApplyTint(definition.BodyColors[0], definition.BodyGlow);
+        }
+
+        public void BeginAmbient(CustomerDefinition definition, Transform destination, Transform exit, string passengerName)
+        {
+            Begin(definition, destination, exit);
+            IsAmbient = true;
+            DisplayName = passengerName;
+            WantedProduct = null;
         }
 
         /// <summary>The deal window closed or was cancelled: storm off.</summary>
@@ -116,6 +128,7 @@ namespace VentsAndVending.Customers
 
         public string GetPrompt(InteractionController interactor)
         {
+            if (IsAmbient) return $"{DisplayName} · {_definition.SpeciesName}";
             if (State != CustomerState.Waiting || WantedProduct == null)
             {
                 return null;
@@ -127,7 +140,7 @@ namespace VentsAndVending.Customers
 
         public void Interact(InteractionController interactor)
         {
-            if (State != CustomerState.Waiting)
+            if (IsAmbient || State != CustomerState.Waiting)
             {
                 return;
             }
@@ -208,8 +221,8 @@ namespace VentsAndVending.Customers
                     if (Reached())
                     {
                         State = CustomerState.Waiting;
-                        _patienceLeft = Order != null ? float.PositiveInfinity : _definition.Patience;
-                        SetBubble(Order != null ? "Psst. Got my order?" : WantedProduct != null ? $"{WantedProduct.DisplayName} x{WantedQuantity}?" : "…");
+                        _patienceLeft = Order != null ? float.PositiveInfinity : IsAmbient ? UnityEngine.Random.Range(12f,35f) : _definition.Patience;
+                        SetBubble(Order != null || IsAmbient ? string.Empty : WantedProduct != null ? $"{WantedProduct.DisplayName} x{WantedQuantity}?" : "…");
                     }
                     break;
 
@@ -218,8 +231,8 @@ namespace VentsAndVending.Customers
                     FacePlayerIfNear(5f);
                     if (_patienceLeft <= 0f)
                     {
-                        ShowAnnoyed();
-                        Leave(Line(_definition.Lines.Impatient));
+                        if (!IsAmbient) ShowAnnoyed();
+                        Leave(IsAmbient ? null : Line(_definition.Lines.Impatient));
                     }
                     break;
 

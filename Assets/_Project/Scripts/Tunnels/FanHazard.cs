@@ -41,6 +41,17 @@ namespace VentsAndVending.Tunnels
         private float _settleTarget = float.NaN;
 
         public string SystemId => _systemId;
+        public string BreakerId => _breakerId;
+        public bool PassageOccupied
+        {
+            get
+            {
+                var player=GameObject.FindWithTag("Player");
+                if(player==null)return false;
+                var local=transform.InverseTransformPoint(player.transform.position+Vector3.up*.9f);
+                return Mathf.Abs(local.x)<1.8f && Mathf.Abs(local.y)<1.8f && Mathf.Abs(local.z)<.9f;
+            }
+        }
         public FanState State { get; private set; }
         public float Speed => _speed;
         public bool Powered => TunnelManager.Instance == null ? _breakerStartsOn : TunnelManager.Instance.GetSwitch(_breakerId, _breakerStartsOn);

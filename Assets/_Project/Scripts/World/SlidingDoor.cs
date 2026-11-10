@@ -4,9 +4,8 @@ using VentsAndVending.Interaction;
 namespace VentsAndVending.World
 {
     /// <summary>
-    /// Automatic full-size sliding door: the den door, staff doors, and (locked) sector bulkheads
-    /// (station layers spec §6.3). Opens when the player comes near, stays open while they stand in the doorway, closes
-    /// behind them. Leaves slide by their own offsets; their colliders move with them. Not saved.
+    /// Full-size sliding door. Automatic doors sense proximity; manual doors open on interaction and close after
+    /// a clear-doorway delay. Both hold open for the player in the doorway. Leaves carry their own colliders. Not saved.
     /// </summary>
     public sealed class SlidingDoor : MonoBehaviour, IInteractable
     {
@@ -14,7 +13,15 @@ namespace VentsAndVending.World
         [Tooltip("Local offset of each leaf when fully open (same order as Leaves).")]
         [SerializeField] private Vector3[] _slideOffsets = new Vector3[0];
         [SerializeField] private float _openSeconds = 0.6f;
+        [SerializeField] private float _closeSeconds = .9f;
+        [SerializeField] private float _unsealDepth = .035f;
+        [SerializeField] private AudioClip _latchSound;
         [SerializeField] private float _senseRadius = 2.2f;
+        [SerializeField] private bool _automatic = true;
+        [SerializeField, Min(.5f)] private float _holdOpenSeconds = 4f;
+        private float _manualTimer;
+        internal void ConfigureManual(float holdOpenSeconds = 4f)
+        { _automatic=false;_holdOpenSeconds=Mathf.Max(.5f,holdOpenSeconds); }
         [Tooltip("Doorway box (local, centred 1.2 m up): while the player is inside it the door won't close.")]
         [SerializeField] private Vector3 _doorwaySize = new Vector3(1.4f, 2.4f, 1.0f);
         [SerializeField] private bool _locked;
@@ -67,25 +74,34 @@ namespace VentsAndVending.World
                            Mathf.Abs(local.z) <= _doorwaySize.z * 0.5f;
             }
 
-            bool open = SlidingDoorLogic.WantsOpen(_locked, near, occupied);
+            if (!_automatic)
+            {
+                if(occupied && OpenAmount>0) _manualTimer=_holdOpenSeconds;
+                else _manualTimer=Mathf.Max(0,_manualTimer-Time.deltaTime);
+            }
+            bool open = _automatic ? SlidingDoorLogic.WantsOpen(_locked, near, occupied)
+                : !_locked && (_manualTimer>0 || (occupied && OpenAmount>0));
             if (open != _wasOpen)
             {
-                Sfx.PlayAt(open ? _openSound : _closeSound, transform.position, 0.8f);
+                Sfx.PlayAt(open ? _openSound : _closeSound, transform.position, open ? .7f : .35f);
                 _wasOpen = open;
             }
 
-            OpenAmount = SlidingDoorLogic.Step(OpenAmount, open, _openSeconds, Time.deltaTime);
-            float eased = Mathf.SmoothStep(0f, 1f, OpenAmount);
+            float previous = OpenAmount;
+            OpenAmount = SlidingDoorLogic.Step(OpenAmount, open, open ? _openSeconds : _closeSeconds, Time.deltaTime);
+            float eased = SlidingDoorLogic.LeafTravel(OpenAmount);
+            float unseal = Mathf.SmoothStep(0f,1f,OpenAmount/.14f) * _unsealDepth;
+            if(previous>0 && OpenAmount==0) Sfx.PlayAt(_latchSound,transform.position,.75f);
             for (int i = 0; i < _leaves.Length && i < _slideOffsets.Length; i++)
             {
                 if (_leaves[i] != null)
                 {
-                    _leaves[i].localPosition = _closedLocal[i] + _slideOffsets[i] * eased;
+                    _leaves[i].localPosition = _closedLocal[i] + _slideOffsets[i] * eased + Vector3.forward * unseal;
                 }
             }
         }
 
-        public string GetPrompt(InteractionController interactor) => _locked ? "Inspect door" : null;
+        public string GetPrompt(InteractionController interactor) => _locked ? "Inspect door" : _automatic ? null : OpenAmount>.5f ? "Keep door open" : "Open door";
 
         public void Interact(InteractionController interactor)
         {
@@ -93,6 +109,7 @@ namespace VentsAndVending.World
             {
                 interactor.Notify(_lockedMessage);
             }
+            else if(!_automatic) _manualTimer=_holdOpenSeconds;
         }
     }
 }

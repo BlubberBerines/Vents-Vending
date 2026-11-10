@@ -18,6 +18,8 @@ namespace VentsAndVending.UI
     public sealed class VentNetPanel : ModalScreen
     {
         private static readonly Rect PlazaArea = new Rect(-16f, 20.5f, 32f, 30f);
+        [SerializeField] private Transform _mapFrame;
+        [SerializeField] private Rect _mapArea = new Rect(-6.5f,-6.5f,13,13);
         private const float MapWidth = 470f;
         private const float MapHeight = 400f;
 
@@ -163,7 +165,7 @@ namespace VentsAndVending.UI
                 }
                 else if (o.Status == OrderStatus.Missed)
                 {
-                    history.Append($"<color=#FF6B5E>×</color> Missed {o.CustomerName} at spot {o.SpotId}    ");
+                    history.Append($"<color=#FF6B5E>×</color> Missed {o.CustomerName} {(o.RoomMeeting ? "in the lounge" : "at spot "+o.SpotId)}    ");
                 }
             }
             if (history.Length > 0)
@@ -241,8 +243,11 @@ namespace VentsAndVending.UI
             Color avatarColour = who != null && who.BodyColors != null && who.BodyColors.Length > 0 ? who.BodyColors[0] : UiFactory.Hazard;
             Image avatar = UiFactory.Panel(c, "Avatar", avatarColour, 0f, 12f);
             UiFactory.Place(avatar.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(52f, 52f));
-            TextMeshProUGUI letter = UiFactory.Display(avatar.transform, "Letter", o.CustomerName.Substring(0, 1), 26f, TextAlignmentOptions.Center, Color.white);
-            UiFactory.Stretch(letter.rectTransform);
+            if(who != null && who.Portrait != null){avatar.sprite=who.Portrait;avatar.color=Color.white;avatar.preserveAspect=true;}
+            else {
+                TextMeshProUGUI letter = UiFactory.Display(avatar.transform, "Letter", o.CustomerName.Substring(0, 1), 26f, TextAlignmentOptions.Center, Color.white);
+                UiFactory.Stretch(letter.rectTransform);
+            }
 
             TextMeshProUGUI name = UiFactory.Heading(c, "Name", $"{o.CustomerName} <size=75%><color=#8FB39A>{(who != null ? who.SpeciesName : "")}</color></size>", 22f);
             UiFactory.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(86f, -14f), new Vector2(460f, 30f));
@@ -266,7 +271,7 @@ namespace VentsAndVending.UI
             if (spot != null)
             {
                 var (rbg, rfg) = UiFactory.RiskColours((int)spot.Risk);
-                UiFactory.Chip(chips, "Spot", $"{spot.SpotId} · {spot.Risk} risk", rbg, rfg, 15f);
+                UiFactory.Chip(chips, "Spot", spot.RoomMeeting ? "Meet me in the lounge" : $"{spot.SpotId} · {spot.Risk} risk", rbg, rfg, 15f);
             }
 
             string blocker = manager.Board.AcceptBlocker(o);
@@ -297,8 +302,12 @@ namespace VentsAndVending.UI
             var (bg, fg) = UiFactory.RiskColours(spot != null ? (int)spot.Risk : 1);
             Image badge = UiFactory.Panel(row.transform, "Badge", bg, 0f, 9f);
             UiFactory.Place(badge.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(40f, 40f));
-            TextMeshProUGUI letter = UiFactory.Heading(badge.transform, "Letter", o.SpotId, 22f, TextAlignmentOptions.Center, fg);
-            UiFactory.Stretch(letter.rectTransform);
+            var who=manager.FindCustomer(o.CustomerId);
+            if(who!=null && who.Portrait!=null){badge.sprite=who.Portrait;badge.color=Color.white;badge.preserveAspect=true;}
+            else {
+                TextMeshProUGUI letter = UiFactory.Heading(badge.transform, "Letter", o.SpotId, 22f, TextAlignmentOptions.Center, fg);
+                UiFactory.Stretch(letter.rectTransform);
+            }
 
             TextMeshProUGUI text = UiFactory.Text(row.transform, "Deal",
                 $"<b>{o.CustomerName}</b> <color=#8FB39A>— {o.Quantity}× {(product != null ? product.DisplayName : o.ProductId)} {o.MinimumQuality}+ · {(spot != null ? spot.DisplayName : "")}</color>",
@@ -334,6 +343,8 @@ namespace VentsAndVending.UI
             _spotDots.Clear();
             OrderManager manager = OrderManager.Instance;
 
+            if (_mapFrame == null)
+            {
             Block(new Rect(-14f, 34.7f, 1.2f, 2.6f), new Color(0.73f, 0.25f, 0.56f), "GLORP");
             Block(new Rect(12.9f, 34.7f, 1.2f, 2.6f), new Color(0.73f, 0.45f, 0.16f), "NOODLES");
             Block(new Rect(4.7f, 47.9f, 2.6f, 1.2f), new Color(0.15f, 0.6f, 0.7f), "LEGAL");
@@ -348,6 +359,14 @@ namespace VentsAndVending.UI
             Label(new Vector2(-8f, 22.4f), "<color=#5CFF8A>YOUR VENT</color>");
             Block(new Rect(-1.1f, 49.7f, 2.2f, 0.7f), new Color(0.88f, 0.36f, 0.85f), null);
             Label(new Vector2(0f, 48.8f), "<color=#F48AE8>CUSTOMER DOOR</color>");
+            }
+            else
+            {
+                Outline(new Rect(-6,-6,12,12),TermMuted,2);
+                Label(new Vector2(0,5.6f),"CUSTOMER ENTRANCE");
+                Label(new Vector2(0,-3),"CONCOURSE LOUNGE");
+                Label(new Vector2(3,3),"SERVICE GRILLE >");
+            }
 
             foreach (MeetSpot spot in manager.Spots)
             {
@@ -355,7 +374,9 @@ namespace VentsAndVending.UI
                 {
                     continue;
                 }
-                Vector2 p = MapPoint(new Vector2(spot.transform.position.x, spot.transform.position.z));
+                if(spot.RoomMeeting)continue;
+                Vector3 position = _mapFrame != null ? _mapFrame.InverseTransformPoint(spot.transform.position) : spot.transform.position;
+                Vector2 p = MapPoint(new Vector2(position.x, position.z));
                 Image dot = UiFactory.Image(_map, $"Spot {spot.SpotId}", MeetSpot.RiskColor(spot.Risk), false);
                 if (UiTheme.Current != null && UiTheme.Current.Circle != null)
                 {
@@ -375,19 +396,20 @@ namespace VentsAndVending.UI
             MeetSpot spot = spotId != null ? manager.FindSpot(spotId) : null;
             if (spot == null)
             {
-                _spotTitle.text = "Meet spots";
+                _spotTitle.text = _mapFrame != null ? "Find your customer" : "Meet spots";
                 var lines = new System.Text.StringBuilder();
                 foreach (MeetSpot s in manager.Spots)
                 {
                     if (s != null)
                     {
-                        lines.Append($"<color=#{ColorUtility.ToHtmlStringRGB(MeetSpot.RiskColor(s.Risk))}>●</color> <b>{s.SpotId}</b> {s.DisplayName} · {s.Risk} risk\n");
+                        if(s.RoomMeeting){if(lines.Length==0)lines.Append("Meet me in the lounge. Match the mugshot and name among passengers.\n");}
+                        else lines.Append($"<color=#{ColorUtility.ToHtmlStringRGB(MeetSpot.RiskColor(s.Risk))}>●</color> <b>{s.SpotId}</b> {s.DisplayName} · {s.Risk} risk\n");
                     }
                 }
                 _spotHint.text = lines.ToString();
                 return;
             }
-            _spotTitle.text = $"{spot.SpotId} · {spot.DisplayName}  <size=75%><color=#{ColorUtility.ToHtmlStringRGB(MeetSpot.RiskColor(spot.Risk))}>{spot.Risk} risk</color></size>";
+            _spotTitle.text = spot.RoomMeeting ? spot.DisplayName : $"{spot.SpotId} · {spot.DisplayName}  <size=75%><color=#{ColorUtility.ToHtmlStringRGB(MeetSpot.RiskColor(spot.Risk))}>{spot.Risk} risk</color></size>";
             _spotHint.text = spot.Hint;
         }
 
@@ -402,9 +424,11 @@ namespace VentsAndVending.UI
             trigger.triggers.Add(exit);
         }
 
-        private static Vector2 MapPoint(Vector2 world) => new Vector2(
-            (world.x - PlazaArea.xMin) / PlazaArea.width * MapWidth,
-            (world.y - PlazaArea.yMin) / PlazaArea.height * MapHeight);
+        private Vector2 MapPoint(Vector2 world)
+        {
+            Rect area = _mapFrame != null ? _mapArea : PlazaArea;
+            return new Vector2((world.x-area.xMin)/area.width*MapWidth,(world.y-area.yMin)/area.height*MapHeight);
+        }
 
         private void Block(Rect world, Color colour, string label)
         {
@@ -492,7 +516,7 @@ namespace VentsAndVending.UI
             UiFactory.Place(divider.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(1018f, -74f), new Vector2(2f, 824f));
 
             // Right: map + spot card
-            TextMeshProUGUI mapTitle = UiFactory.Label(w, "MapTitle", "Central Plaza", TermMuted);
+            TextMeshProUGUI mapTitle = UiFactory.Label(w, "MapTitle", _mapFrame != null ? "Concourse Lounge" : "Central Plaza", TermMuted);
             UiFactory.Place(mapTitle.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -96f), new Vector2(MapWidth, 24f));
             Image mapBg = UiFactory.Panel(w, "Map", new Color(0.05f, 0.086f, 0.067f, 1f), 0f, 14f);
             UiFactory.Place(mapBg.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -128f), new Vector2(MapWidth + 20f, MapHeight + 20f));
@@ -510,7 +534,7 @@ namespace VentsAndVending.UI
             _spotHint = UiFactory.Text(info.transform, "Hint", string.Empty, 17f, TextAlignmentOptions.TopLeft, new Color(0.66f, 0.76f, 0.69f));
             UiFactory.Place(_spotHint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -50f), new Vector2(MapWidth - 16f, 110f));
 
-            TextMeshProUGUI hint = UiFactory.Label(w, "Hint", "Accept · make the product · meet them at the lit spot while they wait", TermMuted, TextAlignmentOptions.Center);
+            TextMeshProUGUI hint = UiFactory.Label(w, "Hint", _mapFrame != null ? "Accept · make the product · find the face and name in the lounge" : "Accept · make the product · meet them at the lit spot while they wait", TermMuted, TextAlignmentOptions.Center);
             UiFactory.Place(hint.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-30f, 22f), new Vector2(MapWidth + 20f, 50f));
             hint.textWrappingMode = TextWrappingModes.Normal;
             return canvas.gameObject;

@@ -110,7 +110,7 @@ namespace VentsAndVending.Orders
             {
                 return $"Already juggling {OrderRules.MaxActiveOrders} deals";
             }
-            if (IsSpotBusy(order.SpotId))
+            if (!order.RoomMeeting && IsSpotBusy(order.SpotId))
             {
                 return $"Spot {order.SpotId} is already booked";
             }
